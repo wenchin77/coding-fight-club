@@ -3,7 +3,12 @@ const app = express();
 const cors = require('cors');
 const AppError = require('./util/appError.js');
 const socket = require('./socket');
+const path = require('path');
 
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 app.use(express.static('public'));
 // const cst=require("./util/constants.js");
@@ -23,7 +28,7 @@ app.get('/', (req, res) => {
 
 // match page
 app.get('/match', (req, res) => {
-  res.sendFile(__dirname + "/views/match.html");
+  res.render('match');
 });
 
 

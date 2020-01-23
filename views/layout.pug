@@ -1,0 +1,59 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    meta(name='description' content='A live competition app for engineers to sharpen their skills')
+    title Coding Fight Club
+    link(rel='stylesheet' type='text/css' href='../css/index.css' media='all')
+    script(src='/socket.io/socket.io.js')
+  body
+    .wrapper
+      header.header
+        .nav-bar
+          a(href='/')
+            ul.codingfightclub
+              li 
+                img.logo(src='../img/fight.png', alt='Coding Fight Club Logo')
+              li Coding Fight Club
+          div
+            ul.nav-cat
+              li
+                a(href='') About
+              li |
+              li
+                a(href='') Match
+              li |
+              li
+                a(href='') Leaderboard
+          .nav-member
+            a(href='/profile.html')
+              img.profilelogo(src='../img/account.png')
+      section
+        block content
+      //- footer.footer
+      //-   div
+      //-     ul.footer-content
+      //-       li
+      //-         a(href='#') 關於Stylish
+      //-       li |
+      //-       li
+      //-         a(href='#') 服務條款
+      //-       li |
+      //-       li
+      //-         a(href='#') 隱私政策
+      //-       li |
+      //-       li
+      //-         a(href='#') 聯絡我們
+      //-       li |
+      //-       li
+      //-         a(href='#') FAQ
+      //-   .social-icon
+      //-     a(href='#')
+      //-       img(src='../images/line.png')
+      //-     a(href='#')
+      //-       img(src='../images/twitter.png')
+      //-     a(href='#')
+      //-       img(src='../images/facebook.png')
+      //-   .rights
+      //-     p © 2018. All rights reserved.

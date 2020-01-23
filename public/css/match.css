@@ -1,9 +1,0 @@
-.socket { margin: 0; padding: 0; box-sizing: border-box; }
-body { font: 13px Helvetica, Arial; }
-.socket { background: #000; padding: 3px; height: 60%; width: 50%; }
-.socket textarea { border: 0; padding: 10px; width: 90%; height: 80%; }
-.socket button { width: 15%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-#testcase { display: none;}
-#testcase, #runCodeResult { background: #ffffff;; border: 0; padding: 10px; width: 90%; height: 20%; margin: 0; white-space: pre-wrap; }
-/* #messages li { padding: 5px 10px; } */
-/* #messages li:nth-child(odd) { background: #eee; } */

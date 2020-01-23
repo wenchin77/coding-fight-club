@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  .matchPageSections
+    .titleSection
+      .description You're playing CycleRotation CycleRotation CycleRotation with Ethan in JavaScript
+      .timer Time: XX:XX:XX
+      button#submitBtn(type='button' onclick='') Submit
+      button#helpBtn(type='button' onclick='') Help
+      button#exitBtn(type='button' onclick='') Exit
+    .contentSection
+      .leftSection
+        .questionArea
+          .sectionName Question
+          #question Here's a question
+
+        .opponentTerminal
+          .sectionName Opponent's Test Output
+          #opponentRunCodeResult I'm the result
+
+      .rightSection
+        .codearea
+          .sectionName Your Solution
+          textarea#codearea(rows='25' cols='200') // Write your code here
+        .terminalResult 
+          button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
+          button#runcodeBtn(type='button' onclick='runCode()') Run Code    
+          #runCodeResult
+          #testCaseArea
+            textarea#testcase(rows='5' cols='200')
+  script(src='../js/match.js')
+
+
+
