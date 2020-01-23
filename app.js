@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
-const router = express.Router();
+const cors = require('cors');
+const AppError = require('./util/appError.js');
+const socket = require('./socket');
+
 
 app.use(express.static('public'));
 // const cst=require("./util/constants.js");
@@ -8,38 +11,35 @@ const bodyparser=require("body-parser");
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended:true}));
 
+// Allow Cross-Origin requests
+app.use(cors());
 
-app.get('/', function (req, res) {
+
+
+app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
+
 // match page
-app.get('/match', function(req, res){
-  res.sendFile(__dirname + '/public/match.html');
-});
-
-// socket io settings for live demo
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-
-io.on('connection', (socket) => {
-  console.log('Socket: a user connected');
-  socket.on('disconnect', () => {
-    console.log('Socket: user disconnected');
-  });
+app.get('/match', (req, res) => {
+  res.sendFile(__dirname + "/views/match.html");
 });
 
 
-io.on('connection', (socket) => {
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-    console.log(msg);
-  });
+
+// Routes
+// app.use('/api/v1/user', userRoutes);
+
+// handle undefined Routes
+app.use('*', (req, res, next) => {
+  const err = new AppError(404, 'fail', 'undefined route');
+  next(err, req, res, next);
 });
 
 
-http.listen(3000, function () {
+const server = app.listen(3000, () => {
   console.log('App running on port 3000!');
 });
 
-module.exports = router;
+socket.init(server);
