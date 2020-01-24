@@ -1,9 +1,9 @@
 // socket.io setup for live demo
-
+const socketio = require('socket.io');
 const socket = {};
 
 socket.init = (server) => {
-    const io = require('socket.io').listen(server);
+    const io = socketio.listen(server);
     io.on("connection", socket => {
       console.log("Socket: a user connected");
       socket.on("code", msg => {

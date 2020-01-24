@@ -26,10 +26,15 @@ app.get('/', (req, res) => {
 });
 
 
-// match page
 app.get('/match', (req, res) => {
   res.render('match');
 });
+
+app.get('/signin', (req, res) => {
+  res.render('signin');
+});
+
+
 
 
 

@@ -38,7 +38,6 @@ button {
   width: 100%;
 }
 
-
 p {
   color: grey;
 }
@@ -52,7 +51,7 @@ footer p {
   display: flex;
   flex-direction: column;
   margin-top: 15px;
-  margin-bottom: 12px;
+  /* margin-bottom: 12px; */
 }
 
 .nav-bar,
@@ -189,8 +188,9 @@ footer a:link {
   flex: 4;
 }
 
+.level,
 .timer {
-  flex: 1.2;
+  flex: 1;
 }
 
 #submitBtn,
@@ -201,8 +201,12 @@ footer a:link {
   background-color: #444444;
 }
 
-.description, .timer, #submitBtn, #exitBtn, #helpBtn {
+.description, .level, .timer {
   margin-left: 8px;
+  margin-right: 8px;
+}
+
+#submitBtn, #exitBtn, #helpBtn {
   margin-right: 8px;
 }
 

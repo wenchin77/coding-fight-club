@@ -23,7 +23,7 @@ function runCode() {
   // send code to server
   const codeareaValue = document.getElementById("codearea").value;
   socket.emit('code', codeareaValue);
-  // send test case to server (if any)
+  // send test case to server
   const testcaseValue = document.getElementById("testcase").value;
   socket.emit('test', testcaseValue);
 };
@@ -36,3 +36,12 @@ function showTestCase() {
   document.getElementById("runCodeResult").style.display = "none";
   document.getElementById("runcodeBtn").style.background = "#222222";
 }
+
+function exitMatch() {
+  if (window.confirm('Are you sure you want to exit the match? You will lose if you do so :(')){
+    window.location.pathname='/';
+    alert('You exited the match!')
+  }
+}
+
+
