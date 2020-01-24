@@ -3,7 +3,8 @@ extends layout
 block content
   .matchPageSections
     .titleSection
-      .description You're playing CycleRotation with Ethan
+      .matchQuestion CycleRotation
+      .opponent Opponent: Ethan
       .level Level: Easy
       .timer Time: XX:XX
       button#submitBtn(type='button' onclick='') Submit
@@ -22,21 +23,19 @@ block content
       .rightSection
         .codearea
           .sectionName Your Solution
-          textarea#codearea(rows='25' cols='200') // Write your code here
+          textarea#codearea(rows='25' cols='200')
         .terminalResult 
           button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
           button#runcodeBtn(type='button' onclick='runCode()') Run Code    
           #runCodeResult
           #testCaseArea
             textarea#testcase(rows='5' cols='200')
-  script(src='../js/match.js')
-
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
 
   script.
-    CodeMirror.fromTextArea(document.getElementById('codearea', 'testcase'), {
+    const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('codearea'), {
       lineNumbers: true,
       mode: "javascript",
       theme: "base16-dark"
@@ -45,6 +44,9 @@ block content
   //-   CodeMirror.fromTextArea(document.getElementById('testcase'), {
   //-     lineNumbers: false,
   //-   });
+
+  script(src='../js/match.js')
+
 
 
 

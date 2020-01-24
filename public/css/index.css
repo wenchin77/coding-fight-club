@@ -184,10 +184,8 @@ footer a:link {
   align-items: center;
 }
 
-.description {
-  flex: 4;
-}
-
+.matchQuestion,
+.opponent,
 .level,
 .timer {
   flex: 1;
@@ -196,12 +194,12 @@ footer a:link {
 #submitBtn,
 #exitBtn,
 #helpBtn {
-  flex: 0.5;
+  flex: 0.4;
   border: none;
   background-color: #444444;
 }
 
-.description, .level, .timer {
+.matchQuestion, .opponent, .level, .timer {
   margin-left: 8px;
   margin-right: 8px;
 }
