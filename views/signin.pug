@@ -1,10 +1,10 @@
 extends layout
 
 block content
-  .signin-container
+  .signin-container Sign In
     p What's your name? (temp login)
     input#signinName(type='text' name='Name')
-    button#signinBtn(type='button' onclick='tempSignin()') Send
+    .signin-button
+      button#signinBtn(type='button' onclick='tempSignin()') Send
+
   script(src='../js/signin.js')
-
-
