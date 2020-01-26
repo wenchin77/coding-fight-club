@@ -11,7 +11,7 @@ socket.init = (server) => {
     socket.on("codeObject", obj => {
       console.log("codeObject", obj);
       // 回傳
-      io.emit("codeResult", "I am your codeResult");
+      socket.emit("codeResult", "I am your codeResult");
     });
 
   
