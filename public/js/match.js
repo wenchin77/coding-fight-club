@@ -1,12 +1,12 @@
 const socket = io();
-// verify signin first (temp: user name only)
-if(!(localStorage.getItem('name'))) {
-  window.location.pathname = 'signin'
-} else {
-  socket.on('codeResult', function(msg){
+
+listenSocketMessage();
+
+function listenSocketMessage() {
+  socket.on('codeResult', function (msg) {
     console.log("Code Result: ", msg);
     // 每次都蓋掉上次的
-    document.getElementById('runCodeResult').innerHTML ='';
+    document.getElementById('runCodeResult').innerHTML = '';
     // let node = document.createElement('div');
     // let textnode = document.createTextNode(msg);
     // node.appendChild(textnode);
@@ -16,7 +16,7 @@ if(!(localStorage.getItem('name'))) {
   });
 }
 
-function runCode() {  
+function runCode() {
   // 隱藏 test case
   document.getElementById("testcase").style.display = "none";
   document.getElementById("testcaseBtn").style.background = "#222222";
@@ -37,7 +37,6 @@ function runCode() {
   };
 
   socket.emit('codeObject', payload);
-
 };
 
 function showTestCase() {
@@ -48,12 +47,3 @@ function showTestCase() {
   document.getElementById("runCodeResult").style.display = "none";
   document.getElementById("runcodeBtn").style.background = "#222222";
 }
-
-function exitMatch() {
-  if (window.confirm('Are you sure you want to exit the match? You will not gain any points if you do so :(')){
-    window.location.pathname='/';
-    alert('You exited the match!')
-  }
-}
-
-

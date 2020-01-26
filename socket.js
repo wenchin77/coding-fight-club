@@ -14,11 +14,10 @@ socket.init = (server) => {
       socket.emit("codeResult", "I am your codeResult");
     });
 
-  
     socket.on("test", msg => {
       console.log("test: ", msg);
     });
-  
+
     socket.on("disconnect", () => {
       console.log("Socket: user disconnected");
     });
