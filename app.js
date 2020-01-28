@@ -4,6 +4,8 @@ const cors = require('cors');
 const AppError = require('./util/appError.js');
 const socket = require('./socket');
 const path = require('path');
+// const userRoutes = require('./routes/userRoutes');
+const questionRoutes = require('./routes/questionRoutes');
 
 
 // view engine setup
@@ -43,6 +45,7 @@ app.get('/signup', (req, res) => {
 
 // Routes
 // app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/question', questionRoutes);
 
 // handle undefined Routes
 app.use('*', (req, res, next) => {

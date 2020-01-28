@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Question Management - Coding Fight Club</title>
+<style>
+body{
+	font-size:16px;
+	font-family:"Noto Sans TC", "微軟正黑體", "新細明體", arial, sans-serif;
+	color:#3f3a3a;line-height:2.5em;
+}
+textarea{
+	width:400px;height:100px;padding:5px;
+}
+input{
+	width:300px;padding:5px;
+}
+</style>
+</head>
+<body>
+	<h3>Add a New Question</h3>
+	<form method="post" action="/api/v1/question/insert">
+		Category <select name="category">
+			<option value="algorithms">Algorithms</option>
+			<option value="database">Database</option>
+      <option value="shell">Shell</option>
+      <option value="concurrency">Concurrency</option>
+    </select><br/>
+    Difficulty <select name="difficulty">
+			<option value="easy">Easy</option>
+			<option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+		</select><br/>
+		Question Name <input type="text" name="title" value="test"><br/>
+    Question Description<br/><textarea name="description">Test description</textarea><br/>
+    Question Code<br/><textarea name="code">// Write your code here</textarea><br/>
+		<br/>
+		<input type="submit" value="Create"/>
+	</form>
+</body>
+</html>
+
+
