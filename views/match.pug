@@ -12,6 +12,9 @@ block content
         label#hours 00
         div :
         label#minutes 00
+        div :
+        label#seconds 00
+        div
       button#submitBtn(type='button' onclick='') Submit
       button#helpBtn(type='button' onclick='') Help
       button#exitBtn(type='button' onclick='exitMatch()') Exit
@@ -51,26 +54,25 @@ block content
 
     // timer
     let hoursLabel = document.getElementById("hours");
-    var minutesLabel = document.getElementById("minutes");
-    var totalMinutes = 0;
-    setInterval(setTime, 60000);
+    let minutesLabel = document.getElementById("minutes");
+    let secondsLabel = document.getElementById("seconds");
+    let totalSeconds = 0;
+    setInterval(setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel), 1000);
 
-    function setTime() {
-      ++totalMinutes;
-      //- secondsLabel.innerHTML = pad(totalSeconds % 60);
-      minutesLabel.innerHTML = pad(totalMinutes % 60);
-      hoursLabel.innerHTML = pad(parseInt(totalMinutes / 60))
+    function setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel) {
+      return () => {
+        totalSeconds = totalSeconds + 1;
+        secondsLabel.innerHTML = pad(totalSeconds % 60);
+        minutesLabel.innerHTML = pad(parseInt((totalSeconds % 3600) / 60));
+        hoursLabel.innerHTML = pad(parseInt(totalSeconds / 3600))
+      }
     }
 
     function pad(val) {
-      var valString = val + "";
+      let valString = val + "";
       if (valString.length < 2) {
         return "0" + valString;
       } else {
         return valString;
       }
     }
-
-
-
-
