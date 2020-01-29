@@ -11,7 +11,7 @@ module.exports = {
       difficulty: req.body.difficulty,
       category: req.body.category
     };
-    let result = await questionModel.queryInsertQuestion(question);
+    const [rows, fields] = await questionModel.queryInsertQuestion(question);
     return question;
   },
   insertTest: async (req, res) => {
