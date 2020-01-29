@@ -32,6 +32,10 @@ app.get('/match', (req, res) => {
   res.render('match');
 });
 
+app.get('/match_setup', (req, res) => {
+  res.render('match_setup');
+});
+
 app.get('/signin', (req, res) => {
   res.render('signin');
 });
@@ -46,6 +50,7 @@ app.get('/signup', (req, res) => {
 // Routes
 // app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/question', questionRoutes);
+
 
 // handle undefined Routes
 app.use('*', (req, res, next) => {
