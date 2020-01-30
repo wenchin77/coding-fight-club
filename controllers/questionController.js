@@ -3,7 +3,7 @@ const AppError = require('../util/appError');
 const questionModel = require('../models/question')
 
 module.exports = {
-  insert_question: async (req, res) => {
+  insertQuestion: async (req, res) => {
     let question = {
       question_name: req.body.title,
       question_text: req.body.description,
@@ -14,7 +14,7 @@ module.exports = {
     let result = await questionModel.queryInsertQuestion(question);
     return question;
   },
-  insert_test: async (req, res) => {
+  insertTest: async (req, res) => {
     let test =  {
       question_id: req.body.question_id,
       test_data: req.body.test_data,

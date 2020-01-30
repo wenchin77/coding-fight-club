@@ -16,8 +16,18 @@ block content
       .rightSection
         .chooseQuestion Choose a question
         br
-        button.questionSetup#questionSetup Two Sum
-    button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
+        button.questionSetup#questionSetup(value='Two Sum') Two Sum
+    //- button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
+    
+    br
+    br
+    br
+    div Temp setup: Test vs. Ethan, question set as Two Sum
+    br
+    button#readyBtn(type='button' onclick='setUpAMatchTemp()') I'm ready! (temp)
+
+
+  script(src='../js/match_setup.js')
 
     //- .titleSection
     //-   .matchQuestion CycleRotation
@@ -50,7 +60,6 @@ block content
     //-         textarea#testcase(rows='5' cols='200')
 
 
-  script(src='../js/match_setup.js')
     
 
 

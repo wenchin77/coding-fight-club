@@ -42,15 +42,16 @@ block content
   script(src='../js/match.js')
 
   script.
+    // codemirror (syntax highlight & auto indent)
     const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('codearea'), {
       lineNumbers: true,
       mode: "javascript",
       theme: "base16-dark"
     });
 
+    // timer
     let hoursLabel = document.getElementById("hours");
     var minutesLabel = document.getElementById("minutes");
-    //- var secondsLabel = document.getElementById("seconds");
     var totalMinutes = 0;
     setInterval(setTime, 60000);
 

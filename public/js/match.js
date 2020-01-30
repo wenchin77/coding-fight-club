@@ -1,20 +1,28 @@
 const socket = io();
-// verify signin first (temp: user name only)
+console.log('進入前端的 match.js')
+
+// verify signin first
 if(!(localStorage.getItem('name'))) {
   window.location.pathname = 'signin'
-} else {
-  socket.on('codeResult', function(msg){
-    console.log("Code Result: ", msg);
-    // 每次都蓋掉上次的
-    document.getElementById('runCodeResult').innerHTML ='';
-    // let node = document.createElement('div');
-    // let textnode = document.createTextNode(msg);
-    // node.appendChild(textnode);
-    // node.id = 'runCodeResult'
-    // document.getElementById('runCodeResult').appendChild(node);
-    document.getElementById('runCodeResult').innerHTML = msg;
-  });
-}
+};
+if (!(localStorage.getItem('match'))){
+  window.location.pathname = 'match_setup'
+};
+
+const userName = localStorage.getItem('name');
+
+// 傳給後端，在後端把用戶加入房間
+socket.on('connect', ()=> {
+  socket.emit('join_room', userName);
+})
+
+// 接收 codeResult 並顯示（每次都蓋掉上次的）
+socket.on('codeResult', (msg)=>{
+  console.log('前端拿到 code result');
+  document.getElementById('runCodeResult').innerHTML ='';
+  document.getElementById('runCodeResult').innerHTML = msg;
+});
+
 
 function runCode() {  
   // 隱藏 test case
@@ -24,19 +32,19 @@ function runCode() {
   document.getElementById("runCodeResult").style.display = "block";
   document.getElementById("runcodeBtn").style.background = "#555555";
 
-  // get name from localstorage & send to server
-  const userName = localStorage.getItem('name');
   // send code & test to server
   const codeareaValue = codemirrorEditor.getValue();
   const testcaseValue = document.getElementById("testcase").value;
+  const matchStartTime = JSON.parse(localStorage.getItem('match')).created_at;
+
 
   const payload = {
-    'name': userName,
-    'code': codeareaValue,
-    'test': testcaseValue
+    created_at: matchStartTime,
+    name: userName,
+    code: codeareaValue,
+    test: testcaseValue
   };
-
-  socket.emit('codeObject', payload);
+  socket.emit('codeObject', ({userName, payload}));
 
 };
 
@@ -56,4 +64,9 @@ function exitMatch() {
   }
 }
 
+function submitCode() {
+  // 第一個結束的人紀錄扣跟項目評分在 match_detail
+  // 第二個結束的人紀錄扣跟項目評分在 match_detail 和紀錄結束時間、贏家跟分數在 match
+  // 更新兩人的 user table (and level table if needed)
 
+}

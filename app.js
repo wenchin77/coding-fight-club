@@ -28,9 +28,19 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/match', (req, res) => {
-  res.render('match');
+// app.get('/match', (req, res) => {
+//   res.render('match');
+// });
+
+// room page
+app.get('/match/:roomID', (req, res) => {
+  let roomID = req.params.roomID;
+  res.render('match', {
+    roomID: roomID
+    // users: roomInfo[roomID]
+  });
 });
+
 
 app.get('/match_setup', (req, res) => {
   res.render('match_setup');

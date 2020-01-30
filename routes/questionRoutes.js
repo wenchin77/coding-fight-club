@@ -8,12 +8,12 @@ router.use(bodyparser.urlencoded({extended:true}));
 // 路徑是 /api/v1/question
 
 router.post('/insert_question', async (req, res)=> {
-  let data = await questionController.insert_question(req);
+  let data = await questionController.insertQuestion(req);
   res.send(`Question inserted: ${JSON.stringify(data)}`);
 });
 
 router.post('/insert_test', async (req, res)=> {
-  let data = await questionController.insert_test(req);
+  let data = await questionController.insertTest(req);
   res.send(`Test data inserted: ${JSON.stringify(data)}`);
 });
 
