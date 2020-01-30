@@ -40,6 +40,9 @@ function setUpAMatchTemp() {
   localStorage.setItem('match', JSON.stringify(data));
   // redirect to a room in match page (with room id)
   // 暫時以現在的時間代表 room id
+  if(!tempRoomID) {
+    tempRoomID = timeNowString();
+  };
   window.location.pathname= `match/${tempRoomID}`;
 }
 

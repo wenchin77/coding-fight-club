@@ -13,7 +13,7 @@ const userName = localStorage.getItem('name');
 
 // 傳給後端，在後端把用戶加入房間
 socket.on('connect', ()=> {
-  socket.emit('join_room', userName);
+  socket.emit('join', userName);
 })
 
 // 接收 codeResult 並顯示（每次都蓋掉上次的）

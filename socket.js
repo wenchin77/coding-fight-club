@@ -15,12 +15,12 @@ socket.init = (server) => {
     let splited = url.split('/');
     let roomID = splited[splited.length -1];
     let user ='';
-    socket.on('join_room', userName => {
+    socket.on('join', userName => {
       user = userName;
       // 把用戶加入房間名單
       if (!roomInfo[roomID]) {
         roomInfo[roomID] = [];
-      }
+      };
       roomInfo[roomID].push(user);
 
       // enter room
@@ -42,7 +42,8 @@ socket.init = (server) => {
         return false;
       }
 
-      socket.to(roomID).emit('codeResult', 'example result');
+      // send an event to everyone in the room including the sender
+      io.to(roomID).emit('codeResult', 'example result');
     })
 
 
