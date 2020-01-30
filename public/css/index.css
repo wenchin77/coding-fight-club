@@ -266,6 +266,16 @@ footer a:link {
 
 #testcaseBtn, .terminalResult {background: #222222;}
 
+/* Match setup page ------------------- */
+.timer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.timerImg {
+  width: 20px;
+}
+
 
 /* Profile page -------------------- */
 .signin-signup,

@@ -3,10 +3,15 @@ extends layout
 block content
   .matchPageSections
     .titleSection
-      .matchQuestion CycleRotation
+      .matchQuestion Two Sum
       .opponent Opponent: Ethan
       .level Level: Easy
-      .timer Time: XX:XX
+      .timer#timer
+        img.timerImg(src='../img/clock.png')
+        div
+        label#hours 00
+        div :
+        label#minutes 00
       button#submitBtn(type='button' onclick='') Submit
       button#helpBtn(type='button' onclick='') Help
       button#exitBtn(type='button' onclick='exitMatch()') Exit
@@ -14,7 +19,8 @@ block content
       .leftSection
         .questionArea
           .sectionName Question
-          #question Here's a question
+          #question Given an array of integers, return indices of the two numbers such that they add up to a specific target. You may assume that each input would have exactly one solution, and you may not use the same element twice.
+   
 
         .opponentTerminal
           .sectionName Opponent's Test Output
@@ -33,18 +39,38 @@ block content
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
+  script(src='../js/match.js')
 
   script.
+    // codemirror (syntax highlight & auto indent)
     const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('codearea'), {
       lineNumbers: true,
       mode: "javascript",
       theme: "base16-dark"
     });
-  //- script.
-  //-   CodeMirror.fromTextArea(document.getElementById('testcase'), {
-  //-     lineNumbers: false,
-  //-   });
 
-  script(src='../js/checkName.js')
-  script(src='../js/exitMatch.js')
-  script(src='../js/match.js')
+    // timer
+    let hoursLabel = document.getElementById("hours");
+    var minutesLabel = document.getElementById("minutes");
+    var totalMinutes = 0;
+    setInterval(setTime, 60000);
+
+    function setTime() {
+      ++totalMinutes;
+      //- secondsLabel.innerHTML = pad(totalSeconds % 60);
+      minutesLabel.innerHTML = pad(totalMinutes % 60);
+      hoursLabel.innerHTML = pad(parseInt(totalMinutes / 60))
+    }
+
+    function pad(val) {
+      var valString = val + "";
+      if (valString.length < 2) {
+        return "0" + valString;
+      } else {
+        return valString;
+      }
+    }
+
+
+
+

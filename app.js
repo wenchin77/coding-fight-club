@@ -4,6 +4,8 @@ const cors = require('cors');
 const AppError = require('./util/appError.js');
 const socket = require('./socket');
 const path = require('path');
+// const userRoutes = require('./routes/userRoutes');
+const questionRoutes = require('./routes/questionRoutes');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,8 +24,23 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.get('/match', (req, res) => {
-  res.render('match');
+
+// app.get('/match', (req, res) => {
+//   res.render('match');
+// });
+
+// room page
+app.get('/match/:roomID', (req, res) => {
+  let roomID = req.params.roomID;
+  res.render('match', {
+    roomID: roomID
+    // users: roomInfo[roomID]
+  });
+});
+
+
+app.get('/match_setup', (req, res) => {
+  res.render('match_setup');
 });
 
 app.get('/signin', (req, res) => {
@@ -36,6 +53,8 @@ app.get('/signup', (req, res) => {
 
 // Routes
 // app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/question', questionRoutes);
+
 
 // handle undefined Routes
 app.use('*', (req, res, next) => {
