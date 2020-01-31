@@ -24,7 +24,6 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
-
 // app.get('/match', (req, res) => {
 //   res.render('match');
 // });
@@ -37,7 +36,6 @@ app.get('/match/:roomID', (req, res) => {
     // users: roomInfo[roomID]
   });
 });
-
 
 app.get('/match_setup', (req, res) => {
   res.render('match_setup');
@@ -54,7 +52,6 @@ app.get('/signup', (req, res) => {
 // Routes
 // app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/question', questionRoutes);
-
 
 // handle undefined Routes
 app.use('*', (req, res, next) => {

@@ -17,7 +17,6 @@ function setUpAMatch() {
 
 };
 
-
 let tempRoomID;
 
 // Temp 測試用：寫死 opponent, question
@@ -45,7 +44,6 @@ function setUpAMatchTemp() {
   };
   window.location.pathname= `match/${tempRoomID}`;
 }
-
 
 // to be updated
 function getLink() {
