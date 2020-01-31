@@ -1,42 +1,17 @@
 const mysql = require("../util/mysql.js");
 
-const queryInsertQuestion = question => {
-  return new Promise((resolve, reject) => {
-    mysql.con.query(
-      'INSERT INTO question SET ?',
-      question,
-      (err, rows, fields) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
-  });
+function queryInsertQuestion(question) {
+  return mysql.con.query('INSERT INTO question SET ?', question);
 };
 
-const queryInsertTest = test => {
-  return new Promise((resolve, reject) => {
-    mysql.con.query(
-      'INSERT INTO test SET ?',
-      test,
-      (err, rows, fields) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
-  });
-};
+function queryInsertTest(test) {
+  return mysql.con.query('INSERT INTO test SET ?', test);
+}
 
-const querySelectAllQuestion = () => {
-  return new Promise((resolve, reject) => {
-    mysql.con.query(
-      'SELECT * FROM question',
-      (err, rows, fields) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
-  });
-};
+function querySelectAllQuestion() {
+  return mysql.con.query('SELECT * FROM question');
+}
+
 
 module.exports = { 
   queryInsertQuestion,

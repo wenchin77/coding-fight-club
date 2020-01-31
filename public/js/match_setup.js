@@ -1,4 +1,4 @@
-const socket = io();
+// const socket = io();
 
 function setUpAMatch() {
   // 設定一個 match 的 object 裡面有 match id, user A, user B, question
@@ -24,15 +24,7 @@ function setUpAMatchTemp() {
   if(!tempRoomID) {
     tempRoomID = timeNowString();
   };
-
-  const matchData = {
-    'room_id': tempRoomID,
-    'user': userName,
-    'question': question
-  };
-
-  socket.emit('matchSetup', matchData);
-  window.location.pathname= `match/${tempRoomID}`;
+  window.location = `match/${tempRoomID}?question=${question}`;
 }
 
 
