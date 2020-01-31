@@ -4,6 +4,7 @@
   "description": "A live competition app for engineers to sharpen their skills",
   "main": "app.js",
   "scripts": {
+    "app": "MYSQL_HOST=127.0.0.1 MYSQL_USER=user MYSQL_PASSWORD=password MYSQL_DATABASE=db node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Wenchin Chuang",
