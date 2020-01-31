@@ -1,3 +1,5 @@
+const socket = io();
+
 function setUpAMatch() {
   // 設定一個 match 的 object 裡面有 match id, user A, user B, question
   // 進入本頁就生出一組 param 讓他可以 send link to invite a friend
@@ -7,42 +9,29 @@ function setUpAMatch() {
   let opponentName;
   const question = document.getElementById("questionSetup").value;
 
-  const data = {
-    'created_at': new Date(),
-    'user_1': userName,
-    'user_2': opponentName,
-    'question': question
-  };
-  socket.emit('matchObject', data);
-
 };
 
 
 let tempRoomID;
 
-// Temp 測試用：寫死 opponent, question
+// Temp 測試用
 function setUpAMatchTemp() {
   const userName = localStorage.getItem('name');
-  let opponentName;
-  if (userName === 'Ethan') {
-    opponentName = 'Test';
-  } else {
-    opponentName = 'Ethan'
-  }
   const question = document.getElementById("questionSetup").value;
 
-  const data = {
-    'user_1': userName,
-    'user_2': opponentName,
-    'question': question
-  };
-  // Set match details to localstorage
-  localStorage.setItem('match', JSON.stringify(data));
   // redirect to a room in match page (with room id)
   // 暫時以現在的時間代表 room id
   if(!tempRoomID) {
     tempRoomID = timeNowString();
   };
+
+  const matchData = {
+    'room_id': tempRoomID,
+    'user': userName,
+    'question': question
+  };
+
+  socket.emit('matchSetup', matchData);
   window.location.pathname= `match/${tempRoomID}`;
 }
 

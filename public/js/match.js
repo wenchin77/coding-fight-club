@@ -1,26 +1,28 @@
 const socket = io();
-console.log('進入前端的 match.js')
+let matches = [];
 
 // verify signin first
 if(!(localStorage.getItem('name'))) {
   window.location.pathname = 'signin'
 };
-if (!(localStorage.getItem('match'))){
-  window.location.pathname = 'match_setup'
-};
 
 const userName = localStorage.getItem('name');
 
 // 傳給後端，在後端把用戶加入房間
-socket.on('connect', ()=> {
+socket.on('connect', () => {
   socket.emit('join', userName);
 })
 
+socket.on('match', (roomID) => {
+  matches.push(roomID);
+})
+
 // 接收 codeResult 並顯示（每次都蓋掉上次的）
-socket.on('codeResult', (msg)=>{
+socket.on('codeResult', (msg) =>{
   console.log('前端拿到 code result');
   document.getElementById('runCodeResult').innerHTML ='';
   document.getElementById('runCodeResult').innerHTML = msg;
+  console.log('matches: ', matches);
 });
 
 
@@ -35,18 +37,19 @@ function runCode() {
   // send code & test to server
   const codeareaValue = codemirrorEditor.getValue();
   const testcaseValue = document.getElementById("testcase").value;
-  const matchStartTime = JSON.parse(localStorage.getItem('match')).created_at;
 
-
-  const payload = {
-    created_at: matchStartTime,
+  let payload = {
     name: userName,
     code: codeareaValue,
     test: testcaseValue
   };
-  socket.emit('codeObject', ({userName, payload}));
+  console.log(payload);
+  socket.emit('codeObject', payload);
 
 };
+
+
+
 
 function showTestCase() {
   // 顯示 test case
@@ -60,7 +63,8 @@ function showTestCase() {
 function exitMatch() {
   if (window.confirm('Are you sure you want to exit the match? You will not gain any points if you do so :(')){
     window.location.pathname='/';
-    alert('You exited the match!')
+    alert('You exited the match!');
+    socket.emit('exit');
   }
 }
 
