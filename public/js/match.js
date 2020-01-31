@@ -1,5 +1,4 @@
 const socket = io();
-let matches = [];
 
 // verify signin first
 if(!(localStorage.getItem('name'))) {
@@ -11,18 +10,26 @@ const userName = localStorage.getItem('name');
 // 傳給後端，在後端把用戶加入房間
 socket.on('connect', () => {
   socket.emit('join', userName);
+});
+
+socket.on('questionData', (questionName, questionDescription, questionCode) => {
+  document.getElementById('matchQuestion').innerHTML = questionName;
+  document.getElementById('question').innerHTML = questionDescription;
+  codemirrorEditor.setValue(questionCode);
 })
 
-socket.on('match', (roomID) => {
-  matches.push(roomID);
-})
 
 // 接收 codeResult 並顯示（每次都蓋掉上次的）
-socket.on('codeResult', (msg) =>{
-  console.log('前端拿到 code result');
-  document.getElementById('runCodeResult').innerHTML ='';
-  document.getElementById('runCodeResult').innerHTML = msg;
-  console.log('matches: ', matches);
+socket.on('codeResult', (resultObj) =>{
+  // 顯示自己的結果在自己的 terminal
+  if(resultObj.user === userName) {
+    document.getElementById('runCodeResult').innerHTML ='';
+    document.getElementById('runCodeResult').innerHTML = resultObj.result;
+    return;
+  }
+  // 顯示別人的結果在自己的 terminal
+  document.getElementById('opponentRunCodeResult').innerHTML ='';
+  document.getElementById('opponentRunCodeResult').innerHTML = resultObj.result;
 });
 
 
@@ -39,11 +46,9 @@ function runCode() {
   const testcaseValue = document.getElementById("testcase").value;
 
   let payload = {
-    name: userName,
     code: codeareaValue,
     test: testcaseValue
   };
-  console.log(payload);
   socket.emit('codeObject', payload);
 
 };
