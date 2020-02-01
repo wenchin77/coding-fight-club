@@ -1,12 +1,11 @@
 const fs = require("fs");
 
 // child process setup for code execution
-const { execFile } = require('child_process');
+const execFileSync = require('child_process').execFile;
 
 // socket.io setup for live demo
 const socketio = require('socket.io');
 const socket = {};
-let user;
 
 socket.init = (server) => {
   const io = socketio.listen(server);
@@ -14,10 +13,10 @@ socket.init = (server) => {
   const rooms = {};
   // 空的物件準備接所有 match 的內容: each room's latest code & test
   const matches = {};
+  let user;
 
   io.on("connection", socket => {
-    console.log("Socket: a user connected");
-
+    console.log('Socket: a user connected!');
     // get roomID: 取網址中的參數（暫時由前端設定為現在的時間字串）當作房間號碼
     let url = socket.request.headers.referer;
     let urlSplitedBySlash = url.split('/');
@@ -29,8 +28,13 @@ socket.init = (server) => {
     let urlParamContent = url.split('=');
     let question = urlParamContent[urlParamContent.length - 1];
     let questionCodeConst = 'twoSum';
+    // 之後改成去 db 撈完問題內容丟出 question
+    questionObject = {
+      question: question,
+      description: 'Given an array of integers, return indices of the two numbers such that they add up to a specific target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
+      code: 'var twoSum = function(nums, target) {};'
+    }
     
-    // 聽到前端丟來的 join 訊息就開一個房間，把 user 丟進去
     socket.on('join', userName => {
       user = userName;
       // 把用戶加入房間名單
@@ -38,60 +42,42 @@ socket.init = (server) => {
         rooms[roomID] = [];
       };
       // +++ 如果超過兩人就不讓用戶進來
-      // if(!rooms[roomID])
       rooms[roomID].push(user);
 
-      // enter room
+      // join room
       socket.join(roomID, () => {
         console.log('Room:', user + ' 加入了 ' + roomID);
         console.log('rooms:', rooms);
-
-        // 之後改成去 db 撈完問題內容丟出 question
-        questionObject = {
-          question: question,
-          description: 'Given an array of integers, return indices of the two numbers such that they add up to a specific target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
-          code: 'var twoSum = function(nums, target) {};'
-        }
+        // 跟前端說 question 是啥
         io.to(roomID).emit('questionData', questionObject);
 
         // +++ 寫進 db match table (先檢查有沒有這筆 match 的資料決定 create OR update)
       });
+      
     });
 
     // 點 Run Code 會把內容放到 matches，每按一次就顯示在雙方的 terminal
-    socket.on('codeObject', data => {
-      let code = data.code;      
-      let test = data.test;
+    socket.on('codeObject', async (data) => {
+      let user = data.user;
       matches[roomID] = {
         question: question,
         codeConst: questionCodeConst,
-        user: user,
-        code: code,
-        test: test
+        user: data.user,
+        code: data.code,
+        test: data.test
       };
       console.log('matches', matches);
-      let result = runCode(matches[roomID]);
 
-
-      // 只發給在房間裡的用戶
-      if (rooms[roomID].indexOf(user) === -1) {  
-        return false;
-      };
-
-
+      // Run code in child process
+      let result = await runCode(matches[roomID]);
       // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
       let codeResult = {
         user: user,
         result: result
-      }
-
+      };
+      console.log('codeResult', codeResult);
       // send an event to everyone in the room including the sender
       io.to(roomID).emit('codeResult', codeResult);
-    });
-
-  
-    socket.on("test", msg => {
-      console.log("test: ", msg);
     });
 
 
@@ -99,7 +85,7 @@ socket.init = (server) => {
       socket.emit('disconnect');
     });
 
-
+    // BUG: user 會抓錯 ==========================
     socket.on('disconnect', () => {
       console.log('Socket: a user disconnected')
       // 把人從房間移除
@@ -119,66 +105,49 @@ socket.init = (server) => {
 }
 
 
-function runCode(match) {
+async function runCode(match) {
+  let user = match.user;
   let code = match.code;
   let testAll = match.test; // 待處理: 拆成一行一個測試資料，最多五行
   let codeConst = match.codeConst;
-  console.log('code ====== ', code);
-  console.log('testAll ====== ', testAll);
-  console.log('code const ====== ', codeConst);
   let test = testAll.split('\n');
-  console.log('test ====== ', test[0]);
+  // 組合起來：先跑第 0 個等等加上
+  let finalCode = `${code}\n\nconsole.log(${codeConst}(${test[0]}))`
+  console.log('==============================')
+  // console.log('code ====== ', code);
+  // console.log('testAll ====== ', testAll);
+  // console.log('code const ====== ', codeConst);
+  // console.log('test[0] ====== ', test[0]);
+  console.log('finalCode ======', finalCode);
+  console.log('==============================');
 
-
-  let finalCode = `${code}\n${codeConst}(${test[0]})`
-  console.log(finalCode);
-
-  // 按不同 user 存到 ./sessions
+  // 按不同 user 存到 ./sessions js files
   let file = fs.openSync(`./sessions/${user}.js`, 'w');
   fs.writeSync(file, finalCode, encoding='utf-8');
   
   // 在跑各自的資料夾中的子程序
+  let childResult = await childProcessExecFile(user);
+  console.log('childResult ===', childResult);
+  console.log(typeof childResult);
 
-  // // run user's code with user's test cases
-  // // send back result & passed or not
-  // const child = ('cd sessions');
-  // child.on('exit', (code) => {
-  //   console.log(`Child process exited with code ${code}`);
-  // });
-  // child.stdout.on('data', (data) => {
-  //     console.log(`Child process --- stdout: ${data}`);
-  // });
-  // child.stderr.on('data', (data) => {
-  //     console.log(`Child process --- stderr: ${data}`);
-  // });
-
-  const child = execFile(`sessions/${user}.js`, [], (error, stdout, stderr) => {
-    if (error) {
-      throw error;
-    }
-    console.log(stdout);
-  });
-
-  
-  let result;
-  return result;
+  return childResult;
 };
 
 
 
-// const child_process = require('child_process');
-// for(var i=0; i<3; i  ) {
-//   var childProcess = child_process.spawn('node', ['node-childPro-spawn.js', i]);  
-//   childProcess.stdout.on('data', function (data) {
-//     console.log('stdout: '   data);
-//   });
-//   childProcess.stderr.on('data', function (data) {
-//     console.log('stderr: '   data);
-//   });
-//   childProcess.on('close', function (code) {
-//     console.log('子程序已退出，退出碼 ' code);
-//   });
-// }
+function childProcessExecFile(user) {
+  return new Promise ((resolve, reject) => {
+    const child = execFileSync('node', [`sessions/${user}.js`], (error, stdout, stderr) => {
+      if (error) {
+          console.error('stderr', stderr);
+          reject(error);
+      }
+      console.log('stdout', stdout);
+      resolve(stdout);
+    });
+  }) 
+}
+
 
 
 

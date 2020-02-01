@@ -9,11 +9,12 @@ const userName = localStorage.getItem('name');
 
 // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
 socket.on('connect', () => {
+  console.log(userName + ' 的 socket on connect 了！！！！')
   socket.emit('join', userName);
 });
 
-// 拿到 questionData 顯示在前端
-socket.on('questionData', questionObject => {
+// 拿到 questionData 顯示在前端 (once: 只有第一次拿到做，之後不動作)
+socket.once('questionData', questionObject => {
   document.getElementById('matchQuestion').innerHTML = questionObject.question;
   document.getElementById('question').innerHTML = questionObject.description;
   codemirrorEditor.setValue(questionObject.code);
@@ -22,14 +23,13 @@ socket.on('questionData', questionObject => {
 
 // 接收 codeResult 並顯示（每次都蓋掉上次的）
 socket.on('codeResult', (resultObj) =>{
+  console.log(resultObj.user+' 的 codeResult 收到！！')
   // 顯示自己的結果在自己的 terminal
   if(resultObj.user === userName) {
-    document.getElementById('runCodeResult').innerHTML ='';
     document.getElementById('runCodeResult').innerHTML = resultObj.result;
     return;
   }
   // 顯示別人的結果在自己的 terminal
-  document.getElementById('opponentRunCodeResult').innerHTML ='';
   document.getElementById('opponentRunCodeResult').innerHTML = resultObj.result;
 });
 
@@ -47,6 +47,7 @@ function runCode() {
   const testcaseValue = document.getElementById("testcase").value;
 
   let payload = {
+    user: userName,
     code: codeareaValue,
     test: testcaseValue
   };
@@ -70,7 +71,7 @@ function exitMatch() {
   if (window.confirm('Are you sure you want to exit the match? You will not gain any points if you do so :(')){
     window.location.pathname='/';
     alert('You exited the match!');
-    socket.emit('exit');
+    socket.emit('exit', userName);
   }
 }
 

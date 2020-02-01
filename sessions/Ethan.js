@@ -1,2 +1,3 @@
-var twoSum = function(nums, target) {};
-twoSum([1,2,3,7],5)
+var twoSum = function(nums, target) {return 111};
+
+console.log(twoSum())
