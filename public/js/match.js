@@ -2,10 +2,27 @@ const socket = io();
 // verify signin first (temp: user name only)
 if(!(localStorage.getItem('name'))) {
   window.location.pathname = 'signin'
-} else {
-  socket.on('codeResult', function(msg){
-    console.log("Code Result: ", msg);
-    // 每次都蓋掉上次的
+};
+
+const userName = localStorage.getItem('name');
+
+// 連上以後傳 join 訊息給後端，在後端把用戶加入房間
+socket.on('connect', () => {
+  socket.emit('join', userName);
+});
+
+// 拿到 questionData 顯示在前端
+socket.on('questionData', questionObject => {
+  document.getElementById('matchQuestion').innerHTML = questionObject.question;
+  document.getElementById('question').innerHTML = questionObject.description;
+  codemirrorEditor.setValue(questionObject.code);
+})
+
+
+// 接收 codeResult 並顯示（每次都蓋掉上次的）
+socket.on('codeResult', (resultObj) =>{
+  // 顯示自己的結果在自己的 terminal
+  if(resultObj.user === userName) {
     document.getElementById('runCodeResult').innerHTML ='';
     // let node = document.createElement('div');
     // let textnode = document.createTextNode(msg);
