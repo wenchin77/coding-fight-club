@@ -262,7 +262,7 @@ footer a:link {
   display: none;
 }
 
-.rightSection button { width: 20%; background: #555555; border: none; padding: 10px; }
+.rightSection button { width: 30%; background: #555555; border: none; padding: 10px; }
 
 #testcaseBtn, .terminalResult {background: #222222;}
 

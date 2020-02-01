@@ -11,27 +11,21 @@ socket.init = (server) => {
   const io = socketio.listen(server);
   // 空的物件準備接所有 room 的內容
   const rooms = {};
-  // 空的物件準備接所有 match 的內容: each room's latest code & test
-  const matches = {};
   let user;
 
   io.on("connection", socket => {
     console.log('Socket: a user connected!');
+    
     // get roomID: 取網址中的參數（暫時由前端設定為現在的時間字串）當作房間號碼
     let url = socket.request.headers.referer;
-    let urlSplitedBySlash = url.split('/');
-    let urlAfterLastSlash = urlSplitedBySlash[urlSplitedBySlash.length - 1];
-    let urlParam = urlAfterLastSlash.split('?');
-    let roomID = urlParam[urlParam.length - 2];
-    
+    let roomID = getRoomID(url);
     // get question
-    let urlParamContent = url.split('=');
-    let question = urlParamContent[urlParamContent.length - 1];
-    let questionCodeConst = 'twoSum';
+    let question = getQuestion(url);
     // 之後改成去 db 撈完問題內容丟出 question
-    questionObject = {
+    let questionCodeConst = 'twoSum'; // +++ get this from db
+    let questionObject = {
       question: question,
-      description: 'Given an array of integers, return indices of the two numbers such that they add up to a specific target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
+      description: 'Given an array of integers, return indices of the two numbers such that they add up to a specific target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\n\nExample:\n\nGiven nums = [2, 7, 11, 15], target = 9,\n\nBecause nums[0] + nums[1] = 2 + 7 = 9,\n\nreturn [0,1]',
       code: 'var twoSum = function(nums, target) {};'
     }
     
@@ -59,25 +53,36 @@ socket.init = (server) => {
     // 點 Run Code 會把內容放到 matches，每按一次就顯示在雙方的 terminal
     socket.on('codeObject', async (data) => {
       let user = data.user;
-      matches[roomID] = {
-        question: question,
-        codeConst: questionCodeConst,
-        user: data.user,
-        code: data.code,
-        test: data.test
-      };
-      console.log('matches', matches);
 
+      // // 按不同 user 存到 ./sessions js files
+      // let file = fs.openSync(`./sessions/${user}.js`, 'w');
+      // fs.writeSync(file, finalCode, encoding='utf-8');
+      
       // Run code in child process
-      let result = await runCode(matches[roomID]);
-      // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
-      let codeResult = {
-        user: user,
-        result: result
-      };
-      console.log('codeResult', codeResult);
-      // send an event to everyone in the room including the sender
-      io.to(roomID).emit('codeResult', codeResult);
+      try{
+        let finalCode = await createFinalCode(data, questionCodeConst);
+        let file = await createFile(user, finalCode);
+        
+        let childResult = await childProcessExecFile(user);
+        console.log('childResult ===', childResult);
+
+        // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
+        let codeResult = {
+          user: user,
+          result: childResult
+        };
+        console.log('codeResult', codeResult);
+        // send an event to everyone in the room including the sender
+        io.to(roomID).emit('codeResult', codeResult);
+
+      } catch (e) {
+        console.log('ERROR 底加 -----------> ', e)
+        let codeResult = {
+          user: user,
+          result: '[Error] please put in valid code and test data'
+        };
+        io.to(roomID).emit('codeResult', codeResult);
+      }
     });
 
 
@@ -105,34 +110,32 @@ socket.init = (server) => {
 }
 
 
-async function runCode(match) {
-  let user = match.user;
-  let code = match.code;
-  let testAll = match.test; // 待處理: 拆成一行一個測試資料，最多五行
-  let codeConst = match.codeConst;
-  let test = testAll.split('\n');
-  // 組合起來：先跑第 0 個等等加上
-  let finalCode = `${code}\n\nconsole.log(${codeConst}(${test[0]}))`
-  console.log('==============================')
-  // console.log('code ====== ', code);
-  // console.log('testAll ====== ', testAll);
-  // console.log('code const ====== ', codeConst);
-  // console.log('test[0] ====== ', test[0]);
-  console.log('finalCode ======', finalCode);
-  console.log('==============================');
-
-  // 按不同 user 存到 ./sessions js files
-  let file = fs.openSync(`./sessions/${user}.js`, 'w');
-  fs.writeSync(file, finalCode, encoding='utf-8');
+function createFinalCode(data, questionCodeConst){
+  return new Promise((resolve, reject) => {
+    let testAll = data.test;
+    let test = testAll.split('\n');
+    console.log('test[0]',test[0]);
   
-  // 在跑各自的資料夾中的子程序
-  let childResult = await childProcessExecFile(user);
-  console.log('childResult ===', childResult);
-  console.log(typeof childResult);
+    // put together the code for running
+    let finalCode = `${data.code}\n\nconsole.log('Output 1: '+${questionCodeConst}(${test[0]}));
+    console.log('Output 2: '+${questionCodeConst}(${test[1]}));
+    console.log('Output 3: '+${questionCodeConst}(${test[2]}));
+    console.log('Output 4: '+${questionCodeConst}(${test[3]}));
+    console.log('Output 5: '+${questionCodeConst}(${test[4]}));`
+    console.log('==============================')
+    console.log(finalCode);
+    console.log('==============================');
+    resolve(finalCode);
+  });
+}
 
-  return childResult;
-};
-
+function createFile(user, finalCode){
+  return new Promise((resolve, reject) => {
+    // 按不同 user 存到 ./sessions js files
+    let file = fs.openSync(`./sessions/${user}.js`, 'w');
+    resolve(fs.writeSync(file, finalCode, encoding='utf-8'));
+  })
+}
 
 
 function childProcessExecFile(user) {
@@ -148,7 +151,18 @@ function childProcessExecFile(user) {
   }) 
 }
 
+function getRoomID(url) {
+  let urlSplitedBySlash = url.split('/');
+  let urlAfterLastSlash = urlSplitedBySlash[urlSplitedBySlash.length - 1];
+  let urlParam = urlAfterLastSlash.split('?');
+  let roomID = urlParam[urlParam.length - 2];
+  return roomID;
+}
 
-
+function getQuestion(url) {
+  let urlParamContent = url.split('=');
+  let question = urlParamContent[urlParamContent.length - 1];
+  return question;
+};
 
 module.exports = socket;

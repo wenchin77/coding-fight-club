@@ -24,7 +24,7 @@ block content
    
 
         .opponentTerminal
-          .sectionName Opponent's Test Output
+          .sectionName Opponent's Code Result
           #opponentRunCodeResult
 
       .rightSection
@@ -33,11 +33,12 @@ block content
           textarea#codearea(rows='25' cols='200')
         .terminalResult 
           button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
-          button#runcodeBtn(type='button' onclick='runCode()') Run Code 
-          div each line is a set of test data (max 5), eg: [1,2,3],5
+          button#runcodeBtn(type='button' onclick='runCode()') Run Code Result
           #runCodeResult
           #testCaseArea
             textarea#testcase(rows='5' cols='200')
+          div * Each line is a seperate test case (5 max), eg: [1,2,3],5
+
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
