@@ -7,15 +7,16 @@ if(!(localStorage.getItem('name'))) {
 
 const userName = localStorage.getItem('name');
 
-// 傳給後端，在後端把用戶加入房間
+// 連上以後傳 join 訊息給後端，在後端把用戶加入房間
 socket.on('connect', () => {
   socket.emit('join', userName);
 });
 
-socket.on('questionData', (questionName, questionDescription, questionCode) => {
-  document.getElementById('matchQuestion').innerHTML = questionName;
-  document.getElementById('question').innerHTML = questionDescription;
-  codemirrorEditor.setValue(questionCode);
+// 拿到 questionData 顯示在前端
+socket.on('questionData', questionObject => {
+  document.getElementById('matchQuestion').innerHTML = questionObject.question;
+  document.getElementById('question').innerHTML = questionObject.description;
+  codemirrorEditor.setValue(questionObject.code);
 })
 
 
