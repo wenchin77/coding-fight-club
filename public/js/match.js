@@ -23,14 +23,16 @@ socket.once('questionData', questionObject => {
 
 // 接收 codeResult 並顯示（每次都蓋掉上次的）
 socket.on('codeResult', (resultObj) =>{
-  console.log(resultObj.user+' 的 codeResult 收到！！')
+  console.log(resultObj)
   // 顯示自己的結果在自己的 terminal
   if(resultObj.user === userName) {
-    document.getElementById('runCodeResult').innerHTML = resultObj.result;
+    document.getElementById('runCodeOutput').innerHTML = resultObj.output;
+    document.getElementById('runCodeExpected').innerHTML = resultObj.expected;
     return;
   }
   // 顯示別人的結果在自己的 terminal
-  document.getElementById('opponentRunCodeResult').innerHTML = resultObj.result;
+  document.getElementById('opponentRunCodeOutput').innerHTML = resultObj.output;
+  document.getElementById('opponentRunCodeExpected').innerHTML = resultObj.expected;
 });
 
 

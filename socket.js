@@ -93,23 +93,23 @@ socket.init = server => {
       try {
         let childResult = await childProcessExecFile(user,'sessions/answers/');
         let answerCheckResult = await childProcessExecFile(user, 'sessions/answerCheck/');
-        console.log('childResult === ', childResult);
-        console.log('answerCheckResult === ', answerCheckResult);
 
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
         let codeResult = {
           user: user,
-          result: `${childResult}\n${answerCheckResult}`
+          output: childResult,
+          expected: answerCheckResult
         };
-        console.log("codeResult", codeResult);
+
         // send an event to everyone in the room including the sender
         io.to(roomID).emit("codeResult", codeResult);
       } catch (e) {
-        let errorMessage = "[Error]: please put in valid code and test data"
-        console.log("RUN CODE ERROR 底加 -----------> ", e);
+        let errorMessage = "[Error] Please put in valid code and test data"
+        console.log("RUN CODE ERROR -----------> ", e);
         let codeResult = {
           user: user,
-          result: errorMessage
+          output: errorMessage,
+          expected: ''
         };
         io.to(roomID).emit("codeResult", codeResult);
       }
