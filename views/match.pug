@@ -4,15 +4,16 @@ block content
   .matchPageSections
     .titleSection
       .matchQuestion#matchQuestion
-      .opponent Opponent:
+      .opponent#opponent Opponent: Pending...
       .level Level: Easy
       .timer#timer
         img.timerImg(src='../img/clock.png')
         div
         label#hours 00
-        div h
+        div :
         label#minutes 00
-        div m
+        div :
+        label#seconds 00
       button#submitBtn(type='button' onclick='') Submit
       button#helpBtn(type='button' onclick='') Help
       button#exitBtn(type='button' onclick='exitMatch()') Exit
@@ -33,9 +34,9 @@ block content
         .codearea
           .sectionName Your Solution
           textarea#codearea(rows='25' cols='200')
-        .terminalResult 
+        .terminalResult#terminalResult
           button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
-          button#runcodeBtn(type='button' onclick='runCode()') Run Code Result
+          button#runcodeBtn(type='button' onclick='runCode()') Run Code
           #runCodeResult
             #runCodeOutput
             #runCodeExpected
@@ -56,27 +57,7 @@ block content
       theme: "base16-dark"
     });
 
-    // timer
-    let hoursLabel = document.getElementById("hours");
-    var minutesLabel = document.getElementById("minutes");
-    var totalMinutes = 0;
-    setInterval(setTime, 60000);
-
-    function setTime() {
-      ++totalMinutes;
-      //- secondsLabel.innerHTML = pad(totalSeconds % 60);
-      minutesLabel.innerHTML = pad(totalMinutes % 60);
-      hoursLabel.innerHTML = pad(parseInt(totalMinutes / 60))
-    }
-
-    function pad(val) {
-      let valString = val + "";
-      if (valString.length < 2) {
-        return "0" + valString;
-      } else {
-        return valString;
-      }
-    }
+    
 
 
 

@@ -14,7 +14,7 @@ socket.on('connect', () => {
 });
 
 // too many people in a match: reject and redirect
-socket.on('rejectUser', (msg) => {
+socket.on('rejectUser', msg => {
   window.alert(msg);
   window.location = '/';
 })
@@ -26,32 +26,37 @@ socket.once('questionData', questionObject => {
   codemirrorEditor.setValue(questionObject.code);
 });
 
-socket.on('waitForOpponent', msg => {
-  // window.alert(msg);
-  document.getElementById('runCodeResult').innerHTML = msg;
-  // let node = document.createElement('p');
-  // node.prepend(document.createTextNode(msg);
-  // document.getElementById('terminalResult').innerHTML = node;
+socket.once('waitForOpponent', msg => {
+  document.getElementById('runCodeOutput').innerHTML = `<p>${msg}</p>`;
 })
 
-// socket.on('inOutMessage', (msgObject) => {
-//   // 自己加入：自己 terminal 顯示等待對手訊息
-//   if(msgObject.user === userName) {
-//     // let node = document.createElement('p');
-//     // node.appendChild(document.createTextNode('Hold on. We are waiting for your opponent to join...'))
-//     document.getElementById('runCodeResult').innerHTML = 'Hold on. We are still waiting for your opponent to join...';
-//     return;
-//   }
-//   // 對手加入：自己 terminal 放入兩個 div 讓用戶開始寫
-//   document.getElementById('opponentRunCodeResult').innerHTML = msgObject.message;
-//   node = document.getElementById('runCodeResult');
-//   let runCodeOutput = document.createElement('div');
-//   runCodeOutput.id = runCodeOutput;
-//   let runCodeExpected = document.createElement('div');
-//   runCodeExpected.id = runCodeExpected;
-//   node.appendChild(runCodeOutput);
-//   node.appendChild(runCodeExpected);
-// })
+socket.on('joinLeaveMessage', msgObject => {
+  // opponent joins / leaves
+  if(msgObject.user !== userName) {
+    document.getElementById('opponentRunCodeOutput').innerHTML = `<p>${msgObject.message}</p>`;
+  }
+});
+
+socket.once('startMatch', users => {
+  // show opponent name
+  let opponent;
+  if (users.user1 === userName) {
+    opponent = users.user2
+  } else {
+    opponent = users.user1
+  }
+  document.getElementById('opponent').innerHTML = `Opponent: ${opponent}`;
+  
+  // show start match message
+  document.getElementById('runCodeOutput').innerHTML = '<p>The match begins now! Write the code and test cases to begin.</p>'
+
+  // start the timer
+  let hoursLabel = document.getElementById("hours");
+  let minutesLabel = document.getElementById("minutes");
+  let secondsLabel = document.getElementById("seconds");
+  let totalSeconds = 0;
+  setInterval(setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel), 1000);
+})
 
 
 // 接收 codeResult 並顯示（每次都蓋掉上次的）
@@ -67,6 +72,25 @@ socket.on('codeResult', (resultObj) =>{
   document.getElementById('opponentRunCodeOutput').innerHTML = resultObj.output;
   document.getElementById('opponentRunCodeExpected').innerHTML = resultObj.expected;
 });
+
+
+function setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel) {
+  return () => {
+    totalSeconds = totalSeconds + 1;
+    secondsLabel.innerHTML = pad(totalSeconds % 60);
+    minutesLabel.innerHTML = pad(parseInt((totalSeconds % 3600) / 60));
+    hoursLabel.innerHTML = pad(parseInt(totalSeconds / 3600))
+  }
+};
+
+function pad(val) {
+  let valString = val + "";
+  if (valString.length < 2) {
+    return "0" + valString;
+  } else {
+    return valString;
+  }
+}
 
 
 function runCode() {
@@ -116,3 +140,5 @@ function submitCode() {
   // 更新兩人的 user table (and level table if needed)
 
 }
+
+

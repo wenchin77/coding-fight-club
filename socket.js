@@ -46,29 +46,55 @@ socket.init = server => {
 
     socket.on("join", userName => {
       let user = userName;
-      // 把用戶加入房間名單
+
+      // Add a room if it doesn't exist
       if (!rooms[roomID]) {
         rooms[roomID] = [];
       };
+
+      // Reject a user if there are already 2 people in the room
+      if (rooms[roomID].length >= 2) {
+        socket.emit('rejectUser', 'Oops, there are already two people in this match!');
+        return;
+      }
+
+      // Add user to the room
       rooms[roomID].push(user);
 
-      // 把用戶加入 socketidMapping (socketid: user)
+      // Add user to socketidMapping (socketid: user)
       if (!socketidMapping[socket.id]) {
         socketidMapping[socket.id] = user;
       };
-      console.log('socketidMapping (on join): ', socketidMapping);
 
-      // +++ 如果超過兩人就不讓用戶進來
+      // Send question data to frontend
+      socket.emit("questionData", questionObject);
 
-      // join room
+      // Join room
       socket.join(roomID, () => {
         console.log(`Socket: ${user} 加入了 ${roomID} (socket.id = ${socket.id})`);
         console.log('Rooms: ', rooms);
-        // 跟前端說 question 是啥
-        io.to(roomID).emit("questionData", questionObject);
-
+        let joinMessage = {
+          user: user,
+          message: `${user} joined the match.`
+        }
+        io.to(roomID).emit('joinLeaveMessage', joinMessage);
+        
         // +++ 寫進 db match table (先檢查有沒有這筆 match 的資料決定 create OR update)
       });
+
+      // Wait for opponent if there's only 1 person in the room
+      if (rooms[roomID].length === 1) {
+        socket.emit('waitForOpponent', 'Hold on. We are waiting for your opponent to join...');
+        return;
+      };
+
+      // Start match when there are 2 people in the room
+      let users = {
+        user1: rooms[roomID][0],
+        user2: rooms[roomID][1]
+      };
+      io.to(roomID).emit('startMatch', users);
+      
     });
 
     // 點 Run Code 會把內容放到 matches，每按一次就顯示在雙方的 terminal
@@ -76,81 +102,73 @@ socket.init = server => {
       let user = data.user;
       let testAll = data.test;
       let test = testAll.split("\n");
-
-      function createConsoleLogCode(outputName) {
-        let consoleLogCode = `console.log('[${outputName}] '+${questionCodeConst}(${test[0]}));`;
-        for (i=1; i<5; i++) {
-          if (test[i] && test[i]!==''){
-            consoleLogCode += `\nconsole.log('[${outputName}] '+${questionCodeConst}(${test[i]}));`
-          }
-        };
-        return consoleLogCode;
-      };
+      
 
       // put together the code for running
-      let finalCode = `${data.code}\n${createConsoleLogCode('Output')}`;
-      let answerCheckFinalCode = `${answerCode}\n${createConsoleLogCode('Expected')}`;
+      let finalCode = `${data.code}\n${createConsoleLogCode('Output', questionCodeConst, test)}`;
+      let answerCheckFinalCode = `${answerCode}\n${createConsoleLogCode('Expected', questionCodeConst, test)}`;
 
       // 按不同 user 存到 ./sessions js files
       setUserCodeFile('sessions/answers/', user, finalCode);
       setUserCodeFile('sessions/answerCheck/', user, answerCheckFinalCode);
 
+      let codeResult = {};
       // Run code in child process
       try {
         let childResult = await childProcessExecFile(user,'./sessions/answers/');
         let answerCheckResult = await childProcessExecFile(user, 'sessions/answerCheck/');
 
-        // let childResult = arrayBufferToStr(childResultArrayBuffer);
-        // let answerCheckResult = arrayBufferToStr(answerCheckResultArrayBuffer)
-
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
-        let codeResult = {
+        codeResult = {
           user: user,
           output: childResult,
           expected: answerCheckResult
         };
         console.log('codeResult', codeResult);
-
-
-        // send an event to everyone in the room including the sender
-        io.to(roomID).emit("codeResult", codeResult);
       } catch (e) {
         let errorMessage = "[Error] Please put in valid code and test data"
         console.log("RUN CODE ERROR -----------> ", e);
-        let codeResult = {
+        codeResult = {
           user: user,
           output: errorMessage,
           expected: ''
         };
-        io.to(roomID).emit("codeResult", codeResult);
       }
+      // send an event to everyone in the room including the sender
+      io.to(roomID).emit("codeResult", codeResult);
     });
 
-    socket.on("exit", () => {
-      socket.emit("disconnect");
-    });
+    // socket.on("exit", () => {
+    //   socket.emit("disconnect");
+    // });
 
-    socket.on("disconnect", () => {
+    socket.on(('disconnect' || 'exit'), () => {
       console.log("Socket: a user disconnected");
 
-      // 用 socketidMapping (socketid: user) 找出退出的用戶並刪掉該用戶的 property
+      // 用 socketidMapping (socketid: user) 找出退出的 user
       let socketid = socket.id;
       let user = socketidMapping[socketid];
+
+      let leaveMessage = {
+        user: user,
+        message: `${user} left the match.`
+      }
+      io.to(roomID).emit("joinLeaveMessage", leaveMessage);
+
+      // 刪掉該用戶的 property
       delete socketidMapping[socketid];
 
-      // 把人從房間移除
-      console.log("Current rooms: ", rooms);
       if (rooms[roomID]) {
         let index = rooms[roomID].indexOf(user);
         if (index !== -1) {
-          // drop 1 element at index
+          // drop user at index
           rooms[roomID].splice(index, 1);
           if (rooms[roomID].length === 0) {
+            // drop room property if it's empty
             delete rooms[roomID];
           }
         }
         socket.leave(roomID); // 退出房間
-        // io.to(roomID).emit('sys', user + '退出了房间', rooms[roomID]);
         console.log(`Socket: ${user} 退出了 ${roomID} (socket.id ${socket.id})`);
       }
 
@@ -163,7 +181,17 @@ function setUserCodeFile(path, user, code) {
   let answerFile = fs.openSync(`./${path}${user}.js`, "w");
   fs.writeSync(answerFile, code, (encoding = "utf-8"));
   fs.closeSync(answerFile);
-}
+};
+
+function createConsoleLogCode(outputName, codeConst, test) {
+  let consoleLogCode = `console.log('[${outputName}] '+${codeConst}(${test[0]}));`;
+  for (i=1; i<5; i++) {
+    if (test[i] && test[i]!==''){
+      consoleLogCode += `\nconsole.log('[${outputName}] '+${codeConst}(${test[i]}));`
+    }
+  };
+  return consoleLogCode;
+};
 
 
 function childProcessExecFile(user, path) {
@@ -185,7 +213,7 @@ function childProcessExecFile(user, path) {
     ls.on('close', (code) => {
       // 子程序終止的時候再回傳上面組的內容
       resolve(result);
-      console.log(`子进程退出，使用退出码 ${code}`);
+      console.log(`exited child_process at ${path}${user}.js with code ${code}`);
     });
   });
 }

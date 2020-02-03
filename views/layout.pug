@@ -9,6 +9,11 @@ html
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
     script(src='/socket.io/socket.io.js')
+    script(src='../js/index.js')
+    
+
+
+
   body
     .wrapper
       header.header
@@ -29,10 +34,22 @@ html
               li
                 a(href='') Leaderboard
           .nav-member
-            a(href='/profile.html')
+            a(href='/signin')#member
+              #membername Sign In
               img.profilelogo(src='../img/account.png')
       section
         block content
+
+      script.
+        // after signed in:
+        if (localStorage.getItem('name')) {
+          let userName = localStorage.getItem('name');
+          document.getElementById('membername').innerHTML = userName;
+          document.getElementById('member').href = '/profile'
+        }
+
+
+
       //- footer.footer
       //-   div
       //-     ul.footer-content

@@ -2,15 +2,14 @@ extends layout
 
 block content
 
-  .matchPageSections Start a Match
+  .matchPageSections Set up a Match
     .contentSection
       .leftSection
         .chooseOpponent Choose an Opponent
         br
         .strangerMode Challenge a random stranger online (機制待訂)
         br
-        br
-        .friendMode Send link to invite a friend
+        .friendMode Invite a friend
         button.getLinkBtn(type='button' onclick='getLink()') Get match invitation link
         #invitationLink
       .rightSection
@@ -22,7 +21,7 @@ block content
     br
     br
     br
-    div Temp setup: Test vs. Ethan, question set as Two Sum
+    div Temp setup: use username, question set as Two Sum
     br
     button#readyBtn(type='button' onclick='setUpAMatchTemp()') I'm ready! (temp)
 

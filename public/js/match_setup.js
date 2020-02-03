@@ -1,4 +1,7 @@
-// const socket = io();
+// verify signin first
+if(!(localStorage.getItem('name'))) {
+  window.location.pathname = 'signin'
+};
 
 function setUpAMatch() {
   // 設定一個 match 的 object 裡面有 match id, user A, user B, question
