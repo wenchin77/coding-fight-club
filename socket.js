@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 // child process setup for code execution
-const { execFile } = require("child_process");
+const { spawn } = require("child_process");
 
 // socket.io setup for live demo
 const socketio = require("socket.io");
@@ -9,10 +9,8 @@ const socket = {};
 
 socket.init = server => {
   const io = socketio.listen(server);
-  // 空的物件準備接所有 room 的內容
   const rooms = {};
   const socketidMapping = {};
-  let user;
 
   io.on("connection", socket => {
     console.log("Socket: a user connected!");
@@ -47,7 +45,7 @@ socket.init = server => {
     };`;
 
     socket.on("join", userName => {
-      user = userName;
+      let user = userName;
       // 把用戶加入房間名單
       if (!rooms[roomID]) {
         rooms[roomID] = [];
@@ -99,8 +97,11 @@ socket.init = server => {
 
       // Run code in child process
       try {
-        let childResult = await childProcessExecFile(user,'sessions/answers/');
+        let childResult = await childProcessExecFile(user,'./sessions/answers/');
         let answerCheckResult = await childProcessExecFile(user, 'sessions/answerCheck/');
+
+        // let childResult = arrayBufferToStr(childResultArrayBuffer);
+        // let answerCheckResult = arrayBufferToStr(answerCheckResultArrayBuffer)
 
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
         let codeResult = {
@@ -108,6 +109,8 @@ socket.init = server => {
           output: childResult,
           expected: answerCheckResult
         };
+        console.log('codeResult', codeResult);
+
 
         // send an event to everyone in the room including the sender
         io.to(roomID).emit("codeResult", codeResult);
@@ -142,6 +145,9 @@ socket.init = server => {
         if (index !== -1) {
           // drop 1 element at index
           rooms[roomID].splice(index, 1);
+          if (rooms[roomID].length === 0) {
+            delete rooms[roomID];
+          }
         }
         socket.leave(roomID); // 退出房間
         // io.to(roomID).emit('sys', user + '退出了房间', rooms[roomID]);
@@ -156,20 +162,31 @@ socket.init = server => {
 function setUserCodeFile(path, user, code) {
   let answerFile = fs.openSync(`./${path}${user}.js`, "w");
   fs.writeSync(answerFile, code, (encoding = "utf-8"));
+  fs.closeSync(answerFile);
 }
 
 
 function childProcessExecFile(user, path) {
   return new Promise((resolve, reject) => {
-    let child = execFile("node", [`${path}${user}.js`], (error, stdout, stderr) => {
-        if (error) {
-          console.error("stderr ", path, stderr);
-          reject(error);
-        }
-        console.log("stdout ", path, stdout);
-        resolve(stdout);
-      }
-    );
+    let ls = spawn(`node`, [`${path}${user}.js`]);
+    let result = '';
+    ls.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+      // output 性質是 ArrayBuffer 所以要先處理
+      // 等每個 output 出來組在一起
+      result += arrayBufferToStr(data);
+    });
+    
+    ls.stderr.on('data', (data) => {
+      console.error(`stderr: ${data}`);
+      reject(data);
+    });
+    
+    ls.on('close', (code) => {
+      // 子程序終止的時候再回傳上面組的內容
+      resolve(result);
+      console.log(`子进程退出，使用退出码 ${code}`);
+    });
   });
 }
 
@@ -186,6 +203,10 @@ function getQuestion(url) {
   let urlParamContent = url.split("=");
   let question = urlParamContent[urlParamContent.length - 1];
   return question;
+}
+
+function arrayBufferToStr(buf) {
+  return String.fromCharCode.apply(null, new Uint16Array(buf));
 }
 
 module.exports = socket;
