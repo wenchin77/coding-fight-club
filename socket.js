@@ -11,6 +11,7 @@ socket.init = server => {
   const io = socketio.listen(server);
   // 空的物件準備接所有 room 的內容
   const rooms = {};
+  const socketidMapping = {};
   let user;
 
   io.on("connection", socket => {
@@ -50,14 +51,21 @@ socket.init = server => {
       // 把用戶加入房間名單
       if (!rooms[roomID]) {
         rooms[roomID] = [];
-      }
-      // +++ 如果超過兩人就不讓用戶進來
+      };
       rooms[roomID].push(user);
+
+      // 把用戶加入 socketidMapping (socketid: user)
+      if (!socketidMapping[socket.id]) {
+        socketidMapping[socket.id] = user;
+      };
+      console.log('socketidMapping (on join): ', socketidMapping);
+
+      // +++ 如果超過兩人就不讓用戶進來
 
       // join room
       socket.join(roomID, () => {
-        console.log("Room:", user + " 加入了 " + roomID);
-        console.log("rooms:", rooms);
+        console.log(`Socket: ${user} 加入了 ${roomID} (socket.id = ${socket.id})`);
+        console.log('Rooms: ', rooms);
         // 跟前端說 question 是啥
         io.to(roomID).emit("questionData", questionObject);
 
@@ -119,9 +127,14 @@ socket.init = server => {
       socket.emit("disconnect");
     });
 
-    // BUG: user 會抓錯 ==========================
     socket.on("disconnect", () => {
       console.log("Socket: a user disconnected");
+
+      // 用 socketidMapping (socketid: user) 找出退出的用戶並刪掉該用戶的 property
+      let socketid = socket.id;
+      let user = socketidMapping[socketid];
+      delete socketidMapping[socketid];
+
       // 把人從房間移除
       console.log("Current rooms: ", rooms);
       if (rooms[roomID]) {
@@ -132,8 +145,9 @@ socket.init = server => {
         }
         socket.leave(roomID); // 退出房間
         // io.to(roomID).emit('sys', user + '退出了房间', rooms[roomID]);
-        console.log("Socket: " + user + " 退出了 " + roomID);
+        console.log(`Socket: ${user} 退出了 ${roomID} (socket.id ${socket.id})`);
       }
+
     });
   });
 };
