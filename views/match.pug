@@ -26,9 +26,8 @@ block content
 
         .opponentTerminal
           .sectionName Opponent's Code Result
-          #opponentRunCodeResult
-            #opponentRunCodeOutput
-            #opponentRunCodeExpected
+          #opponentRunCodeOutput
+
 
       .rightSection
         .codearea
@@ -37,9 +36,7 @@ block content
         .terminalResult#terminalResult
           button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
           button#runcodeBtn(type='button' onclick='runCode()') Run Code
-          #runCodeResult
-            #runCodeOutput
-            #runCodeExpected
+          #runCodeOutput
           #testCaseArea
             textarea#testcase(rows='5' cols='200')
           div * Each line is a seperate test case (5 max), eg: [1,2,3],5

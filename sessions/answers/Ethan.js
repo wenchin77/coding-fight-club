@@ -1,8 +1,6 @@
+console.time('Time');
 const twoSum = function(nums, target) {
-  return nums;
+  return 1111
 };
-console.log('[Output] '+twoSum([1,2,3],5));
-console.log('[Output] '+twoSum([1,2,3],5));
-console.log('[Output] '+twoSum([1,2,3],5));
-console.log('[Output] '+twoSum([1,2,3],5));
-console.log('[Output] '+twoSum([1,2,3],5));
+console.log('[Output] '+twoSum(1));
+console.timeEnd('Time');

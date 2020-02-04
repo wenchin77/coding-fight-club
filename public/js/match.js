@@ -34,6 +34,7 @@ socket.on('joinLeaveMessage', msgObject => {
   // opponent joins / leaves
   if(msgObject.user !== userName) {
     document.getElementById('opponentRunCodeOutput').innerHTML = `<p>${msgObject.message}</p>`;
+    // document.getElementById('opponentRunCodeExpected').innerHTML = '';
   }
 });
 
@@ -64,13 +65,14 @@ socket.on('codeResult', (resultObj) =>{
   console.log(resultObj);
   // 顯示自己的結果在自己的 terminal
   if(resultObj.user === userName) {
+    document.getElementById('runCodeOutput').innerHTML = '';
     document.getElementById('runCodeOutput').innerHTML = resultObj.output;
-    document.getElementById('runCodeExpected').innerHTML = resultObj.expected;
+    // document.getElementById('runCodeExpected').innerHTML = resultObj.expected;
     return;
   }
   // 顯示別人的結果在自己的 terminal
   document.getElementById('opponentRunCodeOutput').innerHTML = resultObj.output;
-  document.getElementById('opponentRunCodeExpected').innerHTML = resultObj.expected;
+  // document.getElementById('opponentRunCodeExpected').innerHTML = resultObj.expected;
 });
 
 
@@ -98,7 +100,7 @@ function runCode() {
   document.getElementById("testcase").style.display = "none";
   document.getElementById("testcaseBtn").style.background = "#222222";
   // 顯示 run code
-  document.getElementById("runCodeResult").style.display = "flex";
+  document.getElementById("runCodeOutput").style.display = "flex";
   document.getElementById("runcodeBtn").style.background = "#555555";
 
   // send code & test to server
@@ -122,7 +124,7 @@ function showTestCase() {
   document.getElementById("testcase").style.display = "flex";
   document.getElementById("testcaseBtn").style.background = "#555555";
   // 隱藏 run code
-  document.getElementById("runCodeResult").style.display = "none";
+  document.getElementById("runCodeOutput").style.display = "none";
   document.getElementById("runcodeBtn").style.background = "#222222";
 }
 

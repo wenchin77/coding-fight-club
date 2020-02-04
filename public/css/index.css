@@ -251,26 +251,14 @@ footer a:link {
 }
 
 #testcase,
-#runCodeResult,
-#opponentRunCodeResult {
-  display: flex;
-  flex-direction: row;
+#runCodeOutput,
+#opponentRunCodeOutput {
   background: #000;
   width: 100%;
   height: 100px;
   margin: 0;
   white-space: pre-wrap;
   padding: 10px;
-}
-
-#runCodeOutput,
-#runCodeExpected,
-#opponentRunCodeOutput,
-#opponentRunCodeExpected {
-  flex: 1;
-  background-color: #000;
-  margin-left: 10px;
-  margin-right: 10px;
 }
 
 .CodeMirror-scroll,

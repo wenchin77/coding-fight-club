@@ -34,15 +34,6 @@ socket.init = server => {
 };`
     };
     let questionCodeConst = "twoSum";
-    let answerCode = `const twoSum = function(nums, target) {
-      const comp = {};
-      for(let i=0; i<nums.length; i++){
-          if(comp[nums[i]]>=0){
-              return [ comp[nums[i] ], i]
-          }
-          comp[target-nums[i]] = i
-      }
-    };`;
 
     socket.on("join", userName => {
       let user = userName;
@@ -105,24 +96,20 @@ socket.init = server => {
       
 
       // put together the code for running
-      let finalCode = `${data.code}\n${createConsoleLogCode('Output', questionCodeConst, test)}`;
-      let answerCheckFinalCode = `${answerCode}\n${createConsoleLogCode('Expected', questionCodeConst, test)}`;
+      let finalCode = `console.time('Time');\n${data.code}\n${createConsoleLogCode('Output', questionCodeConst, test)}\nconsole.timeEnd('Time');`;
 
       // 按不同 user 存到 ./sessions js files
       setUserCodeFile('sessions/answers/', user, finalCode);
-      setUserCodeFile('sessions/answerCheck/', user, answerCheckFinalCode);
 
       let codeResult = {};
       // Run code in child process
       try {
-        let childResult = await childProcessExecFile(user,'./sessions/answers/');
-        let answerCheckResult = await childProcessExecFile(user, 'sessions/answerCheck/');
+        let childResult = await childProcessExecFile(user,'sessions/answers/');
 
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
         codeResult = {
           user: user,
-          output: childResult,
-          expected: answerCheckResult
+          output: childResult
         };
         console.log('codeResult', codeResult);
       } catch (e) {
@@ -130,17 +117,12 @@ socket.init = server => {
         console.log("RUN CODE ERROR -----------> ", e);
         codeResult = {
           user: user,
-          output: errorMessage,
-          expected: ''
+          output: errorMessage
         };
       }
       // send an event to everyone in the room including the sender
       io.to(roomID).emit("codeResult", codeResult);
     });
-
-    // socket.on("exit", () => {
-    //   socket.emit("disconnect");
-    // });
 
     socket.on(('disconnect' || 'exit'), () => {
       console.log("Socket: a user disconnected");
