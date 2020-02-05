@@ -24,5 +24,5 @@ mysqlCon.connect (function (err) {
 module.exports = {
 	core: mysql,
 	con: mysqlCon,
-	query: util.promisify(mysqlCon.query)
+	query: util.promisify(mysqlCon.query).bind(mysqlCon)
 };

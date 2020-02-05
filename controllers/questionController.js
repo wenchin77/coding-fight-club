@@ -1,4 +1,4 @@
-const AppError = require('../util/appError');
+// const AppError = require('../util/appError');
 // sql 語句拆到 model/question 去
 const questionModel = require('../models/question')
 
@@ -11,11 +11,18 @@ module.exports = {
       difficulty: req.body.difficulty,
       category: req.body.category
     };
-    let result = await questionModel.queryInsertQuestion(question);
-    // const [rows, fields] = await questionModel.queryInsertQuestion(question);
-
-    return question;
+    try {
+      let result = await questionModel.queryInsertQuestion(question);
+      // const [rows, fields] = await questionModel.queryInsertQuestion(question);  
+      console.log(result);
+      res.send(`Question inserted: ${JSON.stringify(question)}`);
+    } catch (err) {
+      console.log(err);
+      res.send('Question insert error!')
+    }
   },
+  
+
   insertTest: async (req, res) => {
     let test =  {
       question_id: req.body.question_id,
