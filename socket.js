@@ -34,6 +34,40 @@ socket.init = server => {
 };`
     };
     let questionCodeConst = "twoSum";
+    let testCases = {
+      data: [
+        {
+          case: [[2, 7, 11, 15], 9],
+          output: [0,1]
+        },
+        {
+          case: [[20000000, 70000000, 110000000, 150000000000], 180000000],
+          output: [1,2]
+        },
+        {
+          case: [[10, 1, 20, 3, 40, 5, 60, 7, 80, 9, 100, 11, 120, 13, 14, 15, 16, 1700, 18, 19, 20], 123],
+          output: [3,12]
+        },
+        {
+          case: [[13, 0, 30, 16], 30],
+          output: [1,2]
+        },
+        {
+          case: [[-10, 0, 7, -11, -30, 100], 90],
+          output: [0,4]
+        }
+      ]
+    };
+
+    socket.on('submit', () => {
+      // Run all test cases
+      let sampleTestCaseArr = testCases.data;
+      sampleTestCaseArr.forEach(element => {
+        console.log(element.case);
+      })
+    })
+
+
 
     socket.on("join", userName => {
       let user = userName;
@@ -93,27 +127,41 @@ socket.init = server => {
       let user = data.user;
       let testAll = data.test;
       let test = testAll.split("\n");
-      
+
 
       // put together the code for running
-      let finalCode = `console.time('Time');\n${data.code}\n${createConsoleLogCode('Output', questionCodeConst, test)}\nconsole.timeEnd('Time');`;
+      let testCaseData = testCases.data[0];
+      let finalCode = putTogetherCode(data.code, questionCodeConst, testCaseData, test)
 
       // 按不同 user 存到 ./sessions js files
-      setUserCodeFile('sessions/answers/', user, finalCode);
+      setUserCodeFile('sessions/', user, finalCode);
 
       let codeResult = {};
       // Run code in child process
       try {
-        let childResult = await childProcessExecFile(user,'sessions/answers/');
+        let childResult = await childProcessExecFile(user,'sessions/');
+        console.log('childResult===', childResult);
+        
+        // give sample test case result
+        let sampleSplited = childResult.split('\n');
+        let sampleOutput = sampleSplited[1].split(': ')[1];
+        let sampleExpected = sampleSplited[2].split(': ')[1];
+
+        // add sample test result to childResult
+        if (sampleOutput == sampleExpected) {
+          childResult = 'SAMPLE TEST PASSED\n' + childResult;
+        } else {
+          childResult = 'SAMPLE TEST FAILED\n' + childResult;
+        }
+
 
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
         codeResult = {
           user: user,
           output: childResult
         };
-        console.log('codeResult', codeResult);
       } catch (e) {
-        let errorMessage = "[Error] Please put in valid code and test data"
+        let errorMessage = "Error: Please put in valid code and test data"
         console.log("RUN CODE ERROR -----------> ", e);
         codeResult = {
           user: user,
@@ -165,14 +213,25 @@ function setUserCodeFile(path, user, code) {
   fs.closeSync(answerFile);
 };
 
-function createConsoleLogCode(outputName, codeConst, test) {
-  let consoleLogCode = `console.log('[${outputName}] '+${codeConst}(${test[0]}));`;
-  for (i=1; i<5; i++) {
+function putTogetherCode(code, codeConst, sampleTestCase, test) {
+  // exec time calculation
+  let finalCode = `console.time('Time');\n${code}\n`;
+  // sample test case
+  let sampleTestCaseStr = `${JSON.stringify(sampleTestCase.case[0])}, ${JSON.stringify(sampleTestCase.case[1])}`;
+  let sampleTestCaseExpected = `'${JSON.stringify(sampleTestCase.output)}'`;
+  let consoleLogCode = `console.log('Sample test case: '+'${sampleTestCaseStr}');\nconsole.log('Sample output: '+${codeConst}(${sampleTestCaseStr}));\nconsole.log('Sample expected: '+${sampleTestCaseExpected})`;
+  // user's test case
+  for (i=0; i<5; i++) {
     if (test[i] && test[i]!==''){
-      consoleLogCode += `\nconsole.log('[${outputName}] '+${codeConst}(${test[i]}));`
+      consoleLogCode += `\nconsole.log('')`
+      consoleLogCode += `\nconsole.log('Your test case: '+'${test[i]}');`
+      consoleLogCode += `\nconsole.log('Output: '+${codeConst}(${test[i]}));`
     }
   };
-  return consoleLogCode;
+  // format
+  finalCode += (consoleLogCode + `\nconsole.log('')`);
+  finalCode += `\nconsole.timeEnd('Time');`;
+  return finalCode;
 };
 
 

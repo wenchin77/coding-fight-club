@@ -67,12 +67,10 @@ socket.on('codeResult', (resultObj) =>{
   if(resultObj.user === userName) {
     document.getElementById('runCodeOutput').innerHTML = '';
     document.getElementById('runCodeOutput').innerHTML = resultObj.output;
-    // document.getElementById('runCodeExpected').innerHTML = resultObj.expected;
     return;
   }
   // 顯示別人的結果在自己的 terminal
   document.getElementById('opponentRunCodeOutput').innerHTML = resultObj.output;
-  // document.getElementById('opponentRunCodeExpected').innerHTML = resultObj.expected;
 });
 
 
