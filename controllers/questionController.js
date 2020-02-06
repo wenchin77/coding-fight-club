@@ -39,8 +39,16 @@ module.exports = {
     }
   },
 
-  selectAllQuestions: async (req, res) => {
-    let result = await questionModel.querySelectAllQuestion();
-    return result;
+  selectQuestions: async (category, difficulty) => {
+    try {
+      if (category === 'all') {
+        let result = await questionModel.querySelectAllQuestions(difficulty);
+        return result;
+      }
+      let result = await questionModel.querySelectQuestions(category, difficulty);
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
   }
 };

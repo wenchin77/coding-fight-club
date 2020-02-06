@@ -2,7 +2,7 @@ const socket = io();
 
 // verify signin first
 if(!(localStorage.getItem('name'))) {
-  window.location.pathname = 'signin'
+  window.location.pathname = 'signin';
 };
 
 const userName = localStorage.getItem('name');

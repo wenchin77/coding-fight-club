@@ -7,25 +7,36 @@ block content
       .leftSection
         .chooseOpponent Choose an Opponent
         br
-        .strangerMode Challenge a random stranger online (機制待訂)
+        .strangerMode Challenge a random stranger online (顯示線上對手們)
         br
         .friendMode Invite a friend
         button.getLinkBtn(type='button' onclick='getLink()') Get match invitation link
         #invitationLink
       .rightSection
-        .chooseQuestion Choose a question 
-        //- to-do: add filter (by difficulty, category, latest) & paging
+        .chooseQuestion Choose a question
         br
-        button.questionSetup#questionSetup(value='Two Sum') Two Sum
-    //- button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
+        | Category 
+        select#category(name='category')
+          option(value='algorithms') Algorithms
+          option(value='database') Database
+          option(value='shell') Shell
+          option(value='concurrency') Concurrency
+        br
+        br
+        | Difficulty 
+        select#difficulty(name='difficulty')
+          option(value='easy') Easy
+          option(value='medium') Medium
+          option(value='hard') Hard
+        br
+        //- button.questionSetup#questionSetup(value='Two Sum') Two Sum
     
     br
     br
     br
     div Temp setup: use username, question set as Two Sum
     br
-    button#readyBtn(type='button' onclick='setUpAMatchTemp()') I'm ready! (temp)
-
+    button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
 
   script(src='../js/match_setup.js')
 

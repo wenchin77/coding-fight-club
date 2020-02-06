@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const questionController = require('../controllers/questionController');
-const bodyparser=require("body-parser");
+const bodyparser = require("body-parser");
 router.use(bodyparser.json());
 router.use(bodyparser.urlencoded({extended:true}));
 
@@ -15,12 +15,14 @@ router.post('/insert_test', (req, res)=> {
   questionController.insertTest(req, res);
 });
 
-router.get('/all', async (req, res)=> {
-  let data = await questionController.selectAllQuestions();
-  console.log('questions data',data);
-  res.send({data});
+router.get('/:category', async (req, res)=> {
+  let category = req.params.category;
+  let difficulty = req.query.difficulty;
+  let questions = await questionController.selectQuestions(category, difficulty);
+  // 之後放 cache 以後從 cache 拿出來篩 random
+  let randomIndex = Math.floor((Math.random() * questions.length));
+  let question = questions[randomIndex];
+  res.send({question});
 });
-
-router.get('')
 
 module.exports = router;
