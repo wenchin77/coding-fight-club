@@ -8,6 +8,7 @@ module.exports = {
       question_name: req.body.title,
       question_text: req.body.description,
       question_code: req.body.code,
+      question_const: req.body.const,
       difficulty: req.body.difficulty,
       category: req.body.category
     };
@@ -22,17 +23,23 @@ module.exports = {
     }
   },
   
-
   insertTest: async (req, res) => {
     let test =  {
       question_id: req.body.question_id,
       test_data: req.body.test_data,
       test_result: req.body.test_result
     }
-    let result = await questionModel.queryInsertTest(test);
-    return test;
+    try {
+      let result = await questionModel.queryInsertTest(test);
+      console.log(result);
+      res.send(`Test data inserted: ${JSON.stringify(test)}`);
+    } catch (err) {
+      console.log(err);
+      res.send('Test insert error!');
+    }
   },
-  questions: async (req, res) => {
+
+  selectAllQuestions: async (req, res) => {
     let result = await questionModel.querySelectAllQuestion();
     return result;
   }

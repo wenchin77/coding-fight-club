@@ -11,13 +11,13 @@ router.post('/insert_question', (req, res)=> {
   questionController.insertQuestion(req, res);
 });
 
-router.post('/insert_test', async (req, res)=> {
-  let data = await questionController.insertTest(req);
-  res.send(`Test data inserted: ${JSON.stringify(data)}`);
+router.post('/insert_test', (req, res)=> {
+  questionController.insertTest(req, res);
 });
 
-router.get('/all', (req, res)=> {
-  let data = questionController.questions();
+router.get('/all', async (req, res)=> {
+  let data = await questionController.selectAllQuestions();
+  console.log('questions data',data);
   res.send({data});
 });
 

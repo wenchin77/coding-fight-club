@@ -275,31 +275,33 @@ function childProcessExecFile(user, path) {
     });
     
     ls.stderr.on('data', (data) => {
+      result += arrayBufferToStr(data);
       console.error(`stderr: ${data}`);
-      reject(data);
+      // reject(data);
     });
+
+    ls.on('error', reject)
+      .on('close', code => {
+      if (code === 0) {
+        resolve(result);
+        console.log(`exited child_process at ${path}${user}.js with code ${code}`);
+      } else {
+        reject(result);
+        console.log(`exited child_process at ${path}${user}.js with code ${code}`);
+      }
+    })
     
-    ls.on('close', (code) => {
-      // 子程序終止的時候再回傳上面組的內容
-      resolve(result);
-      console.log(`exited child_process at ${path}${user}.js with code ${code}`);
-    });
   });
 }
 
 
+
+
 function getRoomID(url) {
   let urlSplitedBySlash = url.split("/");
-  let urlAfterLastSlash = urlSplitedBySlash[urlSplitedBySlash.length - 1];
-  let urlParam = urlAfterLastSlash.split("?");
-  let roomID = urlParam[urlParam.length - 2];
+  let roomID = urlSplitedBySlash[urlSplitedBySlash.length - 1];
+  console.log(roomID);
   return roomID;
-}
-
-function getQuestion(url) {
-  let urlParamContent = url.split("=");
-  let question = urlParamContent[urlParamContent.length - 1];
-  return question;
 }
 
 function arrayBufferToStr(buf) {

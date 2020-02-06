@@ -31,11 +31,11 @@ app.get('/', (req, res) => {
 
 // room page
 app.get('/match/:roomID', (req, res) => {
-  let roomID = req.params.roomID;
-  res.render('match', {
-    roomID: roomID
-    // users: roomInfo[roomID]
-  });
+  // let roomID = req.params.roomID;
+  // res.render('match', {
+  //   roomID: roomID
+  // });
+  res.render('match');
 });
 
 

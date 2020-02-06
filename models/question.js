@@ -9,7 +9,7 @@ function queryInsertTest(test) {
 }
 
 function querySelectAllQuestion() {
-  return mysql.query('SELECT * FROM question');
+  return mysql.query('SELECT id, question_name, difficulty, category FROM question');
 }
 
 

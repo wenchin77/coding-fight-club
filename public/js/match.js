@@ -10,7 +10,6 @@ const question = localStorage.getItem('question');
 
 // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
 socket.on('connect', () => {
-  console.log(userName + ' 的 socket on connect 了！！！！')
   socket.emit('join', userName);
   socket.emit('question', question);
 });
@@ -137,6 +136,9 @@ function exitMatch() {
 }
 
 function submitCode() {
+  // code???
+  socket.emit('submit', code);
+
   // 第一個結束的人紀錄扣跟項目評分在 match_detail
   // 第二個結束的人紀錄扣跟項目評分在 match_detail 和紀錄結束時間、贏家跟分數在 match
   // 更新兩人的 user table (and level table if needed)
