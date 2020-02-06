@@ -4,31 +4,36 @@ if(!localStorage.getItem('name')) {
 };
 
 let userID = localStorage.getItem('name');
+let matchKey;
 
-// to be updated
 async function getLink() {
-  let matchID = await insertMatch();
-  document.getElementById('invitationLink').innerHTML = `http://localhost:3000/match/${matchID}`;
+  matchKey = await getKey();
+  document.getElementById('invitationLink').innerHTML = `http://localhost:3000/match/${matchKey}`;
 };
 
-async function setUpAMatch() {
-  let matchID = await insertMatch();
-  window.location = `match/${matchID}`;
+async function getKey() {
+  let keyObject = await axios.post('/api/v1/match/get_key');
+  return keyObject.data;
 }
 
-async function insertMatch() {
-  // redirect to a room in match page (with room id)
+async function setUpAMatch() {
   const category = document.getElementById('category').value;
   const difficulty = document.getElementById('difficulty').value;
 
   // ajax 打 question list api
   let questionID = await getQuestion(category, difficulty);
 
-  // ajax 打 insert_match api 存資料到 match table 拿 matchID
-  let matchID = await insertMatch(userID, questionID);
+  if(!matchKey || matchKey == '') {
+    matchKey = await getKey();
+  }
+  console.log('matchKey', matchKey)
+  // ajax 打 insert_match api 存資料到 match table 拿 matchKey
+  let result = await insertMatch(userID, questionID, matchKey);
 
-  console.log('AFTER AXIOS: ', questionID, matchID)
-  return matchID;
+  console.log('AFTER AXIOS: ', questionID, matchKey);
+
+  // redirect to a room in match page with match key
+  window.location = `match/${matchKey}`;
 }
 
 async function getQuestion(category, difficulty) {
@@ -43,15 +48,15 @@ async function getQuestion(category, difficulty) {
   }
 }
 
-async function insertMatch(userID, questionID) {
+async function insertMatch(userID, questionID, matchKey) {
   try {
     const response = await axios.post('api/v1/match/insert_match', {
-      userID: userID,
-      questionID: questionID
+      userID,
+      questionID,
+      matchKey
     });
     console.log('打 api/v1/match/insert_match 的結果', response);
-    let matchID = response.data.insertId;
-    return matchID;
+    return response;
   } catch (error) {
     console.log(error);
   }
