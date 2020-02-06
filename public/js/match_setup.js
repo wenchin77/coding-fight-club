@@ -6,15 +6,15 @@ if(!localStorage.getItem('name')) {
 let userID = localStorage.getItem('name');
 let matchKey;
 
+async function getKey() {
+  let keyObject = await axios.post('/api/v1/match/get_key');
+  return keyObject.data;
+};
+
 async function getLink() {
   matchKey = await getKey();
   document.getElementById('invitationLink').innerHTML = `http://localhost:3000/match/${matchKey}`;
 };
-
-async function getKey() {
-  let keyObject = await axios.post('/api/v1/match/get_key');
-  return keyObject.data;
-}
 
 async function setUpAMatch() {
   const category = document.getElementById('category').value;
@@ -23,14 +23,17 @@ async function setUpAMatch() {
   // ajax 打 question list api
   let questionID = await getQuestion(category, difficulty);
 
+  if(!questionID) {
+    window.alert("There aren't this type of questions in our database. Please reselect.")
+    return;
+  };
+
   if(!matchKey || matchKey == '') {
     matchKey = await getKey();
-  }
-  console.log('matchKey', matchKey)
+  };
+
   // ajax 打 insert_match api 存資料到 match table 拿 matchKey
   let result = await insertMatch(userID, questionID, matchKey);
-
-  console.log('AFTER AXIOS: ', questionID, matchKey);
 
   // redirect to a room in match page with match key
   window.location = `match/${matchKey}`;

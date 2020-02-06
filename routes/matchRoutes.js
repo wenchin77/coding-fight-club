@@ -7,10 +7,9 @@ router.use(bodyparser.urlencoded({extended:true}));
 
 // 路徑是 /api/v1/match
 
-router.post('/insert_match', async (req, res) => { 
-  // get match id and add to response
-  let match = await matchController.insertMatch(req.body.userID, req.body.questionID, req.body.matchKey);
-  res.send(match);
+router.post('/insert_match', async (req, res) => {
+  let result = await matchController.insertMatch(req.body.userID, req.body.questionID, req.body.matchKey);
+  res.send(result);
 });
 
 router.post('/get_key', (req, res) => {
