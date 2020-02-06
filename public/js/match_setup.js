@@ -19,15 +19,15 @@ let tempRoomID;
 
 // Temp 測試用
 function setUpAMatchTemp() {
-  const userName = localStorage.getItem('name');
-  const question = document.getElementById("questionSetup").value;
-
   // redirect to a room in match page (with room id)
   // 暫時以現在的時間代表 room id
   if(!tempRoomID) {
     tempRoomID = timeNowString();
   };
-  window.location = `match/${tempRoomID}?question=${question}`;
+
+  const question = document.getElementById("questionSetup").value;
+  localStorage.setItem('question', question);
+  window.location = `match/${tempRoomID}`;
 }
 
 

@@ -18,48 +18,54 @@ socket.init = server => {
     // get roomID: 取網址中的參數（暫時由前端設定為現在的時間字串）當作房間號碼
     let url = socket.request.headers.referer;
     let roomID = getRoomID(url);
-    // get question
-    let question = getQuestion(url);
-    // 之後改成去 db 撈完問題內容丟出 question
-    let questionObject = {
-      question: question,
-      description: `Given an array of integers, return indices of the two numbers such that they add up to a specific target.
-      You may assume that each input would have exactly one solution, and you may not use the same element twice.
-      Example:
-      Given nums = [2, 7, 11, 15], target = 9,
-      Because nums[0] + nums[1] = 2 + 7 = 9,
-      return [0,1]`,
-      code: `const twoSum = function(nums, target) {
+
+    socket.on('question', q => {
+      let question = q;
+
+      // 之後改成去 db 撈完問題內容丟出 question
+      let questionObject = {
+        question: question,
+        description: `Given an array of integers, return indices of the two numbers such that they add up to a specific target.
+        You may assume that each input would have exactly one solution, and you may not use the same element twice.
+        Example:
+        Given nums = [2, 7, 11, 15], target = 9,
+        Because nums[0] + nums[1] = 2 + 7 = 9,
+        return [0,1]`,
+        code: `const twoSum = function(nums, target) {
   
 };`
-    };
-    let questionCodeConst = "twoSum";
-    let testCases = {
-      data: [
-        {
-          case: [[2, 7, 11, 15], 9],
-          output: [0,1]
-        },
-        {
-          case: [[20000000, 70000000, 110000000, 150000000000], 180000000],
-          output: [1,2]
-        },
-        {
-          case: [[10, 1, 20, 3, 40, 5, 60, 7, 80, 9, 100, 11, 120, 13, 14, 15, 16, 1700, 18, 19, 20], 123],
-          output: [3,12]
-        },
-        {
-          case: [[13, 0, 30, 16], 30],
-          output: [1,2]
-        },
-        {
-          case: [[-10, 0, 7, -11, -30, 100], 90],
-          output: [0,4]
-        }
-      ]
-    };
+      };
+
+      // Send question data to frontend
+      socket.emit("questionData", questionObject);
+    });
+    
 
     socket.on('submit', () => {
+      let testCases = {
+        data: [
+          {
+            case: [[2, 7, 11, 15], 9],
+            output: [0,1]
+          },
+          {
+            case: [[20000000, 70000000, 110000000, 150000000000], 180000000],
+            output: [1,2]
+          },
+          {
+            case: [[10, 1, 20, 3, 40, 5, 60, 7, 80, 9, 100, 11, 120, 13, 14, 15, 16, 1700, 18, 19, 20], 123],
+            output: [3,12]
+          },
+          {
+            case: [[13, 0, 30, 16], 30],
+            output: [1,2]
+          },
+          {
+            case: [[-10, 0, 7, -11, -30, 100], 90],
+            output: [0,4]
+          }
+        ]
+      };
       // Run all test cases
       let sampleTestCaseArr = testCases.data;
       sampleTestCaseArr.forEach(element => {
@@ -90,9 +96,6 @@ socket.init = server => {
       if (!socketidMapping[socket.id]) {
         socketidMapping[socket.id] = user;
       };
-
-      // Send question data to frontend
-      socket.emit("questionData", questionObject);
 
       // Join room
       socket.join(roomID, () => {
@@ -128,6 +131,31 @@ socket.init = server => {
       let testAll = data.test;
       let test = testAll.split("\n");
 
+      let questionCodeConst = "twoSum";
+      let testCases = {
+        data: [
+          {
+            case: [[2, 7, 11, 15], 9],
+            output: [0,1]
+          },
+          {
+            case: [[20000000, 70000000, 110000000, 150000000000], 180000000],
+            output: [1,2]
+          },
+          {
+            case: [[10, 1, 20, 3, 40, 5, 60, 7, 80, 9, 100, 11, 120, 13, 14, 15, 16, 1700, 18, 19, 20], 123],
+            output: [3,12]
+          },
+          {
+            case: [[13, 0, 30, 16], 30],
+            output: [1,2]
+          },
+          {
+            case: [[-10, 0, 7, -11, -30, 100], 90],
+            output: [0,4]
+          }
+        ]
+      };
 
       // put together the code for running
       let testCaseData = testCases.data[0];
@@ -161,11 +189,11 @@ socket.init = server => {
           output: childResult
         };
       } catch (e) {
-        let errorMessage = "Error: Please put in valid code and test data"
-        console.log("RUN CODE ERROR -----------> ", e);
+        let errorMessage;
+        // let errorMessage = "Error: Please put in valid code and test data"
         codeResult = {
           user: user,
-          output: errorMessage
+          output: e
         };
       }
       // send an event to everyone in the room including the sender
