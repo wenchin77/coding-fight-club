@@ -15,5 +15,10 @@ module.exports = {
 
   querySelectQuestions: (category, difficulty) => {
     return mysql.query('SELECT id, question_name, difficulty, category FROM question WHERE category = ? AND difficulty = ?;', [category, difficulty]);
+  },
+
+  querySelectQuestion: (question_id) => {
+    return mysql.query('SELECT * FROM question WHERE id = ?', [question_id]);
   }
+
 }

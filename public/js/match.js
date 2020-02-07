@@ -6,12 +6,12 @@ if(!(localStorage.getItem('name'))) {
 };
 
 const userName = localStorage.getItem('name');
-const question = localStorage.getItem('question');
 
 // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
 socket.on('connect', () => {
-  socket.emit('join', userName);
-  socket.emit('question', question);
+  if (userName) {
+    socket.emit('join', userName);
+  }
 });
 
 // too many people in a match: reject and redirect

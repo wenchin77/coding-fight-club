@@ -1,4 +1,7 @@
 const fs = require("fs");
+const matchController = require('./controllers/matchController');
+const questionController = require('./controllers/questionController');
+
 
 // child process setup for code execution
 const { spawn } = require("child_process");
@@ -9,39 +12,18 @@ const socket = {};
 
 socket.init = server => {
   const io = socketio.listen(server);
-  const rooms = {};
+  const matchList = {};
   const socketidMapping = {};
 
   io.on("connection", socket => {
     console.log("Socket: a user connected!");
 
-    // get roomID: 取網址中的參數（暫時由前端設定為現在的時間字串）當作房間號碼
     let url = socket.request.headers.referer;
-    let roomID = getRoomID(url);
-
-    socket.on('question', q => {
-      let question = q;
-
-      // 之後改成去 db 撈完問題內容丟出 question
-      let questionObject = {
-        question: question,
-        description: `Given an array of integers, return indices of the two numbers such that they add up to a specific target.
-        You may assume that each input would have exactly one solution, and you may not use the same element twice.
-        Example:
-        Given nums = [2, 7, 11, 15], target = 9,
-        Because nums[0] + nums[1] = 2 + 7 = 9,
-        return [0,1]`,
-        code: `const twoSum = function(nums, target) {
-  
-};`
-      };
-
-      // Send question data to frontend
-      socket.emit("questionData", questionObject);
-    });
+    let matchKey = getMatchKey(url);
     
 
     socket.on('submit', () => {
+      // get test cases from db
       let testCases = {
         data: [
           {
@@ -75,22 +57,23 @@ socket.init = server => {
 
 
 
-    socket.on("join", userName => {
+    socket.on("join", async (userName) => {
+      
       let user = userName;
 
       // Add a room if it doesn't exist
-      if (!rooms[roomID]) {
-        rooms[roomID] = [];
+      if (!matchList[matchKey]) {
+        matchList[matchKey] = [];
       };
 
       // Reject a user if there are already 2 people in the room
-      if (rooms[roomID].length >= 2) {
+      if (matchList[matchKey].length >= 2) {
         socket.emit('rejectUser', 'Oops, there are already two people in this match!');
         return;
       }
 
       // Add user to the room
-      rooms[roomID].push(user);
+      matchList[matchKey].push(user);
 
       // Add user to socketidMapping (socketid: user)
       if (!socketidMapping[socket.id]) {
@@ -98,30 +81,51 @@ socket.init = server => {
       };
 
       // Join room
-      socket.join(roomID, () => {
-        console.log(`Socket: ${user} 加入了 ${roomID} (socket.id = ${socket.id})`);
-        console.log('Rooms: ', rooms);
+      socket.join(matchKey, () => {
+        console.log(`Socket: ${user} 加入了 ${matchKey} (socket.id = ${socket.id})`);
+        console.log('matchList: ', matchList);
         let joinMessage = {
           user: user,
           message: `${user} joined the match.`
         }
-        io.to(roomID).emit('joinLeaveMessage', joinMessage);
+        io.to(matchKey).emit('joinLeaveMessage', joinMessage);
         
-        // +++ 寫進 db match table (先檢查有沒有這筆 match 的資料決定 create OR update)
+        // +++ modify match table (先檢查有沒有這筆 match 的資料決定 create OR update)
       });
 
       // Wait for opponent if there's only 1 person in the room
-      if (rooms[roomID].length === 1) {
+      if (matchList[matchKey].length === 1) {
         socket.emit('waitForOpponent', 'Hold on. We are waiting for your opponent to join...');
         return;
       };
+      
 
-      // Start match when there are 2 people in the room
-      let users = {
-        user1: rooms[roomID][0],
-        user2: rooms[roomID][1]
+      // when there are 2 people in the room
+
+      // send question details to display
+      // get questionID with matchKey
+      let questionID = await matchController.getMatchQuestion(matchKey);
+
+      // get question details with questionID
+      let getQuestionResult = await questionController.selectQuestion(questionID);
+      console.log('questionObj', getQuestionResult);
+
+      let questionObject = {
+        question: getQuestionResult.question_name,
+        description: getQuestionResult.question_text,
+        code: getQuestionResult.question_code,
+        difficulty: getQuestionResult.difficulty,
+        category: getQuestionResult.category
       };
-      io.to(roomID).emit('startMatch', users);
+      console.log(questionObject)
+      io.to(matchKey).emit("questionData", questionObject);
+
+      // send user info to display
+      let users = {
+        user1: matchList[matchKey][0],
+        user2: matchList[matchKey][1]
+      };
+      io.to(matchKey).emit('startMatch', users);
       
     });
 
@@ -197,7 +201,7 @@ socket.init = server => {
         };
       }
       // send an event to everyone in the room including the sender
-      io.to(roomID).emit("codeResult", codeResult);
+      io.to(matchKey).emit("codeResult", codeResult);
     });
 
     socket.on(('disconnect' || 'exit'), () => {
@@ -211,23 +215,23 @@ socket.init = server => {
         user: user,
         message: `${user} left the match.`
       }
-      io.to(roomID).emit("joinLeaveMessage", leaveMessage);
+      io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
 
       // 刪掉該用戶的 property
       delete socketidMapping[socketid];
 
-      if (rooms[roomID]) {
-        let index = rooms[roomID].indexOf(user);
+      if (matchList[matchKey]) {
+        let index = matchList[matchKey].indexOf(user);
         if (index !== -1) {
           // drop user at index
-          rooms[roomID].splice(index, 1);
-          if (rooms[roomID].length === 0) {
+          matchList[matchKey].splice(index, 1);
+          if (matchList[matchKey].length === 0) {
             // drop room property if it's empty
-            delete rooms[roomID];
+            delete matchList[matchKey];
           }
         }
-        socket.leave(roomID); // 退出房間
-        console.log(`Socket: ${user} 退出了 ${roomID} (socket.id ${socket.id})`);
+        socket.leave(matchKey); // 退出房間
+        console.log(`Socket: ${user} 退出了 ${matchKey} (socket.id ${socket.id})`);
       }
 
     });
@@ -297,11 +301,10 @@ function childProcessExecFile(user, path) {
 
 
 
-function getRoomID(url) {
+function getMatchKey(url) {
   let urlSplitedBySlash = url.split("/");
-  let roomID = urlSplitedBySlash[urlSplitedBySlash.length - 1];
-  console.log(roomID);
-  return roomID;
+  let key = urlSplitedBySlash[urlSplitedBySlash.length - 1];
+  return key;
 }
 
 function arrayBufferToStr(buf) {

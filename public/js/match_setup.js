@@ -32,8 +32,8 @@ async function setUpAMatch() {
     matchKey = await getKey();
   };
 
-  // ajax 打 insert_match api 存資料到 match table 拿 matchKey
-  let result = await insertMatch(userID, questionID, matchKey);
+  // insert a match
+  let match = await insertMatch(userID, questionID, matchKey);
 
   // redirect to a room in match page with match key
   window.location = `match/${matchKey}`;
@@ -42,25 +42,22 @@ async function setUpAMatch() {
 async function getQuestion(category, difficulty) {
   try {
     const response = await axios.get(`/api/v1/question/${category}?difficulty=${difficulty}`)
-    console.log('打 /api/v1/question 的結果', response.data);
     let questionID = response.data.question.id;
-    console.log(questionID);
     return questionID;
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 async function insertMatch(userID, questionID, matchKey) {
   try {
-    const response = await axios.post('api/v1/match/insert_match', {
+    const response = await axios.post('/api/v1/match/insert_match', {
       userID,
       questionID,
       matchKey
-    });
-    console.log('打 api/v1/match/insert_match 的結果', response);
+    })
     return response;
   } catch (error) {
     console.log(error);
   }
-}
+};

@@ -50,5 +50,20 @@ module.exports = {
     } catch (err) {
       console.log(err);
     }
+  },
+
+  selectQuestion: async (question_id) => {
+    try {
+      let result = await questionModel.querySelectQuestion(question_id);
+      let questionObj = result[0];
+      return questionObj;
+    } catch (err) {
+      console.log(err);
+    }
   }
+
+
+  
+
+
 };
