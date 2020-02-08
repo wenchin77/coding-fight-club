@@ -1,7 +1,8 @@
 console.time('Time');
 const twoSum = function(nums, target) {
      // Write your code here
- 
+  for (;;) {}
+
  };
 console.log('Sample test case: '+'[2, 7, 11, 15],9');
 let result_sample = JSON.stringify(twoSum([2, 7, 11, 15],9));

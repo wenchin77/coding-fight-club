@@ -5,13 +5,17 @@ if(!(localStorage.getItem('name'))) {
   window.location.pathname = 'signin';
 };
 
-const userName = localStorage.getItem('name');
+const userID = localStorage.getItem('name');
+
+// 把要跑程式需要的這些東西存在前端，跑 runCode 時丟到後面
 let sampleCaseExpected;
+let questionConst;
+let difficulty;
 
 // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
 socket.on('connect', () => {
-  if (userName) {
-    socket.emit('join', userName);
+  if (userID) { // prevent null
+    socket.emit('join', userID);
   }
 });
 
@@ -28,6 +32,8 @@ socket.once('questionData', questionObject => {
   document.getElementById('sampleTestCase').innerHTML = questionObject.sampleCase;
   codemirrorEditor.setValue(questionObject.code);
   sampleCaseExpected = questionObject.sampleExpected;
+  questionConst = questionObject.const;
+  difficulty = questionObject.difficulty;
 });
 
 socket.once('waitForOpponent', msg => {
@@ -36,7 +42,7 @@ socket.once('waitForOpponent', msg => {
 
 socket.on('joinLeaveMessage', msgObject => {
   // opponent joins / leaves
-  if(msgObject.user !== userName) {
+  if(msgObject.user !== userID) {
     document.getElementById('opponentRunCodeOutput').innerHTML = `<p id="terminalMessage">${msgObject.message}</p>`;
   }
 });
@@ -44,7 +50,7 @@ socket.on('joinLeaveMessage', msgObject => {
 socket.once('startMatch', users => {
   // show opponent name
   let opponent;
-  if (users.user1 === userName) {
+  if (users.user1 === userID) {
     opponent = users.user2
   } else {
     opponent = users.user1
@@ -67,7 +73,7 @@ socket.once('startMatch', users => {
 socket.on('codeResult', (resultObj) =>{
   console.log(resultObj);
   // 顯示自己的結果在自己的 terminal
-  if(resultObj.user === userName) {
+  if(resultObj.user === userID) {
     document.getElementById('runCodeOutput').innerHTML = '';
     document.getElementById('runCodeOutput').innerHTML = resultObj.output;
     return;
@@ -111,15 +117,33 @@ function runCode() {
   testcaseValue = sampleTestCase +'\n'+ testcaseValue;
 
   let payload = {
-    user: userName,
+    user: userID,
     code: codeareaValue,
     test: testcaseValue,
+    difficulty,
+    questionConst,
     sampleCaseExpected
   };
   socket.emit('codeObject', payload);
 
 };
 
+
+function submitCode() {
+  // send code to server (get test cases in server)
+  let codeareaValue = codemirrorEditor.getValue();
+
+  let payload = {
+    user: userID,
+    code: codeareaValue
+  };
+  socket.emit('submit', payload);
+
+
+
+  // redirect to match_result page
+
+}
 
 
 
@@ -136,18 +160,14 @@ function exitMatch() {
   if (window.confirm('Are you sure you want to exit the match? You will not gain any points if you do so :(')){
     window.location.pathname='/';
     alert('You exited the match!');
-    socket.emit('exit', userName);
+    socket.emit('exit', userID);
   }
 }
 
-function submitCode() {
-  // code???
-  socket.emit('submit', code);
 
-  // 第一個結束的人紀錄扣跟項目評分在 match_detail
-  // 第二個結束的人紀錄扣跟項目評分在 match_detail 和紀錄結束時間、贏家跟分數在 match
-  // 更新兩人的 user table (and level table if needed)
 
+function showHelp() {
+  // show help message
 }
 
 

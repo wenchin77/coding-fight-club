@@ -62,13 +62,10 @@ module.exports = {
     }
   },
 
-  selectSampleTestCase: async (question_id) => {
-    console.log('進入 questionController selectSampleTestCase')
+  selectSampleTestCases: async (question_id) => {
     try {
-      let result = await questionModel.querySelectSampleTestCase(question_id);
-      let firstTestCase = result[0];
-      console.log('questionController selectSampleTestCase result ----', firstTestCase)
-      return firstTestCase;
+      let result = await questionModel.querySelectSampleTestCases(question_id);
+      return result;
     } catch (err) {
       console.log(err);
     }
