@@ -60,6 +60,18 @@ module.exports = {
     } catch (err) {
       console.log(err);
     }
+  },
+
+  selectSampleTestCase: async (question_id) => {
+    console.log('進入 questionController selectSampleTestCase')
+    try {
+      let result = await questionModel.querySelectSampleTestCase(question_id);
+      let firstTestCase = result[0];
+      console.log('questionController selectSampleTestCase result ----', firstTestCase)
+      return firstTestCase;
+    } catch (err) {
+      console.log(err);
+    }
   }
 
 

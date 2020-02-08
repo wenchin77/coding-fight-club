@@ -99,7 +99,6 @@ socket.init = server => {
         return;
       };
       
-
       // when there are 2 people in the room
 
       // send question details to display
@@ -108,14 +107,18 @@ socket.init = server => {
 
       // get question details with questionID
       let getQuestionResult = await questionController.selectQuestion(questionID);
-      console.log('questionObj', getQuestionResult);
+
+      // get sample test case with questionID
+      let sampleCase = await questionController.selectSampleTestCase(questionID);
 
       let questionObject = {
         question: getQuestionResult.question_name,
         description: getQuestionResult.question_text,
         code: getQuestionResult.question_code,
         difficulty: getQuestionResult.difficulty,
-        category: getQuestionResult.category
+        category: getQuestionResult.category,
+        sampleCase: sampleCase.test_data,
+        sampleExpected: sampleCase.test_result
       };
       console.log(questionObject)
       io.to(matchKey).emit("questionData", questionObject);
@@ -127,6 +130,13 @@ socket.init = server => {
       };
       io.to(matchKey).emit('startMatch', users);
       
+
+      // update match start time & user2 (when user2 joins)
+      let matchID = await matchController.updateMatch(matchKey, user);
+
+      // insert into match_detail
+      await matchController.insertMatchDetail(matchID, questionID, matchList[matchKey][0], matchList[matchKey][1]);
+      
     });
 
     // 點 Run Code 會把內容放到 matches，每按一次就顯示在雙方的 terminal
@@ -134,36 +144,13 @@ socket.init = server => {
       let user = data.user;
       let testAll = data.test;
       let test = testAll.split("\n");
+      let sampleCaseExpected = data.sampleCaseExpected;
 
+      // +++++++++ get from db!!!!
       let questionCodeConst = "twoSum";
-      let testCases = {
-        data: [
-          {
-            case: [[2, 7, 11, 15], 9],
-            output: [0,1]
-          },
-          {
-            case: [[20000000, 70000000, 110000000, 150000000000], 180000000],
-            output: [1,2]
-          },
-          {
-            case: [[10, 1, 20, 3, 40, 5, 60, 7, 80, 9, 100, 11, 120, 13, 14, 15, 16, 1700, 18, 19, 20], 123],
-            output: [3,12]
-          },
-          {
-            case: [[13, 0, 30, 16], 30],
-            output: [1,2]
-          },
-          {
-            case: [[-10, 0, 7, -11, -30, 100], 90],
-            output: [0,4]
-          }
-        ]
-      };
 
       // put together the code for running
-      let testCaseData = testCases.data[0];
-      let finalCode = putTogetherCode(data.code, questionCodeConst, testCaseData, test)
+      let finalCode = putTogetherCode(data.code, questionCodeConst, sampleCaseExpected, test)
 
       // 按不同 user 存到 ./sessions js files
       setUserCodeFile('sessions/', user, finalCode);
@@ -193,7 +180,6 @@ socket.init = server => {
           output: childResult
         };
       } catch (e) {
-        let errorMessage;
         // let errorMessage = "Error: Please put in valid code and test data"
         codeResult = {
           user: user,
@@ -245,19 +231,23 @@ function setUserCodeFile(path, user, code) {
   fs.closeSync(answerFile);
 };
 
-function putTogetherCode(code, codeConst, sampleTestCase, test) {
+function putTogetherCode(code, codeConst, expected, test) {
+
+  // expected: get from db!!!!!
+  let sampleTestCaseExpected = JSON.stringify(expected);
+  console.log('sampleTestCaseExpected -------',sampleTestCaseExpected);
+
   // exec time calculation
   let finalCode = `console.time('Time');\n${code}\n`;
   // sample test case
-  let sampleTestCaseStr = `${JSON.stringify(sampleTestCase.case[0])}, ${JSON.stringify(sampleTestCase.case[1])}`;
-  let sampleTestCaseExpected = `'${JSON.stringify(sampleTestCase.output)}'`;
-  let consoleLogCode = `console.log('Sample test case: '+'${sampleTestCaseStr}');\nconsole.log('Sample output: '+${codeConst}(${sampleTestCaseStr}));\nconsole.log('Sample expected: '+${sampleTestCaseExpected})`;
+  let consoleLogCode = `console.log('Sample test case: '+'${test[0]}');\nlet result_sample = JSON.stringify(${codeConst}(${test[0]}));\nconsole.log('Sample output: '+result_sample);\nconsole.log('Sample expected: '+${sampleTestCaseExpected})`;
   // user's test case
-  for (i=0; i<5; i++) {
+  for (i=1; i<5; i++) {
     if (test[i] && test[i]!==''){
       consoleLogCode += `\nconsole.log('')`
       consoleLogCode += `\nconsole.log('Your test case: '+'${test[i]}');`
-      consoleLogCode += `\nconsole.log('Output: '+${codeConst}(${test[i]}));`
+      consoleLogCode += `\nlet result_${i} = JSON.stringify(${codeConst}(${test[i]}));`;
+      consoleLogCode += `\nconsole.log('Output: '+result_${i});`
     }
   };
   // format

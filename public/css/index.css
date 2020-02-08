@@ -43,7 +43,7 @@ textarea {
 }
 
 p {
-  color: grey;
+  color: #999999;
 }
 
 footer p {
@@ -250,6 +250,11 @@ footer a:link {
   padding: 10px;
 }
 
+#questionDescription,
+#terminalMessage {
+  margin: 0;
+}
+
 #testcase,
 #runCodeOutput,
 #opponentRunCodeOutput {
@@ -267,8 +272,19 @@ footer a:link {
   background-color: #000;
 }
 
-#testcase {
+#testCaseArea {
   display: none;
+  position: relative;
+}
+
+#testcase {
+  padding-top: 30px;
+}
+
+#sampleTestCase {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
 .rightSection button {

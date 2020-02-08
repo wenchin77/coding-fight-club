@@ -6,6 +6,7 @@ if(!(localStorage.getItem('name'))) {
 };
 
 const userName = localStorage.getItem('name');
+let sampleCaseExpected;
 
 // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
 socket.on('connect', () => {
@@ -23,19 +24,20 @@ socket.on('rejectUser', msg => {
 // 拿到 questionData 顯示在前端 (once: 只有第一次拿到做，之後不動作)
 socket.once('questionData', questionObject => {
   document.getElementById('matchQuestion').innerHTML = questionObject.question;
-  document.getElementById('question').innerHTML = questionObject.description;
+  document.getElementById('question').innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;
+  document.getElementById('sampleTestCase').innerHTML = questionObject.sampleCase;
   codemirrorEditor.setValue(questionObject.code);
+  sampleCaseExpected = questionObject.sampleExpected;
 });
 
 socket.once('waitForOpponent', msg => {
-  document.getElementById('runCodeOutput').innerHTML = `<p>${msg}</p>`;
+  document.getElementById('runCodeOutput').innerHTML = `<p id="terminalMessage">${msg}</p>`;
 })
 
 socket.on('joinLeaveMessage', msgObject => {
   // opponent joins / leaves
   if(msgObject.user !== userName) {
-    document.getElementById('opponentRunCodeOutput').innerHTML = `<p>${msgObject.message}</p>`;
-    // document.getElementById('opponentRunCodeExpected').innerHTML = '';
+    document.getElementById('opponentRunCodeOutput').innerHTML = `<p id="terminalMessage">${msgObject.message}</p>`;
   }
 });
 
@@ -50,7 +52,7 @@ socket.once('startMatch', users => {
   document.getElementById('opponent').innerHTML = `Opponent: ${opponent}`;
   
   // show start match message
-  document.getElementById('runCodeOutput').innerHTML = '<p>The match begins now! Write the code and test cases to begin.</p>'
+  document.getElementById('runCodeOutput').innerHTML = '<p id="terminalMessage">The match begins now! Write the code and test cases to begin.</p>'
 
   // start the timer
   let hoursLabel = document.getElementById("hours");
@@ -96,20 +98,23 @@ function pad(val) {
 
 function runCode() {
   // 隱藏 test case
-  document.getElementById("testcase").style.display = "none";
+  document.getElementById("testCaseArea").style.display = "none";
   document.getElementById("testcaseBtn").style.background = "#222222";
   // 顯示 run code
   document.getElementById("runCodeOutput").style.display = "flex";
   document.getElementById("runcodeBtn").style.background = "#555555";
 
   // send code & test to server
-  const codeareaValue = codemirrorEditor.getValue();
-  const testcaseValue = document.getElementById("testcase").value;
+  let codeareaValue = codemirrorEditor.getValue();
+  let sampleTestCase = document.getElementById("sampleTestCase").textContent;
+  let testcaseValue = document.getElementById("testcase").value;
+  testcaseValue = sampleTestCase +'\n'+ testcaseValue;
 
   let payload = {
     user: userName,
     code: codeareaValue,
-    test: testcaseValue
+    test: testcaseValue,
+    sampleCaseExpected
   };
   socket.emit('codeObject', payload);
 
@@ -120,7 +125,7 @@ function runCode() {
 
 function showTestCase() {
   // 顯示 test case
-  document.getElementById("testcase").style.display = "flex";
+  document.getElementById("testCaseArea").style.display = "flex";
   document.getElementById("testcaseBtn").style.background = "#555555";
   // 隱藏 run code
   document.getElementById("runCodeOutput").style.display = "none";

@@ -19,6 +19,10 @@ module.exports = {
 
   querySelectQuestion: (question_id) => {
     return mysql.query('SELECT * FROM question WHERE id = ?', [question_id]);
+  },
+
+  querySelectSampleTestCase: (question_id) => {
+    return mysql.query('SELECT test_data, test_result FROM test WHERE question_id = ?', [question_id]);
   }
 
 }
