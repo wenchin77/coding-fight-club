@@ -77,13 +77,13 @@ socket.init = server => {
       // update match start time & user2 (when user2 joins)
       let matchID = await matchController.updateMatch(matchKey, user);
 
-      // insert into match_detail
+      // insert into match_detail (make sure there are no duplicated rows)
       let questionID = questionObject.questionID;
-      await matchController.insertMatchDetail(matchID, questionID, matchList[matchKey][0], matchList[matchKey][1]);
+      await matchController.insertMatchDetail(matchID, questionID, matchList[matchKey][0]);
+      await matchController.insertMatchDetail(matchID, questionID, matchList[matchKey][1]);
       
     });
 
-    // 點 Run Code 會把內容放到 matches，每按一次就顯示在雙方的 terminal
     socket.on("codeObject", async data => {
       let code = data.code;
       let user = data.user;
@@ -97,12 +97,12 @@ socket.init = server => {
       let finalCode = putTogetherCodeOnRun(code, questionConst, sampleCaseExpected, test)
 
       // 按不同 user 存到 ./sessions js files
-      setUserCodeFile('sessions/', user, finalCode);
+      setUserCodeFile(matchKey, user, finalCode);
 
       let codeResult = {};
       // Run code in child process
       try {
-        let childResult = await childProcessExecFile(user, difficulty, 'sessions/');
+        let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
         console.log('childResult===', childResult);
         
         // give sample test case result
@@ -134,56 +134,105 @@ socket.init = server => {
     });
 
     socket.on('submit', async (data) => {
-      let userID = data.userID;
+      let user = data.user;
       let code = data.code;
 
       let questionObject = await getQuestionDetail(matchKey, true);
-      console.log('questionObject on submit =====', questionObject);
       let questionConst = questionObject.const;
-      let sampleCases = questionObject.sampleCases;
+      let testCases = questionObject.sampleCases;
+      let difficulty = questionObject.difficulty;
 
-      // +++++++ run code with all test cases
-      // put together the code for running
-      let finalCode = putTogetherCodeOnSubmit(code, questionConst, sampleCases);
-
-      // 按不同 user 存到 ./sessions js files
-      setUserCodeFile('sessions/', user, finalCode);
-
-      let codeResult = {};
-      // Run code in child process
-      try {
-        let childResult = await childProcessExecFile(user,'sessions/');
-        console.log('childResult===', childResult);
-        
-        // give sample test case result
-        let sampleSplited = childResult.split('\n');
-        let sampleOutput = sampleSplited[1].split(': ')[1];
-        let sampleExpected = sampleSplited[2].split(': ')[1];
-
-        // add sample test result to childResult
-        if (sampleOutput == sampleExpected) {
-          childResult = 'SAMPLE TEST PASSED\n' + childResult;
-        } else {
-          childResult = 'SAMPLE TEST FAILED\n' + childResult;
-        }
-
-        // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
-        codeResult = {
-          user: user,
-          output: childResult
+      // put together the code & run one test case at a time
+      let testCasesNumber = testCases.length;
+      let passedCasesNumber = 0;
+      let testExecTimeSum = 0;
+      let testCasesResult =''; // 改成寫到 match_result page 的 ajax!!!!!!!!
+      for (i=0;i<testCases.length;i++) {
+        let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, testCases[i]);
+        // 按不同 user 存到 ./sessions js files
+        setUserCodeFile(matchKey, user, testCaseFinalCode);
+        // Run code in child process
+        try {
+          let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
+          console.log(`childResult ${i} =============== `);
+          
+          // give sample test case result
+          let childResultSplited = childResult.split('\n');
+          let testOutput = childResultSplited[0];
+          let testExecTime = childResultSplited[1].split('Time: ')[1].split('ms')[0];
+          let testExpectedOutput = testCases[i].test_result;
+  
+          // add sample test result to childResult
+          if (testOutput == testExpectedOutput) {
+            console.log(`test case [${i}] passed`)
+            passedCasesNumber += 1;
+            testExecTimeSum += parseFloat(testExecTime);
+            testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
+          } else {
+            console.log(`test case [${i}] failed`)
+            testCasesResult += `TEST FAILED\nExpected: ${testExpectedOutput}, instead got: ${testOutput}\n\n`;
+          }
+        } catch (e) {
+          console.log(e)
         };
-      } catch (e) {
-        // let errorMessage = "Error: Please put in valid code and test data"
-        codeResult = {
-          user: user,
-          output: e
-        };
+      };
+      
+      console.log('testCasesResult', testCasesResult)
+
+      // calculate passed test cases
+      let correctness = passedCasesNumber/testCasesNumber;
+
+      // calculate exec time (counting with passed tests only)
+      let execTime;
+      if (passedCasesNumber === 0) {
+        execTime = null;
+      } else {
+        execTime = testExecTimeSum/passedCasesNumber;
       }
-      // 第一個結束的人紀錄 code 跟項目評分在 match_detail
-      socket.emit('firstSubmit', 'XXXXXX');
-      // 第二個結束的人紀錄 code 跟項目評分在 match_detail 和紀錄結束時間、贏家跟分數在 match
-      socket.emit('finalSubmit', 'XXXXXX');
-      // +++++++ 更新兩人的 user table (and level table if needed)
+
+      // calculate answer time
+      let startTime = await matchController.getMatchStartTime(matchKey);
+      let answerTime = (Date.now() - startTime)/1000; // in seconds
+
+
+
+      // 紀錄 code 跟項目評分在 match_detail
+      let matchID = await matchController.getMatchId(matchKey);
+      await matchController.updateMatchDetail(matchID, user, code, correctness, execTime, answerTime);
+      
+      // get questionID with matchKey
+      let questionID = await matchController.getMatchQuestion(matchKey);
+      // performance 拉之前寫過這題的所有 execTime，看分布在哪
+      let pastExecTime = await matchController.getMatchDetailPastExecTime(questionID);
+      for (i=0; i<pastExecTime.length; i++) {
+        console.log(pastExecTime[i].exec_time);
+      }
+
+      // +++++++ update performance & points
+
+      // +++++++ 更新兩人的 user table: points (and level table if needed)
+
+      // fs 刪掉 ./sessions js files
+
+
+
+      // check 自己是第幾個 insert match_detail 的人
+      let submitNumber = await matchController.getSubmitNumber(matchID);
+      console.log('submitNumber', submitNumber);
+
+      if (submitNumber < 2) {
+        // 如果自己是第一個：給等待訊息
+        let submitMessage = {
+          user,
+          message: `${user} submitted the code! We're waiting for your submission.`
+        }
+        io.to(matchKey).emit('waitForMatchEnd', submitMessage);
+        return;
+      }
+      
+      // 如果第二
+      socket.emit('testCasesResult', testCasesResult)
+      io.to(matchKey).emit('endMatch', matchKey, testCasesResult);
       
     })
 
@@ -222,8 +271,8 @@ socket.init = server => {
 };
 
 
-const setUserCodeFile = (path, user, code) => {
-  let answerFile = fs.openSync(`./${path}${user}.js`, "w");
+const setUserCodeFile = (matchKey, user, code) => {
+  let answerFile = fs.openSync(`./sessions/${matchKey}_${user}.js`, "w");
   fs.writeSync(answerFile, code, (encoding = "utf-8"));
   fs.closeSync(answerFile);
 };
@@ -233,7 +282,7 @@ const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
   // exec time calculation
   let finalCode = `console.time('Time');\n${code}\n`;
   // sample test case
-  let consoleLogCode = `console.log('Sample test case: '+'${test[0]}');\nlet result_sample = JSON.stringify(${codeConst}(${test[0]}));\nconsole.log('Sample output: '+result_sample);\nconsole.log('Sample expected: '+${sampleTestCaseExpected})`;
+  let consoleLogCode = `console.log('Sample test case: '+'${test[0]}');\nlet result_sample = JSON.stringify(${codeConst}(${test[0]}));\nconsole.log('Sample output: '+result_sample);\nconsole.log('Sample output expected: '+${sampleTestCaseExpected})`;
   // user's test case
   for (i=1; i<5; i++) {
     if (test[i] && test[i]!==''){
@@ -249,24 +298,11 @@ const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
   return finalCode;
 };
 
-// ++++++++ update the function to give # of test cases passed, exec_time
-const putTogetherCodeOnSubmit = (code, questionConst, sampleCases) => {
-  let sampleTestCaseExpected = JSON.stringify(expected);
+const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
+  let testCase = sampleCase.test_data;
   // exec time calculation
-  let finalCode = `console.time('Time');\n${code}\n`;
-  // sample test case
-  let consoleLogCode = `console.log('Sample test case: '+'${test[0]}');\nlet result_sample = JSON.stringify(${codeConst}(${test[0]}));\nconsole.log('Sample output: '+result_sample);\nconsole.log('Sample expected: '+${sampleTestCaseExpected})`;
-  // user's test case
-  for (i=1; i<5; i++) {
-    if (test[i] && test[i]!==''){
-      consoleLogCode += `\nconsole.log('')`
-      consoleLogCode += `\nconsole.log('Your test case: '+'${test[i]}');`
-      consoleLogCode += `\nlet result_${i} = JSON.stringify(${codeConst}(${test[i]}));`;
-      consoleLogCode += `\nconsole.log('Output: '+result_${i});`
-    }
-  };
+  let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
   // format
-  finalCode += (consoleLogCode + `\nconsole.log('')`);
   finalCode += `\nconsole.timeEnd('Time');`;
   return finalCode;
 };
@@ -302,9 +338,9 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
 }
 
 
-const childProcessExecFile = (user, difficulty, path) => {
+const runCodeInChildProcess = (matchKey, user, difficulty) => {
   return new Promise((resolve, reject) => {
-    let ls = spawn(`node`, [`${path}${user}.js`]);
+    let ls = spawn(`node`, [`./sessions/${matchKey}_${user}.js`]);
     let result = '';
     ls.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
@@ -322,11 +358,10 @@ const childProcessExecFile = (user, difficulty, path) => {
       .on('close', code => {
       if (code === 0) {
         resolve(result);
-        console.log(`exited child_process at ${path}${user}.js with code ${code}`);
       } else {
         reject(result);
-        console.log(`exited child_process at ${path}${user}.js with code ${code}`);
       }
+      console.log(`exited child_process at ${matchKey}_${user}.js with code ${code}`);
     });
 
     // timeout error setting

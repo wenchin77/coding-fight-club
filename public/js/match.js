@@ -17,6 +17,7 @@ socket.on('connect', () => {
   if (userID) { // prevent null
     socket.emit('join', userID);
   }
+  // +++++++++ check if the match's on, if so get start time from server to set the timer
 });
 
 // too many people in a match: reject and redirect
@@ -71,7 +72,6 @@ socket.once('startMatch', users => {
 
 // 接收 codeResult 並顯示（每次都蓋掉上次的）
 socket.on('codeResult', (resultObj) =>{
-  console.log(resultObj);
   // 顯示自己的結果在自己的 terminal
   if(resultObj.user === userID) {
     document.getElementById('runCodeOutput').innerHTML = '';
@@ -81,6 +81,25 @@ socket.on('codeResult', (resultObj) =>{
   // 顯示別人的結果在自己的 terminal
   document.getElementById('opponentRunCodeOutput').innerHTML = resultObj.output;
 });
+
+socket.once('waitForMatchEnd', submitMessage => {
+  if (submitMessage.user === userID) {
+    window.alert("Awesome! Let's wait for your opponent to submit.");
+    // 等待的時候可以幹啥？
+    return;
+  }
+  document.getElementById('opponentRunCodeOutput').innerHTML = `<p id="terminalMessage">${submitMessage.message}</p>`;
+
+})
+
+socket.once('testCasesResult', testCasesResult => {
+  localStorage.setItem('testCasesResult', testCasesResult);
+})
+
+socket.once('endMatch', (matchKey) => {
+  // redirect to match_result page with match_key param
+  window.location = `/match_result/${matchKey}`;
+})
 
 
 function setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel) {
@@ -135,7 +154,8 @@ function submitCode() {
 
   let payload = {
     user: userID,
-    code: codeareaValue
+    code: codeareaValue,
+    difficulty
   };
   socket.emit('submit', payload);
 
