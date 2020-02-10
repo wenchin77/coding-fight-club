@@ -1,6 +1,7 @@
 // const AppError = require('../util/appError');
 // sql 語句拆到 model/question 去
-const questionModel = require('../models/question')
+const questionModel = require('../models/question');
+const fs = require('fs');
 
 module.exports = {
   insertQuestion: async (req, res) => {
@@ -24,9 +25,50 @@ module.exports = {
   },
   
   insertTest: async (req, res) => {
+    question_id = req.body.question_id;
+    data = req.body.test_data;
+    const dir = `./testcases/${question_id}`;
+
+
+    // fs create new dir with question_id
+    let checkDir = fs.existsSync(dir);
+    console.log('checkDir: ', checkDir);
+
+    if(!checkDir) {
+      fs.mkdirSync(dir);
+    }
+
+    // fs create new testcase file
+    let path0 = `${dir}/0.json`
+    let checkFile = fs.existsSync(path0);
+    console.log('checkFile: ', checkFile)
+
+    // let testCaseFileNo;
+    const countFileNo = (dir) => {
+      return new Promise((resolve, reject) => {
+        fs.readdir(dir, (err, files) => {
+          resolve(files.length);
+          if (err) {
+            reject(err)
+          };
+        });
+      })
+    }
+
+    let testCaseFileNo = await countFileNo(dir);
+    console.log('testCaseFileNo', testCaseFileNo)
+
+    let testcaseID = checkFile ? testCaseFileNo : 0;
+    console.log('testcaseID', testcaseID);
+
+    let file = fs.openSync(`${dir}/${testcaseID}.json`, "w");
+    fs.writeSync(file, data, (encoding = "utf-8"));
+    fs.closeSync(file);
+
+    // insert into db file name
     let test =  {
       question_id: req.body.question_id,
-      test_data: req.body.test_data,
+      test_data: `${dir}/${testcaseID}.json`,
       test_result: req.body.test_result
     }
     try {
