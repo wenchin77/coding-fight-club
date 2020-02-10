@@ -22,7 +22,7 @@ module.exports = {
   },
 
   querySelectSampleTestCases: (question_id) => {
-    return mysql.query('SELECT test_data, test_result FROM test WHERE question_id = ?', [question_id]);
+    return mysql.query('SELECT test_case_path, test_result FROM test WHERE question_id = ?', [question_id]);
   }
 
 }

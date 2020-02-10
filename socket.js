@@ -350,7 +350,7 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
   let getQuestionResult = await questionController.selectQuestion(questionID);
   // get sample test case with questionID
   let sampleCases = await questionController.selectSampleTestCases(questionID);
-  
+
   let questionObject = {
     questionID: questionID,
     question: getQuestionResult.question_name,
@@ -360,13 +360,15 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
     category: getQuestionResult.category,
     const: getQuestionResult.question_const,
   };
+
   // senario: both users join (send sampleCases[0])
   if (!submitBoolean) {
     let sampleCase = sampleCases[0];
-    questionObject.sampleCase = sampleCase.test_data;
+    questionObject.sampleCase = arrayBufferToStr(fs.readFileSync(sampleCase.test_case_path));
     questionObject.sampleExpected = sampleCase.test_result;
     return questionObject;
   };
+  console.log(questionObject)
 
   // senario: a user submits (send sampleCases)
   questionObject.sampleCases = sampleCases;

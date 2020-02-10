@@ -4,53 +4,35 @@ const questionModel = require('../models/question');
 const fs = require('fs');
 
 module.exports = {
-  insertQuestion: async (req, res) => {
-    let question = {
-      question_name: req.body.title,
-      question_text: req.body.description,
-      question_code: req.body.code,
-      question_const: req.body.const,
-      difficulty: req.body.difficulty,
-      category: req.body.category
-    };
+  insertQuestion: async (question) => {
     try {
       let result = await questionModel.queryInsertQuestion(question);
       // const [rows, fields] = await questionModel.queryInsertQuestion(question);  
       console.log(result);
-      res.send(`Question inserted: ${JSON.stringify(question)}`);
+      return(`Question inserted: ${JSON.stringify(question)}`);
     } catch (err) {
       console.log(err);
-      res.send('Question insert error!')
+      return('Question insert error!')
     }
   },
   
-  insertTest: async (req, res) => {
-    question_id = req.body.question_id;
-    data = req.body.test_data;
+  insertTest: async (question_id, data, test_result) => {
     const dir = `./testcases/${question_id}`;
-
 
     // fs create new dir with question_id
     let checkDir = fs.existsSync(dir);
-    console.log('checkDir: ', checkDir);
-
     if(!checkDir) {
       fs.mkdirSync(dir);
     }
-
     // fs create new testcase file
     let path0 = `${dir}/0.json`
     let checkFile = fs.existsSync(path0);
-    console.log('checkFile: ', checkFile)
 
-    // let testCaseFileNo;
     const countFileNo = (dir) => {
       return new Promise((resolve, reject) => {
         fs.readdir(dir, (err, files) => {
           resolve(files.length);
-          if (err) {
-            reject(err)
-          };
+          if (err) {reject(err)};
         });
       })
     }
@@ -67,17 +49,17 @@ module.exports = {
 
     // insert into db file name
     let test =  {
-      question_id: req.body.question_id,
-      test_data: `${dir}/${testcaseID}.json`,
-      test_result: req.body.test_result
+      question_id,
+      test_case_path: `${dir}/${testcaseID}.json`,
+      test_result
     }
     try {
       let result = await questionModel.queryInsertTest(test);
       console.log(result);
-      res.send(`Test data inserted: ${JSON.stringify(test)}`);
+      return(`Test data inserted: ${JSON.stringify(test)}`);
     } catch (err) {
       console.log(err);
-      res.send('Test insert error!');
+      return('Test insert error!');
     }
   },
 

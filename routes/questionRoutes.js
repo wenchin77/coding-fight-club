@@ -7,12 +7,25 @@ router.use(bodyparser.urlencoded({extended:true}));
 
 // 路徑是 /api/v1/question
 
-router.post('/insert_question', (req, res)=> {
-  questionController.insertQuestion(req, res);
+router.post('/insert_question', async (req, res)=> {
+  let question = {
+    question_name: req.body.title,
+    question_text: req.body.description,
+    question_code: req.body.code,
+    question_const: req.body.const,
+    difficulty: req.body.difficulty,
+    category: req.body.category
+  };
+  let result = await questionController.insertQuestion(question);
+  res.send(result);
 });
 
-router.post('/insert_test', (req, res)=> {
-  questionController.insertTest(req, res);
+router.post('/insert_test', async (req, res)=> {
+  let questionID = req.body.question_id;
+  let data = req.body.test_data;
+  let testResult = req.body.test_result;
+  let result = await questionController.insertTest(questionID, data, testResult);
+  res.send(result);
 });
 
 router.get('/:category', async (req, res)=> {
