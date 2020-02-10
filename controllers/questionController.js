@@ -86,14 +86,23 @@ module.exports = {
     }
   },
 
-  selectSampleTestCases: async (question_id) => {
+  selectSampleTestCases: async (question_id, is_large_case) => {
     try {
-      let result = await questionModel.querySelectSampleTestCases(question_id);
+      let result = await questionModel.querySelectSampleTestCases(question_id, is_large_case);
       return result;
     } catch (err) {
       console.log(err);
     }
-  }
+  },
+
+  selectThresholdMs: async (question_id, is_large_file) => {
+    try {
+      let result = await questionModel.querySelectThresholdMs(question_id, is_large_file);
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
 
   

@@ -38,7 +38,7 @@ socket.once('questionData', questionObject => {
 });
 
 socket.once('waitForOpponent', msg => {
-  document.getElementById('runCodeOutput').innerHTML = `<p id="terminalMessage">${msg}</p>`;
+  document.getElementById('runCodeOutput').innerHTML = '<p id="terminalMessage">Hold on. We are waiting for your opponent to join...</p>';
 })
 
 socket.on('joinLeaveMessage', msgObject => {
@@ -83,8 +83,9 @@ socket.on('codeResult', (resultObj) =>{
 });
 
 socket.once('waitForMatchEnd', submitMessage => {
+  console.log('waitForMatchEnd')
   if (submitMessage.user === userID) {
-    window.alert("Awesome! Let's wait for your opponent to submit.");
+    window.alert(`Awesome! Here's your submit result: \n\n${submitMessage.testCasesResult}Let's wait for your opponent to submit.`);
     // 等待的時候可以幹啥？
     return;
   }
@@ -93,7 +94,7 @@ socket.once('waitForMatchEnd', submitMessage => {
 })
 
 socket.once('testCasesResult', testCasesResult => {
-  localStorage.setItem('testCasesResult', testCasesResult);
+  window.alert(`Here's your submit result:\n${testCasesResult}`)
 })
 
 socket.once('endMatch', (matchKey) => {
@@ -149,20 +150,16 @@ function runCode() {
 
 
 function submitCode() {
-  // send code to server (get test cases in server)
-  let codeareaValue = codemirrorEditor.getValue();
-
-  let payload = {
-    user: userID,
-    code: codeareaValue,
-    difficulty
-  };
-  socket.emit('submit', payload);
-
-
-
-  // redirect to match_result page
-
+  if (window.confirm('Are you sure? You can only submit once')) {
+    // send code to server (get test cases in server)
+    let codeareaValue = codemirrorEditor.getValue();
+    let payload = {
+      user: userID,
+      code: codeareaValue,
+      difficulty
+    };
+    socket.emit('submit', payload);
+  }
 }
 
 
@@ -185,9 +182,10 @@ function exitMatch() {
 }
 
 
-
 function showHelp() {
   // show help message
 }
+
+
 
 

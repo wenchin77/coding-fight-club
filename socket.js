@@ -139,34 +139,68 @@ socket.init = server => {
 
       let questionObject = await getQuestionDetail(matchKey, true);
       let questionConst = questionObject.const;
-      let testCases = questionObject.sampleCases;
+      let smallTestCases = questionObject.smallSampleCases;
+      let largeTestCases = questionObject.largeSampleCases;
       let difficulty = questionObject.difficulty;
 
       // put together the code & run one test case at a time
-      let testCasesNumber = testCases.length;
-      let passedCasesNumber = 0;
-      let testExecTimeSum = 0;
-      let testCasesResult =''; // for frontend to display (won't go into db)
-      for (i=0;i<testCases.length;i++) {
-        let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, testCases[i]);
+      let smallTestCasesNumber = smallTestCases.length;
+      let smallPassedCasesNumber = 0;
+      let smallTestExecTimeSum = 0;
+      let testCasesResult = 'SMALL TEST CASES RESULT\n';
+      for (i=0;i<smallTestCases.length;i++) {
+        let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, smallTestCases[i]);
         // 按不同 user 存到 ./sessions js files
         setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
           let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
-          console.log(`childResult ${i} =============== `);
           
           // give sample test case result
           let childResultSplited = childResult.split('\n');
           let testOutput = childResultSplited[0];
           let testExecTime = childResultSplited[1].split('Time: ')[1].split('ms')[0];
-          let testExpectedOutput = testCases[i].test_result;
-  
+          let testExpectedOutput = smallTestCases[i].test_result;
+
           // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
             console.log(`test case [${i}] passed`)
-            passedCasesNumber += 1;
-            testExecTimeSum += parseFloat(testExecTime);
+            smallPassedCasesNumber += 1;
+            smallTestExecTimeSum += parseFloat(testExecTime);
+            testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
+          } else {
+            console.log(`test case [${i}] failed`)
+            testCasesResult += `TEST FAILED\nExpected: ${testExpectedOutput}, instead got: ${testOutput}\n\n`;
+          }
+        } catch (e) {
+          console.log(e)
+        };
+      };
+
+      // 重複的扣：之後跟上面的整理 +++++++++++++++
+      let largeTestCasesNumber = largeTestCases.length;
+      let largePassedCasesNumber = 0;
+      let largeTestExecTimeSum = 0;
+      testCasesResult += 'LARGE TEST CASES RESULT\n';
+      for (i=0;i<largeTestCases.length;i++) {
+        let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, largeTestCases[i]);
+        // 按不同 user 存到 ./sessions js files
+        setUserCodeFile(matchKey, user, testCaseFinalCode);
+        // Run code in child process
+        try {
+          let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
+          
+          // give sample test case result
+          let childResultSplited = childResult.split('\n');
+          let testOutput = childResultSplited[0];
+          let testExecTime = childResultSplited[1].split('Time: ')[1].split('ms')[0];
+          let testExpectedOutput = largeTestCases[i].test_result;
+
+          // add sample test result to childResult
+          if (testOutput == testExpectedOutput) {
+            console.log(`test case [${i}] passed`)
+            largePassedCasesNumber += 1;
+            largeTestExecTimeSum += parseFloat(testExecTime);
             testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
           } else {
             console.log(`test case [${i}] failed`)
@@ -180,14 +214,23 @@ socket.init = server => {
       console.log('testCasesResult', testCasesResult)
 
       // calculate passed test cases
-      let correctness = parseFloat(passedCasesNumber/testCasesNumber);
+      let smallCorrectness = parseFloat(smallPassedCasesNumber/smallTestCasesNumber);
+      let largeCorrectness = parseFloat(largePassedCasesNumber/largeTestCasesNumber);
+      
 
       // calculate exec time (counting with passed tests only)
-      let execTime;
-      if (passedCasesNumber === 0) {
-        execTime = null;
+      let smallExecTime;
+      if (smallPassedCasesNumber === 0) {
+        smallExecTime = null;
       } else {
-        execTime = testExecTimeSum/passedCasesNumber;
+        smallExecTime = smallTestExecTimeSum/smallPassedCasesNumber;
+      }
+      // calculate exec time (counting with passed tests only)
+      let largeExecTime;
+      if (largePassedCasesNumber === 0) {
+        largeExecTime = null;
+      } else {
+        largeExecTime = largeTestExecTimeSum/largePassedCasesNumber;
       }
 
       // calculate answer time
@@ -196,16 +239,19 @@ socket.init = server => {
 
       // 紀錄 code 跟項目評分在 match_detail
       let matchID = await matchController.getMatchId(matchKey);
-      await matchController.updateMatchDetail(matchID, user, code, correctness, execTime, answerTime);
-      
+      let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime);
+      console.log('updateMatchDetailResult',updateMatchDetailResult)
+
       // update winnerCheck {} for performance points calculation (temp)
       if (!winnerCheck[matchKey]) {
         winnerCheck[matchKey] = [];
       };
       let result = {
         user,
-        correctness,
-        execTime,
+        smallCorrectness,
+        smallExecTime,
+        largeCorrectness,
+        largeExecTime,
         answerTime
       };
       winnerCheck[matchKey].push(result);
@@ -245,7 +291,7 @@ socket.init = server => {
       
       // compare correctness, execTime, answerTime to get winner
       console.log('matchKey', matchKey);
-      let checkWinnerResult = getWinner(winnerCheck, matchKey);
+      let checkWinnerResult = await getWinner(winnerCheck, matchKey);
       console.log('checkWinnerResult', checkWinnerResult);
 
 
@@ -257,7 +303,7 @@ socket.init = server => {
 
 
       // for frontend to redirect
-      io.to(matchKey).emit('endMatch', matchKey, testCasesResult);
+      io.to(matchKey).emit('endMatch', matchKey, checkWinnerResult);
       
     })
 
@@ -349,7 +395,8 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
   // get question details with questionID
   let getQuestionResult = await questionController.selectQuestion(questionID);
   // get sample test case with questionID
-  let sampleCases = await questionController.selectSampleTestCases(questionID);
+  let smallSampleCases = await questionController.selectSampleTestCases(questionID, 0);
+  let largeSampleCases = await questionController.selectSampleTestCases(questionID, 1);
 
   let questionObject = {
     questionID: questionID,
@@ -363,7 +410,7 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
 
   // senario: both users join (send sampleCases[0])
   if (!submitBoolean) {
-    let sampleCase = sampleCases[0];
+    let sampleCase = smallSampleCases[0];
     questionObject.sampleCase = arrayBufferToStr(fs.readFileSync(sampleCase.test_case_path));
     questionObject.sampleExpected = sampleCase.test_result;
     return questionObject;
@@ -371,7 +418,8 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
   console.log(questionObject)
 
   // senario: a user submits (send sampleCases)
-  questionObject.sampleCases = sampleCases;
+  questionObject.smallSampleCases = smallSampleCases;
+  questionObject.largeSampleCases = largeSampleCases;
   return questionObject;
 }
 
@@ -428,41 +476,69 @@ const getMatchKey = url => {
   return key;
 }
 
-const getWinner = (winnerCheck, matchKey) => {
+const getWinner = async (winnerCheck, matchKey) => {
+  console.log(winnerCheck)
   let winner;
   let user_0 = winnerCheck[matchKey][0].user;
   let user_1 = winnerCheck[matchKey][1].user;
-  let correctnessPoints_0 = winnerCheck[matchKey][0].correctness * 100;
-  let correctnessPoints_1 = winnerCheck[matchKey][1].correctness * 100;
-  let execTime_0 = winnerCheck[matchKey][0].execTime;
-  let execTime_1 = winnerCheck[matchKey][1].execTime;
+  // rate correctness
+  let smallCorrPoints_0 = winnerCheck[matchKey][0].smallCorrectness * 100;
+  let smallCorrPoints_1 = winnerCheck[matchKey][1].smallCorrectness * 100;
+  let largeCorrPoints_0 = winnerCheck[matchKey][0].largeCorrectness * 100;
+  let largeCorrPoints_1 = winnerCheck[matchKey][1].largeCorrectness * 100;
+  let correctnessPoints_0 = (smallCorrPoints_0 + largeCorrPoints_0) /2
+  let correctnessPoints_1 = (smallCorrPoints_1 + largeCorrPoints_1) /2
+
+  // rate performance
+  let smallExecTime_0 = winnerCheck[matchKey][0].smallExecTime;
+  let smallExecTime_1 = winnerCheck[matchKey][1].smallExecTime;
+  let largeExecTime_0 = winnerCheck[matchKey][0].largeExecTime;
+  let largeExecTime_1 = winnerCheck[matchKey][1].largeExecTime;
   let perfPoints_0;
   let perfPoints_1;
-  let answerTime_0 = winnerCheck[matchKey][0].answerTime;
-  let answerTime_1 = winnerCheck[matchKey][1].answerTime;
-  // null????
-  if (execTime_0 == null) {
-    perfPoints_0 = 0; 
-  }
-  if (execTime_1 == null) {
-    perfPoints_0 = 0; 
-  }
-  // small test cases
 
-  // large test cases
-  
-  if (execTime_0 < execTime_1) {
-    perfPoints_0 = 90;
-    perfPoints_1 = 60;
-  } else if (execTime_0 > execTime_1) {
-    perfPoints_0 = 60;
-    perfPoints_1 = 90;
+  // get questionID with matchKey
+  let questionID = await matchController.getMatchQuestion(matchKey);
+  // get threshold_ms from db test table +++++++++++++++
+  let smallThreshold = await questionController.selectThresholdMs(questionID, 0)
+  let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
+  console.log('smallThreshold',smallThreshold[0].threshold_ms)
+  console.log('largeThreshold',largeThreshold[0].threshold_ms)
+
+  if (smallExecTime_0 == null || smallExecTime_0 > smallThreshold) {
+    perfPoints_0 = 0;
   } else {
-    perfPoints_0 = 75;
-    perfPoints_1 = 75;
-  };
+    perfPoints_0 += 50;
+  }
+
+  if (largeExecTime_0 == null || largeExecTime_0 > largeThreshold) {
+    perfPoints_0 = 0;
+  } else {
+    perfPoints_0 += 50;
+  }
+
+
+  if (smallExecTime_1 == null || smallExecTime_1 > smallThreshold) {
+    perfPoints_1 = 10;
+  } else {
+    perfPoints_1 += 50;
+  }
+
+  if (largeExecTime_1 == null || largeExecTime_1 > largeThreshold) {
+    perfPoints_1 = 10;
+  } else {
+    perfPoints_1 += 50;
+  }
+
+
   let points_0 = (correctnessPoints_0 * perfPoints_0) / 100
   let points_1 = (correctnessPoints_1 * perfPoints_1) / 100
+
+
+  // answer time
+  let answerTime_0 = winnerCheck[matchKey][0].answerTime;
+  let answerTime_1 = winnerCheck[matchKey][1].answerTime;
+
   if (points_0 > points_1) {
     winner = user_0;
   } else if (points_0 < points_1) {
@@ -478,14 +554,14 @@ const getWinner = (winnerCheck, matchKey) => {
   }
   let checkWinnerResult = {
     winner,
-    user_0: {
+    result_0: {
       user: user_0,
       correctnessPoints_0,
       perfPoints_0,
       answerTime_0,
       points_0
     },
-    user_1: {
+    result_1: {
       user: user_1,
       correctnessPoints_1,
       perfPoints_1,

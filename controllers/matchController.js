@@ -75,9 +75,10 @@ module.exports = {
     }
   },
 
-  updateMatchDetail: async (matchID, user, code, correctness, execTime, answerTime) => {
+  updateMatchDetail: async (matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime) => {
     try {
-      let result = await matchModel.queryUpdateMatchDetail(matchID, user, code, correctness, execTime, answerTime);
+      let result = await matchModel.queryUpdateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime);
+      console.log('updateMatchDetail result in controller!!!', result)
     } catch (err) {
       console.log(err);
     }
