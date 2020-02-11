@@ -16,17 +16,17 @@ const appendResult = (element, text) => {
 
 
 if (userID == winner) {
-  appendResult('h1','You won!\n')
+  appendResult('h1','You won!')
 } else {
-  appendResult('h1','You lost!\n')
+  appendResult('h1','You lost!')
 }
 
 
-appendResult('h3', `Point summary`);
+appendResult('h4', `Point summary`);
 appendResult('div', `Correctness: ${localStorage.getItem('correctness')}`)
 appendResult('div', `Performance: ${localStorage.getItem('performance')}`)
 appendResult('div', `Total Points: ${localStorage.getItem('points')}`)
 appendResult('br')
 
-appendResult('div', `Answer Time: ${localStorage.getItem('answerTime')} s`)
+appendResult('div', `It took you ${localStorage.getItem('answerTime')} seconds to submit the question.`)
 

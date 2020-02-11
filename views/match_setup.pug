@@ -5,15 +5,7 @@ block content
   .matchPageSections Set up a Match
     .contentSection
       .leftSection
-        .chooseOpponent Choose an Opponent
-        br
-        .strangerMode Challenge a random stranger online (顯示線上對手們)
-        br
-        .friendMode Invite a friend
-        button.getLinkBtn(type='button' onclick='getLink()') Get match invitation link
-        #invitationLink
-      .rightSection
-        .chooseQuestion Choose a question
+        .chooseQuestion 1) Choose a question
         br
         | Category 
         select#category(name='category')
@@ -31,12 +23,25 @@ block content
         br
         //- button.questionSetup#questionSetup(value='Two Sum') Two Sum
     
+      .rightSection
+        .chooseOpponent 2) Choose an Opponent
+        br
+        .strangerMode Challenge a random stranger online
+        br
+        .friendMode Invite a friend
+        button.getLinkBtn(type='button' onclick='getLink()') Get match invitation link
+        #invitationLink
     br
     br
     br
-    div Temp setup: use username, question set as Two Sum
+    div Temp setup: use userID as username
     br
     button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
+
+    br
+    br
+    .helpSetup
+      a(href='') Don't know how to set up a match?
 
   script(src='../js/match_setup.js')
 

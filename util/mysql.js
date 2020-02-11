@@ -16,7 +16,7 @@ mysqlCon.connect (function (err) {
 	if(err){
 		throw err;
   }
-  console.log("MySQL connected!");
+  console.log(`MySQL connected at ${process.env.MYSQL_HOST}!`);
 });
 
 

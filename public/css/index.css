@@ -314,6 +314,10 @@ footer a:link {
   width: 20px;
 }
 
+.helpSetup {
+  text-decoration: underline;
+}
+
 /* Profile page -------------------- */
 .signin-signup,
 .profile-wrapper {
