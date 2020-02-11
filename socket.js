@@ -94,7 +94,10 @@ socket.init = server => {
       let sampleCaseExpected = data.sampleCaseExpected;
 
       // put together the code for running
-      let finalCode = putTogetherCodeOnRun(code, questionConst, sampleCaseExpected, test)
+      let finalCode = putTogetherCodeOnRun(code, questionConst, sampleCaseExpected, test);
+      console.log('-------- run finalCode ---------')
+      console.log(finalCode)
+      console.log('-------- run finalCode ---------')
 
       // 按不同 user 存到 ./sessions js files
       setUserCodeFile(matchKey, user, finalCode);
@@ -150,6 +153,10 @@ socket.init = server => {
       let testCasesResult = 'SMALL TEST CASES RESULT\n';
       for (i=0;i<smallTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, smallTestCases[i]);
+        console.log('-------- small testCaseFinalCode ---------')
+        console.log(testCaseFinalCode)
+        console.log('-------- small testCaseFinalCode ---------')
+
         // 按不同 user 存到 ./sessions js files
         setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
@@ -240,7 +247,6 @@ socket.init = server => {
       // 紀錄 code 跟項目評分在 match_detail
       let matchID = await matchController.getMatchId(matchKey);
       let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime);
-      console.log('updateMatchDetailResult',updateMatchDetailResult)
 
       // update winnerCheck {} for performance points calculation (temp)
       if (!winnerCheck[matchKey]) {
@@ -381,7 +387,7 @@ const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
 };
 
 const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
-  let testCase = sampleCase.test_data;
+  let testCase = fs.readFileSync(sampleCase.test_case_path, {encoding: 'utf-8'});
   // exec time calculation
   let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
   // format
@@ -411,7 +417,7 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
   // senario: both users join (send sampleCases[0])
   if (!submitBoolean) {
     let sampleCase = smallSampleCases[0];
-    questionObject.sampleCase = arrayBufferToStr(fs.readFileSync(sampleCase.test_case_path));
+    questionObject.sampleCase = fs.readFileSync(sampleCase.test_case_path, {encoding: 'utf-8'});
     questionObject.sampleExpected = sampleCase.test_result;
     return questionObject;
   };
@@ -476,6 +482,34 @@ const getMatchKey = url => {
   return key;
 }
 
+// const calculatePoints = async (submission, matchKey) => {
+//   console.log(winnerCheck)
+//   let winner;
+//   let user_0 = winnerCheck[matchKey][0].user;
+//   let user_1 = winnerCheck[matchKey][1].user;
+//   // rate correctness
+//   let smallCorrPoints_0 = winnerCheck[matchKey][0].smallCorrectness * 100;
+//   let smallCorrPoints_1 = winnerCheck[matchKey][1].smallCorrectness * 100;
+//   let largeCorrPoints_0 = winnerCheck[matchKey][0].largeCorrectness * 100;
+//   let largeCorrPoints_1 = winnerCheck[matchKey][1].largeCorrectness * 100;
+//   let correctnessPoints_0 = (smallCorrPoints_0 * 2 + largeCorrPoints_0) /3
+//   let correctnessPoints_1 = (smallCorrPoints_1 * 2 + largeCorrPoints_1) /3
+
+//   // rate performance
+//   let smallExecTime_0 = winnerCheck[matchKey][0].smallExecTime;
+//   let smallExecTime_1 = winnerCheck[matchKey][1].smallExecTime;
+//   let largeExecTime_0 = winnerCheck[matchKey][0].largeExecTime;
+//   let largeExecTime_1 = winnerCheck[matchKey][1].largeExecTime;
+//   let perfPoints_0 = 0;
+//   let perfPoints_1 = 0;
+
+//   // get questionID with matchKey
+//   let questionID = await matchController.getMatchQuestion(matchKey);
+//   // get threshold_ms from db test table
+//   let smallThreshold = await questionController.selectThresholdMs(questionID, 0)
+//   let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
+// }
+
 const getWinner = async (winnerCheck, matchKey) => {
   console.log(winnerCheck)
   let winner;
@@ -486,54 +520,50 @@ const getWinner = async (winnerCheck, matchKey) => {
   let smallCorrPoints_1 = winnerCheck[matchKey][1].smallCorrectness * 100;
   let largeCorrPoints_0 = winnerCheck[matchKey][0].largeCorrectness * 100;
   let largeCorrPoints_1 = winnerCheck[matchKey][1].largeCorrectness * 100;
-  let correctnessPoints_0 = (smallCorrPoints_0 + largeCorrPoints_0) /2
-  let correctnessPoints_1 = (smallCorrPoints_1 + largeCorrPoints_1) /2
+  let correctnessPoints_0 = (smallCorrPoints_0 * 2 + largeCorrPoints_0) /3
+  let correctnessPoints_1 = (smallCorrPoints_1 * 2 + largeCorrPoints_1) /3
 
   // rate performance
   let smallExecTime_0 = winnerCheck[matchKey][0].smallExecTime;
   let smallExecTime_1 = winnerCheck[matchKey][1].smallExecTime;
   let largeExecTime_0 = winnerCheck[matchKey][0].largeExecTime;
   let largeExecTime_1 = winnerCheck[matchKey][1].largeExecTime;
-  let perfPoints_0;
-  let perfPoints_1;
+  let perfPoints_0 = 0;
+  let perfPoints_1 = 0;
 
   // get questionID with matchKey
   let questionID = await matchController.getMatchQuestion(matchKey);
-  // get threshold_ms from db test table +++++++++++++++
+  // get threshold_ms from db test table
   let smallThreshold = await questionController.selectThresholdMs(questionID, 0)
   let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
-  console.log('smallThreshold',smallThreshold[0].threshold_ms)
-  console.log('largeThreshold',largeThreshold[0].threshold_ms)
 
   if (smallExecTime_0 == null || smallExecTime_0 > smallThreshold) {
-    perfPoints_0 = 25;
+    perfPoints_0 += 25;
   } else {
     perfPoints_0 += 50;
   }
 
   if (largeExecTime_0 == null || largeExecTime_0 > largeThreshold) {
-    perfPoints_0 = 25;
+    perfPoints_0 += 25;
   } else {
     perfPoints_0 += 50;
   }
 
 
   if (smallExecTime_1 == null || smallExecTime_1 > smallThreshold) {
-    perfPoints_1 = 25;
+    perfPoints_1 += 25;
   } else {
     perfPoints_1 += 50;
   }
 
   if (largeExecTime_1 == null || largeExecTime_1 > largeThreshold) {
-    perfPoints_1 = 25;
+    perfPoints_1 += 25;
   } else {
     perfPoints_1 += 50;
   }
 
-
   let points_0 = (correctnessPoints_0 * perfPoints_0) / 100
   let points_1 = (correctnessPoints_1 * perfPoints_1) / 100
-
 
   // answer time
   let answerTime_0 = winnerCheck[matchKey][0].answerTime;
