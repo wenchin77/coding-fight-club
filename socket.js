@@ -506,26 +506,26 @@ const getWinner = async (winnerCheck, matchKey) => {
   console.log('largeThreshold',largeThreshold[0].threshold_ms)
 
   if (smallExecTime_0 == null || smallExecTime_0 > smallThreshold) {
-    perfPoints_0 = 0;
+    perfPoints_0 = 25;
   } else {
     perfPoints_0 += 50;
   }
 
   if (largeExecTime_0 == null || largeExecTime_0 > largeThreshold) {
-    perfPoints_0 = 0;
+    perfPoints_0 = 25;
   } else {
     perfPoints_0 += 50;
   }
 
 
   if (smallExecTime_1 == null || smallExecTime_1 > smallThreshold) {
-    perfPoints_1 = 10;
+    perfPoints_1 = 25;
   } else {
     perfPoints_1 += 50;
   }
 
   if (largeExecTime_1 == null || largeExecTime_1 > largeThreshold) {
-    perfPoints_1 = 10;
+    perfPoints_1 = 25;
   } else {
     perfPoints_1 += 50;
   }
@@ -556,17 +556,17 @@ const getWinner = async (winnerCheck, matchKey) => {
     winner,
     result_0: {
       user: user_0,
-      correctnessPoints_0,
-      perfPoints_0,
-      answerTime_0,
-      points_0
+      correctness: correctnessPoints_0,
+      performance: perfPoints_0,
+      answerTime: answerTime_0,
+      points: points_0
     },
     result_1: {
       user: user_1,
-      correctnessPoints_1,
-      perfPoints_1,
-      answerTime_1,
-      points_1
+      correctness: correctnessPoints_1,
+      performance: perfPoints_1,
+      answerTime: answerTime_1,
+      points: points_1
     }
   }
   return checkWinnerResult;
