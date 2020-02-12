@@ -75,23 +75,34 @@ module.exports = {
     }
   },
 
-  updateMatchDetail: async (matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime) => {
+  updateMatchDetail: async (matchID, user, answer_code, small_correctness, large_correctness, correctness, small_exec_time, large_exec_time, performance, answer_time, points) => {
+    let data = {
+      answer_code,
+      small_correctness,
+      large_correctness,
+      correctness,
+      small_exec_time,
+      large_exec_time,
+      performance,
+      answer_time,
+      points
+    }
     try {
-      let result = await matchModel.queryUpdateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime);
+      let result = await matchModel.queryUpdateMatchDetail(matchID, user, data);
       console.log('updateMatchDetail result in controller!!!', result)
     } catch (err) {
       console.log(err);
     }
   },
 
-  getSubmitNumber: async (matchID) => {
-    try {
-      let result = await matchModel.queryGetSubmitNumber(matchID);
-      return result[0]['COUNT (*)'];
-    } catch (err) {
-      console.log(err);
-    }
-  },
+  // getSubmitNumber: async (matchID) => {
+  //   try {
+  //     let result = await matchModel.queryGetSubmitNumber(matchID);
+  //     return result[0]['COUNT (*)'];
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // },
 
   getMatchDetailPastExecTime: async (question_id) => {
     try {
@@ -101,7 +112,16 @@ module.exports = {
     } catch (err) {
       console.log(err)
     }
-  }
+  },
+
+  updateMatchWinner: async (key, winner) => {
+    try {
+      let result = await matchModel.queryUpdateMatchWinner(key, winner);
+      console.log(result)
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
 
 }

@@ -48,6 +48,11 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
+// bug report
+app.get('/bug_report', (req, res) => {
+  res.render('bug_report');
+});
+
 // api routes
 app.use('/api/v1/match', matchRoutes);
 app.use('/api/v1/question', questionRoutes);

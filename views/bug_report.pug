@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h3 Report a Bug
+  div What's your name?
+    br
+    input#bugReporter
+  div What went wrong?
+    br
+    input#bug
+    br
+    br
+    button(onclick="sendBug()") Submit (I don't work now...)
+  #printBugs

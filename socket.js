@@ -95,9 +95,6 @@ socket.init = server => {
 
       // put together the code for running
       let finalCode = putTogetherCodeOnRun(code, questionConst, sampleCaseExpected, test);
-      console.log('-------- run finalCode ---------')
-      console.log(finalCode)
-      console.log('-------- run finalCode ---------')
 
       // 按不同 user 存到 ./sessions js files
       setUserCodeFile(matchKey, user, finalCode);
@@ -153,9 +150,6 @@ socket.init = server => {
       let testCasesResult = 'SMALL TEST CASES RESULT\n';
       for (i=0;i<smallTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, smallTestCases[i]);
-        console.log('-------- small testCaseFinalCode ---------')
-        console.log(testCaseFinalCode)
-        console.log('-------- small testCaseFinalCode ---------')
 
         // 按不同 user 存到 ./sessions js files
         setUserCodeFile(matchKey, user, testCaseFinalCode);
@@ -244,9 +238,20 @@ socket.init = server => {
       let startTime = await matchController.getMatchStartTime(matchKey);
       let answerTime = (Date.now() - startTime)/1000; // in seconds
 
-      // 紀錄 code 跟項目評分在 match_detail
+
+
       let matchID = await matchController.getMatchId(matchKey);
-      let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime, answerTime);
+      // rate correctness, performance
+      let calculated = await calculatePoints(matchKey, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime);
+      console.log(calculated)
+      let correctness = calculated.correctnessPoints;
+      let performance = calculated.perfPoints;
+      let points = calculated.points;
+      // 紀錄 code 跟項目評分在 match_detail
+      let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, smallExecTime, largeExecTime, performance, answerTime, points);
+      
+      // +++++++ 更新兩人的 user table: points (and level table if needed)
+
 
       // update winnerCheck {} for performance points calculation (temp)
       if (!winnerCheck[matchKey]) {
@@ -256,15 +261,19 @@ socket.init = server => {
         user,
         smallCorrectness,
         smallExecTime,
+        correctness,
         largeCorrectness,
         largeExecTime,
-        answerTime
+        performance,
+        answerTime,
+        points
       };
       winnerCheck[matchKey].push(result);
-      console.log('winnerCheck', winnerCheck);      
+      console.log('winnerCheck', winnerCheck); 
+     
 
-      // get questionID with matchKey
-      let questionID = await matchController.getMatchQuestion(matchKey);
+      // // get questionID with matchKey
+      // let questionID = await matchController.getMatchQuestion(matchKey);
 
       // // performance 拉之前寫過這題的所有 execTime，看分布在哪 (暫時不用)
       // let pastExecTime = await matchController.getMatchDetailPastExecTime(questionID);
@@ -278,7 +287,7 @@ socket.init = server => {
       deleteFile(matchKey, user);
 
       // check 自己是第幾個 insert match_detail 的人
-      let submitNumber = await matchController.getSubmitNumber(matchID);
+      let submitNumber = winnerCheck[matchKey].length;
       console.log('submitNumber', submitNumber);
 
       if (submitNumber < 2) {
@@ -297,19 +306,14 @@ socket.init = server => {
       
       // compare correctness, execTime, answerTime to get winner
       console.log('matchKey', matchKey);
-      let checkWinnerResult = await getWinner(winnerCheck, matchKey);
-      console.log('checkWinnerResult', checkWinnerResult);
+      let winner = await getWinner(winnerCheck, matchKey);
+      console.log('checkWinnerResult winner', winner);
 
-
-      // +++++++ update match_detail: performance & points
-
-      // +++++++ update match_table: winner
-
-      // +++++++ 更新兩人的 user table: points (and level table if needed)
-
+      // update match_table: winner
+      await matchController.updateMatchWinner(matchKey, winner); 
 
       // for frontend to redirect
-      io.to(matchKey).emit('endMatch', matchKey, checkWinnerResult);
+      io.to(matchKey).emit('endMatch', matchKey);
       
     })
 
@@ -482,54 +486,12 @@ const getMatchKey = url => {
   return key;
 }
 
-// const calculatePoints = async (submission, matchKey) => {
-//   console.log(winnerCheck)
-//   let winner;
-//   let user_0 = winnerCheck[matchKey][0].user;
-//   let user_1 = winnerCheck[matchKey][1].user;
-//   // rate correctness
-//   let smallCorrPoints_0 = winnerCheck[matchKey][0].smallCorrectness * 100;
-//   let smallCorrPoints_1 = winnerCheck[matchKey][1].smallCorrectness * 100;
-//   let largeCorrPoints_0 = winnerCheck[matchKey][0].largeCorrectness * 100;
-//   let largeCorrPoints_1 = winnerCheck[matchKey][1].largeCorrectness * 100;
-//   let correctnessPoints_0 = (smallCorrPoints_0 * 2 + largeCorrPoints_0) /3
-//   let correctnessPoints_1 = (smallCorrPoints_1 * 2 + largeCorrPoints_1) /3
-
-//   // rate performance
-//   let smallExecTime_0 = winnerCheck[matchKey][0].smallExecTime;
-//   let smallExecTime_1 = winnerCheck[matchKey][1].smallExecTime;
-//   let largeExecTime_0 = winnerCheck[matchKey][0].largeExecTime;
-//   let largeExecTime_1 = winnerCheck[matchKey][1].largeExecTime;
-//   let perfPoints_0 = 0;
-//   let perfPoints_1 = 0;
-
-//   // get questionID with matchKey
-//   let questionID = await matchController.getMatchQuestion(matchKey);
-//   // get threshold_ms from db test table
-//   let smallThreshold = await questionController.selectThresholdMs(questionID, 0)
-//   let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
-// }
-
-const getWinner = async (winnerCheck, matchKey) => {
-  console.log(winnerCheck)
-  let winner;
-  let user_0 = winnerCheck[matchKey][0].user;
-  let user_1 = winnerCheck[matchKey][1].user;
+const calculatePoints = async (matchKey, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime) => {
   // rate correctness
-  let smallCorrPoints_0 = winnerCheck[matchKey][0].smallCorrectness * 100;
-  let smallCorrPoints_1 = winnerCheck[matchKey][1].smallCorrectness * 100;
-  let largeCorrPoints_0 = winnerCheck[matchKey][0].largeCorrectness * 100;
-  let largeCorrPoints_1 = winnerCheck[matchKey][1].largeCorrectness * 100;
-  let correctnessPoints_0 = (smallCorrPoints_0 * 2 + largeCorrPoints_0) /3
-  let correctnessPoints_1 = (smallCorrPoints_1 * 2 + largeCorrPoints_1) /3
+  let correctnessPoints = (smallCorrectness * 100 * 2 + largeCorrectness * 100) /3
 
   // rate performance
-  let smallExecTime_0 = winnerCheck[matchKey][0].smallExecTime;
-  let smallExecTime_1 = winnerCheck[matchKey][1].smallExecTime;
-  let largeExecTime_0 = winnerCheck[matchKey][0].largeExecTime;
-  let largeExecTime_1 = winnerCheck[matchKey][1].largeExecTime;
-  let perfPoints_0 = 0;
-  let perfPoints_1 = 0;
+  let perfPoints = 0;
 
   // get questionID with matchKey
   let questionID = await matchController.getMatchQuestion(matchKey);
@@ -537,33 +499,37 @@ const getWinner = async (winnerCheck, matchKey) => {
   let smallThreshold = await questionController.selectThresholdMs(questionID, 0)
   let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
 
-  if (smallExecTime_0 == null || smallExecTime_0 > smallThreshold) {
-    perfPoints_0 += 25;
+  if (smallExecTime == null || smallExecTime > smallThreshold) {
+    perfPoints += 25;
   } else {
-    perfPoints_0 += 50;
+    perfPoints += 50;
   }
 
-  if (largeExecTime_0 == null || largeExecTime_0 > largeThreshold) {
-    perfPoints_0 += 25;
+  if (largeExecTime == null || largeExecTime > largeThreshold) {
+    perfPoints += 25;
   } else {
-    perfPoints_0 += 50;
+    perfPoints += 50;
   }
 
-
-  if (smallExecTime_1 == null || smallExecTime_1 > smallThreshold) {
-    perfPoints_1 += 25;
-  } else {
-    perfPoints_1 += 50;
+  let points = (correctnessPoints * perfPoints) / 100
+  
+  let calculated = {
+    correctnessPoints,
+    perfPoints,
+    points
   }
+  return calculated;
+}
 
-  if (largeExecTime_1 == null || largeExecTime_1 > largeThreshold) {
-    perfPoints_1 += 25;
-  } else {
-    perfPoints_1 += 50;
-  }
+const getWinner = async (winnerCheck, matchKey) => {
+  console.log(winnerCheck)
+  let winner;
+  let user_0 = winnerCheck[matchKey][0].user;
+  let user_1 = winnerCheck[matchKey][1].user;
 
-  let points_0 = (correctnessPoints_0 * perfPoints_0) / 100
-  let points_1 = (correctnessPoints_1 * perfPoints_1) / 100
+  // points
+  let points_0 = winnerCheck[matchKey][0].points;
+  let points_1 = winnerCheck[matchKey][1].points;
 
   // answer time
   let answerTime_0 = winnerCheck[matchKey][0].answerTime;
@@ -582,24 +548,7 @@ const getWinner = async (winnerCheck, matchKey) => {
       winner = null;
     }
   }
-  let checkWinnerResult = {
-    winner,
-    result_0: {
-      user: user_0,
-      correctness: correctnessPoints_0,
-      performance: perfPoints_0,
-      answerTime: answerTime_0,
-      points: points_0
-    },
-    result_1: {
-      user: user_1,
-      correctness: correctnessPoints_1,
-      performance: perfPoints_1,
-      answerTime: answerTime_1,
-      points: points_1
-    }
-  }
-  return checkWinnerResult;
+  return winner;
 }
 
 const arrayBufferToStr = buf => {

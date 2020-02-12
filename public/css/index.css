@@ -112,6 +112,13 @@ section {
   margin: 15px;
 }
 
+.reportBug {
+  position: fixed;
+  text-decoration: underline;
+  bottom: 25px;
+  right: 25px;
+}
+
 .products {
   display: flex;
   flex-wrap: wrap;

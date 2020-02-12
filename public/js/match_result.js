@@ -1,4 +1,5 @@
 // use matchKey to get match result data & display
+// axios
 
 const userID = localStorage.getItem('name');
 const matchResult = JSON.parse(JSON.stringify(localStorage.getItem('match')));
@@ -14,7 +15,7 @@ const appendResult = (element, text) => {
   document.getElementById("matchResult").appendChild(node);
 }
 
-
+// ++++++++ 平手？
 if (userID == winner) {
   appendResult('h1','You won!')
 } else {

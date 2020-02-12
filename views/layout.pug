@@ -37,6 +37,8 @@ html
               #membername Sign In
               img.profilelogo(src='../img/account.png')
       section
+        .reportBug 
+          a(href='/bug_report') Report a bug
         block content
 
       script.
@@ -46,6 +48,9 @@ html
           document.getElementById('membername').innerHTML = userName;
           document.getElementById('member').href = '/profile'
         }
+
+
+        
 
         // loader ++++++++++++++
 
