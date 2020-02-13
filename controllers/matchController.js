@@ -74,13 +74,13 @@ module.exports = {
     }
   },
 
-  updateMatchDetail: async (matchID, user, answer_code, small_correctness, large_correctness, correctness, small_exec_time, large_exec_time, performance, answer_time, points) => {
+  updateMatchDetail: async (matchID, user, answer_code, small_correctness, large_correctness, correctness, large_passed, large_exec_time, performance, answer_time, points) => {
     let data = {
       answer_code,
       small_correctness,
       large_correctness,
       correctness,
-      small_exec_time,
+      large_passed,
       large_exec_time,
       performance,
       answer_time,
@@ -95,20 +95,10 @@ module.exports = {
     }
   },
 
-  // getSubmitNumber: async (matchID) => {
-  //   try {
-  //     let result = await matchModel.queryGetSubmitNumber(matchID);
-  //     return result[0]['COUNT (*)'];
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // },
-
   getMatchDetailPastExecTime: async (question_id) => {
     try {
       let result = await matchModel.queryGetMatchDetailPastExecTime(question_id);
-      console.log('getMatchDetailPastExecTime result', result)
-      return result; // 形式？
+      return result;
     } catch (err) {
       console.log(err)
     }

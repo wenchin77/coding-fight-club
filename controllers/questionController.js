@@ -95,9 +95,10 @@ module.exports = {
     }
   },
 
-  selectThresholdMs: async (question_id, is_large_file) => {
+  selectThresholdMs: async (question_id) => {
     try {
-      let result = await questionModel.querySelectThresholdMs(question_id, is_large_file);
+      let result = await questionModel.querySelectThresholdMs(question_id);
+      console.log('querySelectThresholdMs result', result);
       return result;
     } catch (err) {
       console.log(err);

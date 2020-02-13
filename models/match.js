@@ -33,13 +33,9 @@ module.exports = {
     return mysql.query('UPDATE match_detail SET ? WHERE match_id = ? AND user_id = ? LIMIT 1', [data, match_id, user_id])
   },
 
-  // queryGetSubmitNumber: (match_id) => {
-  //   return mysql.query('SELECT COUNT (*) FROM match_detail WHERE match_id = ? AND answer_code IS NOT NULL', [match_id])
-  // },
-
-  // queryGetMatchDetailPastExecTime: (question_id) => { // to be updated: no question_id
-  //   return mysql.query('SELECT exec_time FROM match_detail WHERE question_id = ? AND exec_time IS NOT NULL ORDER BY exec_time ASC', [question_id])
-  // },
+  queryGetMatchDetailPastExecTime: (question_id) => {
+    return mysql.query('SELECT large_exec_time FROM question INNER JOIN match_table ON question.id = match_table.question_id INNER JOIN match_detail ON match_table.id = match_detail.match_id WHERE question.id = ? AND large_exec_time IS NOT NULL ORDER BY large_exec_time ASC', [question_id])
+  },
 
   queryUpdateMatchWinner: (key, winner) => {
     return mysql.query('UPDATE match_table SET winner_user_id = ? WHERE match_key = ? LIMIT 1', [winner, key])

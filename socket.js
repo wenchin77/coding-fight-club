@@ -13,7 +13,7 @@ socket.init = server => {
   const io = socketio.listen(server);
   const matchList = {}; // to save match key & user mapping info
   const socketidMapping = {}; // to save socketid & user mapping info
-  const winnerCheck = {}; // on submit: to compare exec time and assign performance points (temp)
+  const winnerCheck = {}; // on submit: to compare exec time and assign performance points
 
   io.on("connection", socket => {
     console.log("Socket: a user connected!");
@@ -144,7 +144,6 @@ socket.init = server => {
       // put together the code & run one test case at a time
       let smallTestCasesNumber = smallTestCases.length;
       let smallPassedCasesNumber = 0;
-      let smallTestExecTimeSum = 0;
       let testCasesResult = 'SMALL TEST CASES RESULT\n';
       for (i=0;i<smallTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, smallTestCases[i]);
@@ -165,7 +164,6 @@ socket.init = server => {
           if (testOutput == testExpectedOutput) {
             console.log(`test case [${i}] passed`)
             smallPassedCasesNumber += 1;
-            smallTestExecTimeSum += parseFloat(testExecTime);
             testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
           } else {
             console.log(`test case [${i}] failed`)
@@ -176,11 +174,14 @@ socket.init = server => {
         };
       };
 
-      // 重複的扣：之後跟上面的整理 +++++++++++++++
+
+
+      // 類似的扣：之後跟上面的整理 +++++++++++++++
       let largeTestCasesNumber = largeTestCases.length;
       let largePassedCasesNumber = 0;
       let largeTestExecTimeSum = 0;
       testCasesResult += 'LARGE TEST CASES RESULT\n';
+      let largeExecTimeObj = []; // 這個跟小測資不同！
       for (i=0;i<largeTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, largeTestCases[i]);
         // 按不同 user 存到 ./sessions js files
@@ -200,9 +201,11 @@ socket.init = server => {
             console.log(`test case [${i}] passed`)
             largePassedCasesNumber += 1;
             largeTestExecTimeSum += parseFloat(testExecTime);
+            largeExecTimeObj.push(testExecTime);
             testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
           } else {
-            console.log(`test case [${i}] failed`)
+            console.log(`test case [${i}] failed`);
+            largeExecTimeObj.push('failed');
             testCasesResult += `TEST FAILED\nExpected: ${testExpectedOutput}, instead got: ${testOutput}\n\n`;
           }
         } catch (e) {
@@ -210,21 +213,12 @@ socket.init = server => {
         };
       };
       
-      console.log('testCasesResult', testCasesResult)
-
       // calculate passed test cases
       let smallCorrectness = `${smallPassedCasesNumber}/${smallTestCasesNumber}`
       let largeCorrectness = `${largePassedCasesNumber}/${largeTestCasesNumber}`
       let correctness = 100 * parseFloat((smallPassedCasesNumber + largePassedCasesNumber)/(smallTestCasesNumber + largeTestCasesNumber))
-      
 
-      // calculate exec time (counting with passed tests only)
-      let smallExecTime;
-      if (smallPassedCasesNumber === 0) {
-        smallExecTime = null;
-      } else {
-        smallExecTime = smallTestExecTimeSum/smallPassedCasesNumber;
-      }
+
       // calculate exec time (counting with passed tests only)
       let largeExecTime;
       if (largePassedCasesNumber === 0) {
@@ -241,11 +235,12 @@ socket.init = server => {
 
       let matchID = await matchController.getMatchId(matchKey);
       // rate correctness, performance
-      let calculated = await calculatePoints(matchKey, correctness, largeExecTime);
+      let calculated = await calculatePoints(matchKey, correctness, largeExecTimeObj);
       let performance = calculated.perfPoints;
       let points = calculated.points;
+      let largePassed = calculated.largePassed;
       // 紀錄 code 跟項目評分在 match_detail
-      let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, smallExecTime, largeExecTime, performance, answerTime, points);
+      let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, largePassed, largeExecTime, performance, answerTime, points);
       
       // +++++++ 更新兩人的 user table: points (and level table if needed)
 
@@ -257,7 +252,7 @@ socket.init = server => {
       let result = {
         user,
         smallCorrectness,
-        smallExecTime,
+        largePassed,
         correctness,
         largeCorrectness,
         largeExecTime,
@@ -267,15 +262,6 @@ socket.init = server => {
       };
       winnerCheck[matchKey].push(result);
       console.log('winnerCheck', winnerCheck); 
-     
-
-      // // performance 拉之前寫過這題的所有 execTime，看分布在哪 (暫時不用)
-      // let pastExecTime = await matchController.getMatchDetailPastExecTime(questionID);
-      // for (i=0; i<pastExecTime.length; i++) {
-      //   // calculate the distribution
-      //   console.log(pastExecTime[i].exec_time);
-      // }
-
 
       // fs 刪掉 ./sessions js files
       deleteFile(matchKey, user);
@@ -478,26 +464,32 @@ const getMatchKey = url => {
   return key;
 }
 
-const calculatePoints = async (matchKey, totalCorrectness, largeExecTime) => {
+const calculatePoints = async (matchKey, totalCorrectness, largeExecTimeObj) => {
   // rate performance
   let perfPoints = 0;
+  let largePassedNo = 0;
 
   // get questionID with matchKey
   let questionID = await matchController.getMatchQuestion(matchKey);
   // get threshold_ms from db test table
-  let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
+  let largeThreshold = await questionController.selectThresholdMs(questionID);
 
-  if (!largeExecTime || (largeExecTime > largeThreshold)) {
-    perfPoints = 0;
-  } else {
-    perfPoints = 100;
+  for (i=0; i<largeThreshold.length; i++) {
+    if (largeExecTimeObj[i] <= largeThreshold[i].threshold_ms) {
+      perfPoints += (100/(largeThreshold.length));
+      largePassedNo += 1;
+      console.log('perfPoints', perfPoints)
+    }
   }
+
+  let largePassed = `${largePassedNo}/${largeExecTimeObj.length}`;
 
   let points = (totalCorrectness + perfPoints) / 2
   
   let calculated = {
     perfPoints,
-    points
+    points,
+    largePassed
   }
   return calculated;
 }

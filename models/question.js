@@ -26,7 +26,7 @@ module.exports = {
   },
 
   querySelectThresholdMs: (question_id, is_large_file) => {
-    return mysql.query('SELECT threshold_ms FROM test WHERE question_id = ? AND is_large_case = ?', [question_id, is_large_file]);
+    return mysql.query('SELECT threshold_ms FROM test WHERE question_id = ? AND is_large_case = 1', [question_id]);
   }
 
 }
