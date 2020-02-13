@@ -98,20 +98,6 @@ socket.once('testCasesResult', testCasesResult => {
 })
 
 socket.once('endMatch', (matchKey) => {
-  // 改成 match_result ajax!!!!!!!!!!!!!!!!!!!!!!!!
-  // localStorage.setItem('winner', winner)
-  // if (userID == winner) {
-  //   localStorage.setItem('correctness', checkWinnerResult.result_0.correctness)
-  //   localStorage.setItem('performance', checkWinnerResult.result_0.performance)
-  //   localStorage.setItem('answerTime', checkWinnerResult.result_0.answerTime)
-  //   localStorage.setItem('points', checkWinnerResult.result_0.points)
-  // } else {
-  //   localStorage.setItem('correctness', checkWinnerResult.result_1.correctness)
-  //   localStorage.setItem('performance', checkWinnerResult.result_1.performance)
-  //   localStorage.setItem('answerTime', checkWinnerResult.result_1.answerTime)
-  //   localStorage.setItem('points', checkWinnerResult.result_1.points)  }
-  // // temp: change to ajax later ++++++++++++
-  // localStorage.setItem('match', checkWinnerResult);
   // redirect to match_result page with match_key param
   window.location = `/match_result/${matchKey}`;
 })

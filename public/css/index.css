@@ -145,6 +145,14 @@ section {
   margin-bottom: 0;
 }
 
+.questionImg {
+  width: 17px;
+  height: 17px;
+  margin-left: 10px;
+  margin-bottom: 3px;
+  margin-right: 10px;
+}
+
 /* footer layout --------------------
 footer {
   display: flex;
@@ -312,6 +320,11 @@ footer a:link {
 }
 
 /* Match setup page ------------------- */
+.setupTitle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 .timer {
   display: flex;
   flex-direction: row;
@@ -321,9 +334,14 @@ footer a:link {
   width: 20px;
 }
 
-.helpSetup {
-  text-decoration: underline;
+/* Match result page ------------------- */
+.resultTitle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
+
+
 
 /* Profile page -------------------- */
 .signin-signup,

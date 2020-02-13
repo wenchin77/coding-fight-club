@@ -33,7 +33,7 @@ async function setUpAMatch() {
   };
 
   // insert a match
-  let match = await insertMatch(userID, questionID, matchKey);
+  let match = await insertMatch(questionID, matchKey);
 
   // redirect to a room in match page with match key
   window.location = `match/${matchKey}`;

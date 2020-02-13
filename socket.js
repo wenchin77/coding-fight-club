@@ -78,9 +78,8 @@ socket.init = server => {
       let matchID = await matchController.updateMatch(matchKey, user);
 
       // insert into match_detail (make sure there are no duplicated rows)
-      let questionID = questionObject.questionID;
-      await matchController.insertMatchDetail(matchID, questionID, matchList[matchKey][0]);
-      await matchController.insertMatchDetail(matchID, questionID, matchList[matchKey][1]);
+      await matchController.insertMatchDetail(matchID, matchList[matchKey][0]);
+      await matchController.insertMatchDetail(matchID, matchList[matchKey][1]);
       
     });
 
@@ -103,7 +102,6 @@ socket.init = server => {
       // Run code in child process
       try {
         let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
-        console.log('childResult===', childResult);
         
         // give sample test case result
         let sampleSplited = childResult.split('\n');
@@ -215,8 +213,9 @@ socket.init = server => {
       console.log('testCasesResult', testCasesResult)
 
       // calculate passed test cases
-      let smallCorrectness = parseFloat(smallPassedCasesNumber/smallTestCasesNumber);
-      let largeCorrectness = parseFloat(largePassedCasesNumber/largeTestCasesNumber);
+      let smallCorrectness = `${smallPassedCasesNumber}/${smallTestCasesNumber}`
+      let largeCorrectness = `${largePassedCasesNumber}/${largeTestCasesNumber}`
+      let correctness = 100 * parseFloat((smallPassedCasesNumber + largePassedCasesNumber)/(smallTestCasesNumber + largeTestCasesNumber))
       
 
       // calculate exec time (counting with passed tests only)
@@ -242,9 +241,7 @@ socket.init = server => {
 
       let matchID = await matchController.getMatchId(matchKey);
       // rate correctness, performance
-      let calculated = await calculatePoints(matchKey, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime);
-      console.log(calculated)
-      let correctness = calculated.correctnessPoints;
+      let calculated = await calculatePoints(matchKey, correctness, largeExecTime);
       let performance = calculated.perfPoints;
       let points = calculated.points;
       // 紀錄 code 跟項目評分在 match_detail
@@ -272,9 +269,6 @@ socket.init = server => {
       console.log('winnerCheck', winnerCheck); 
      
 
-      // // get questionID with matchKey
-      // let questionID = await matchController.getMatchQuestion(matchKey);
-
       // // performance 拉之前寫過這題的所有 execTime，看分布在哪 (暫時不用)
       // let pastExecTime = await matchController.getMatchDetailPastExecTime(questionID);
       // for (i=0; i<pastExecTime.length; i++) {
@@ -288,7 +282,6 @@ socket.init = server => {
 
       // check 自己是第幾個 insert match_detail 的人
       let submitNumber = winnerCheck[matchKey].length;
-      console.log('submitNumber', submitNumber);
 
       if (submitNumber < 2) {
         // 如果自己是第一個：給 testCasesResult + 等待訊息
@@ -307,7 +300,6 @@ socket.init = server => {
       // compare correctness, execTime, answerTime to get winner
       console.log('matchKey', matchKey);
       let winner = await getWinner(winnerCheck, matchKey);
-      console.log('checkWinnerResult winner', winner);
 
       // update match_table: winner
       await matchController.updateMatchWinner(matchKey, winner); 
@@ -472,11 +464,11 @@ const runCodeInChildProcess = (matchKey, user, difficulty) => {
 
 const getTimeoutMs = difficulty => {
   if(difficulty === 'easy') {
-    return 3000;
+    return 12000;
   } else if (difficulty === 'medium') {
-    return 6000;
+    return 15000;
   }
-  return 10000;
+  return 20000;
 }
 
 
@@ -486,35 +478,24 @@ const getMatchKey = url => {
   return key;
 }
 
-const calculatePoints = async (matchKey, smallCorrectness, largeCorrectness, smallExecTime, largeExecTime) => {
-  // rate correctness
-  let correctnessPoints = (smallCorrectness * 100 * 2 + largeCorrectness * 100) /3
-
+const calculatePoints = async (matchKey, totalCorrectness, largeExecTime) => {
   // rate performance
   let perfPoints = 0;
 
   // get questionID with matchKey
   let questionID = await matchController.getMatchQuestion(matchKey);
   // get threshold_ms from db test table
-  let smallThreshold = await questionController.selectThresholdMs(questionID, 0)
   let largeThreshold = await questionController.selectThresholdMs(questionID, 1)
 
-  if (smallExecTime == null || smallExecTime > smallThreshold) {
-    perfPoints += 25;
+  if (!largeExecTime || (largeExecTime > largeThreshold)) {
+    perfPoints = 0;
   } else {
-    perfPoints += 50;
+    perfPoints = 100;
   }
 
-  if (largeExecTime == null || largeExecTime > largeThreshold) {
-    perfPoints += 25;
-  } else {
-    perfPoints += 50;
-  }
-
-  let points = (correctnessPoints * perfPoints) / 100
+  let points = (totalCorrectness + perfPoints) / 2
   
   let calculated = {
-    correctnessPoints,
     perfPoints,
     points
   }

@@ -3,10 +3,9 @@ const matchModel = require('../models/match');
 
 module.exports = {
   
-  insertMatch: async (user_id_1, question_id, match_key) => {
+  insertMatch: async (question_id, match_key) => {
     // generate a random no as match key to put in url
     let data = {
-      user_id_1,
       question_id,
       match_key
     }
@@ -18,10 +17,10 @@ module.exports = {
     }
   },
 
-  updateMatch: async (key, user) => {
+  updateMatch: async (key) => {
     try {
       // can combine these two qeuries???
-      let result = await matchModel.queryUpdateMatch(key, user);
+      let result = await matchModel.queryUpdateMatch(key);
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
     } catch (err) {
@@ -53,13 +52,13 @@ module.exports = {
     }
   },
 
-  insertMatchDetail: async (matchID, questionID, user) => {
+  insertMatchDetail: async (matchID, user) => {
     // +++++++ transaction
     try  {
       let rowNumber = await matchModel.queryCountMatchDetailRows(matchID, user);
       // make sure there are no duplicated rows
       if (rowNumber[0]['COUNT (*)'] === 0) {
-        await matchModel.queryInsertMatchDetail(matchID, questionID, user);
+        await matchModel.queryInsertMatchDetail(matchID, user);
       }
     } catch (err) {
       console.log(err);
@@ -87,6 +86,7 @@ module.exports = {
       answer_time,
       points
     }
+    console.log(data)
     try {
       let result = await matchModel.queryUpdateMatchDetail(matchID, user, data);
       console.log('updateMatchDetail result in controller!!!', result)
@@ -122,6 +122,15 @@ module.exports = {
       console.log(err);
     }
   },
+
+  getMatchDetails: async (user_id, match_id) => {
+    try {
+      let result = await matchModel.queryGetMatchDetails(match_id);
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
 
 }

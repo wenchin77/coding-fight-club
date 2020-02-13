@@ -1,46 +1,33 @@
 extends layout
 
 block content
-  #matchResult Match Result
-    
+  .resultTitle
+    h2#matchResult Match Result 
+    img.questionImg(src='../img/question.png')
 
-  //- .matchPageSections Set up a Match
-  //-   .contentSection
-  //-     .leftSection
-  //-       .chooseOpponent Choose an Opponent
-  //-       br
-  //-       .strangerMode Challenge a random stranger online (顯示線上對手們)
-  //-       br
-  //-       .friendMode Invite a friend
-  //-       button.getLinkBtn(type='button' onclick='getLink()') Get match invitation link
-  //-       #invitationLink
-  //-     .rightSection
-  //-       .chooseQuestion Choose a question
-  //-       br
-  //-       | Category 
-  //-       select#category(name='category')
-  //-         option(value='algorithms') Algorithms
-  //-         option(value='database') Database
-  //-         option(value='shell') Shell
-  //-         option(value='concurrency') Concurrency
-  //-       br
-  //-       br
-  //-       | Difficulty 
-  //-       select#difficulty(name='difficulty')
-  //-         option(value='easy') Easy
-  //-         option(value='medium') Medium
-  //-         option(value='hard') Hard
-  //-       br
-  //-       //- button.questionSetup#questionSetup(value='Two Sum') Two Sum
-    
-  //-   br
-  //-   br
-  //-   br
-  //-   div Temp setup: use username, question set as Two Sum
-  //-   br
-  //-   button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
+  .resultContent
+    h3#winLose
+    h3 Match Summary
+    table#summaryTable
+    br
+    h3 Match Details
+    table#resultTable
+    br
+    h3 Your Submitted Code
+    textarea#submittedCode
 
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
   script(src='../js/match_result.js')
+
+  script.
+    // codemirror (syntax highlight & auto indent): read only
+    const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('submittedCode'), {
+      lineNumbers: true,
+      mode: "javascript",
+      theme: "base16-dark",
+      readOnly: 'nocursor'
+    });
 
 
 
