@@ -100,7 +100,8 @@ module.exports = {
       let result = await matchModel.queryGetMatchDetailPastExecTime(question_id);
       return result;
     } catch (err) {
-      console.log(err)
+      console.log(err);
+      return false;
     }
   },
 

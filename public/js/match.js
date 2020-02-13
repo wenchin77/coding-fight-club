@@ -125,7 +125,7 @@ function pad(val) {
 function runCode() {
   // 隱藏 test case
   document.getElementById("testCaseArea").style.display = "none";
-  document.getElementById("testcaseBtn").style.background = "#222222";
+  document.getElementById("testcaseBtn").style.background = "#444444";
   // 顯示 run code
   document.getElementById("runCodeOutput").style.display = "flex";
   document.getElementById("runcodeBtn").style.background = "#555555";
@@ -170,7 +170,7 @@ function showTestCase() {
   document.getElementById("testcaseBtn").style.background = "#555555";
   // 隱藏 run code
   document.getElementById("runCodeOutput").style.display = "none";
-  document.getElementById("runcodeBtn").style.background = "#222222";
+  document.getElementById("runcodeBtn").style.background = "#444444";
 }
 
 function exitMatch() {
@@ -184,6 +184,7 @@ function exitMatch() {
 
 function showHelp() {
   // show help message
+
 }
 
 

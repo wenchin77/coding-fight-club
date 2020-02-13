@@ -8,14 +8,18 @@ block content
   .resultContent
     h3#winLose
     h3 Match Summary
-    table#summaryTable
+    .summaryTableContainer
+      table#summaryTable
     br
     h3 Match Details
-    table#resultTable
-    p#resultNote
+    .resultTableContainer
+      table#resultTable
+      p#resultLargeTest
+      p#resultLargeTestHistoric
     br
     h3 Your Submitted Code
-    textarea#submittedCode
+    .submittedCodeContainer
+      textarea#submittedCode
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')

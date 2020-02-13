@@ -15,7 +15,6 @@ block content
         div :
         label#seconds 00
       button#submitBtn(type='button' onclick='submitCode()') Submit
-      button#helpBtn(type='button' onclick='showHelp()') Help
       button#exitBtn(type='button' onclick='exitMatch()') Exit
     .contentSection
       .leftSection
@@ -34,14 +33,14 @@ block content
           .sectionName Your Solution
           textarea#codearea(rows='25' cols='200')
         .terminalResult#terminalResult
-          button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
-          button#runcodeBtn(type='button' onclick='runCode()') Run Code
+          .terminalButtons
+            button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
+            button#runcodeBtn(type='button' onclick='runCode()') Run Code
+            img.questionImg(src='../img/question.png' onclick ='showHelp()')
           #runCodeOutput
           #testCaseArea
             #sampleTestCase(type='text')
-            textarea#testcase(rows='5' cols='200')
-          div * Each line is a seperate test case (5 max), eg: [1,2,3],5
-
+            textarea#testcase(rows='5' cols='200' placeholder='// Each line is a seperate test case (5 max)')
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')

@@ -46,7 +46,7 @@ socket.init = server => {
 
       // Join room
       socket.join(matchKey, () => {
-        console.log(`Socket: ${user} 加入了 ${matchKey} (socket.id = ${socket.id})`);
+        console.log(`Socket: ${user} joined ${matchKey} (socket.id = ${socket.id})`);
         console.log('matchList: ', matchList);
         console.log('socketidMapping', socketidMapping)
         let joinMessage = {
@@ -72,7 +72,6 @@ socket.init = server => {
         user2: matchList[matchKey][1]
       };
       io.to(matchKey).emit('startMatch', users);
-      
 
       // update match start time & user2 (when user2 joins)
       let matchID = await matchController.updateMatch(matchKey, user);
@@ -173,8 +172,6 @@ socket.init = server => {
           console.log(e)
         };
       };
-
-
 
       // 類似的扣：之後跟上面的整理 +++++++++++++++
       let largeTestCasesNumber = largeTestCases.length;
@@ -284,7 +281,6 @@ socket.init = server => {
       socket.emit('testCasesResult', testCasesResult);
       
       // compare correctness, execTime, answerTime to get winner
-      console.log('matchKey', matchKey);
       let winner = await getWinner(winnerCheck, matchKey);
 
       // update match_table: winner
@@ -308,21 +304,18 @@ socket.init = server => {
       }
       io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
 
-      // 刪掉該用戶的 property
       delete socketidMapping[socketid];
 
       if (matchList[matchKey]) {
         let index = matchList[matchKey].indexOf(user);
         if (index !== -1) {
-          // drop user at index
           matchList[matchKey].splice(index, 1);
           if (matchList[matchKey].length === 0) {
-            // drop room property if it's empty
             delete matchList[matchKey];
           }
         }
-        socket.leave(matchKey); // 退出房間
-        console.log(`Socket: ${user} 退出了 ${matchKey} (socket.id ${socket.id})`);
+        socket.leave(matchKey); // leave socket room
+        console.log(`Socket: ${user} left ${matchKey} (socket.id ${socket.id})`);
       }
 
     });
@@ -403,7 +396,6 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
     questionObject.sampleExpected = sampleCase.test_result;
     return questionObject;
   };
-  console.log(questionObject)
 
   // senario: a user submits (send sampleCases)
   questionObject.smallSampleCases = smallSampleCases;
@@ -478,7 +470,6 @@ const calculatePoints = async (matchKey, totalCorrectness, largeExecTimeObj) => 
     if (largeExecTimeObj[i] <= largeThreshold[i].threshold_ms) {
       perfPoints += (100/(largeThreshold.length));
       largePassedNo += 1;
-      console.log('perfPoints', perfPoints)
     }
   }
 
@@ -495,7 +486,6 @@ const calculatePoints = async (matchKey, totalCorrectness, largeExecTimeObj) => 
 }
 
 const getWinner = async (winnerCheck, matchKey) => {
-  console.log(winnerCheck)
   let winner;
   let user_0 = winnerCheck[matchKey][0].user;
   let user_1 = winnerCheck[matchKey][1].user;

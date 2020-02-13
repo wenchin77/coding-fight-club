@@ -45,13 +45,17 @@ router.post('/result/past_performance', async (req, res) => {
   let questionID = req.query.questionid;
   // performance 拉之前寫過這題的所有 execTime，看分布在哪 
   let result = await matchController.getMatchDetailPastExecTime(questionID);
+  if (!result[0]) {
+    res.send('N/A');
+    return;
+  }
   let timeAdded = 0;
   for (i=0; i<result.length; i++) {
     console.log(result[i].large_exec_time);
     timeAdded += parseFloat(result[i].large_exec_time);
   }
   let avgTime = timeAdded / result.length;
-  res.json(avgTime);
+  res.send(`${avgTime} ms`);
 })
 
 module.exports = router;
