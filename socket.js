@@ -100,7 +100,7 @@ socket.init = server => {
       let codeResult = {};
       // Run code in child process
       try {
-        let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
+        let childResult = await runCodeInChildProcess(matchKey, user, difficulty, 10);
         
         // give sample test case result
         let sampleSplited = childResult.split('\n');
@@ -117,13 +117,13 @@ socket.init = server => {
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
         codeResult = {
           user: user,
-          output: childResult
+          output: JSON.stringify(childResult)
         };
       } catch (e) {
         // let errorMessage = "Error: Please put in valid code and test data"
         codeResult = {
           user: user,
-          output: e
+          output: JSON.stringify(e)
         };
       }
       // send an event to everyone in the room including the sender
@@ -151,12 +151,11 @@ socket.init = server => {
         setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
+          let childResult = await runCodeInChildProcess(matchKey, user, difficulty, 20);
           
           // give sample test case result
           let childResultSplited = childResult.split('\n');
           let testOutput = childResultSplited[0];
-          let testExecTime = childResultSplited[1].split('Time: ')[1].split('ms')[0];
           let testExpectedOutput = smallTestCases[i].test_result;
 
           // add sample test result to childResult
@@ -185,7 +184,7 @@ socket.init = server => {
         setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await runCodeInChildProcess(matchKey, user, difficulty);
+          let childResult = await runCodeInChildProcess(matchKey, user, difficulty, 80);
           
           // give sample test case result
           let childResultSplited = childResult.split('\n');
@@ -366,9 +365,10 @@ const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
   // exec time calculation
   let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
   // format
-  finalCode += `\nconsole.timeEnd('Time');`;
+  finalCode += `\nconsole.timeEnd('Time')`; // console.log(process.memoryUsage());
   return finalCode;
 };
+
 
 const getQuestionDetail = async (matchKey, submitBoolean) => {
   // get questionID with matchKey
@@ -404,19 +404,28 @@ const getQuestionDetail = async (matchKey, submitBoolean) => {
 }
 
 
-const runCodeInChildProcess = (matchKey, user, difficulty) => {
+const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
   return new Promise((resolve, reject) => {
-    let ls = spawn(`node`, [`./sessions/${matchKey}_${user}.js`]);
+    let ls = spawn('node', [`--max-old-space-size=${memoryLimit}`, '--experimental-report', '--report-filename=./report.json',`./sessions/${matchKey}_${user}.js`]);
     let result = '';
+    
+    // timeout error setting
+    let timeoutMs = getTimeoutMs(difficulty);
+    let setTimeoutId = setTimeout(() => {
+      console.log('timeout: killing ls...');
+      ls.kill();
+      reject('EXECUTION TIMED OUT');
+    }, timeoutMs);
+    
     ls.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
       // output 性質是 ArrayBuffer 所以要先處理
       // 等每個 output 出來組在一起
-      result += arrayBufferToStr(data);
+      result += arrayBufferToStr(data); // check 結果型態 -> arrayBufferToStr 可以不用？？
     });
     
     ls.stderr.on('data', (data) => {
-      result += arrayBufferToStr(data);
+      result += arrayBufferToStr(data); // check 結果型態 -> arrayBufferToStr 可以不用？？
       console.error(`stderr: ${data}`);
     });
 
@@ -428,14 +437,11 @@ const runCodeInChildProcess = (matchKey, user, difficulty) => {
         reject(result);
       }
       console.log(`exited child_process at ${matchKey}_${user}.js with code ${code}`);
+      clearTimeout(setTimeoutId);
+      console.log('cleared timeout');
     });
 
-    // timeout error setting
-    let timeoutMs = getTimeoutMs(difficulty);
-    setTimeout(() => {
-      ls.kill();
-      reject('EXECUTION TIMED OUT');
-    }, timeoutMs);
+
     
   });
 }
