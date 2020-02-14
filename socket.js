@@ -472,8 +472,11 @@ const calculatePoints = async (matchKey, totalCorrectness, largeExecTimeObj) => 
   // get threshold_ms from db test table
   let largeThreshold = await questionController.selectThresholdMs(questionID);
 
+  console.log('largeThreshold[i].threshold_ms', largeThreshold[0].threshold_ms)
+  console.log('largeExecTimeObj', parseInt(largeExecTimeObj[0]))
+
   for (i=0; i<largeThreshold.length; i++) {
-    if (largeExecTimeObj[i] <= largeThreshold[i].threshold_ms) {
+    if (parseInt(largeExecTimeObj[i]) <= largeThreshold[i].threshold_ms) {
       perfPoints += (100/(largeThreshold.length));
       largePassedNo += 1;
     }
