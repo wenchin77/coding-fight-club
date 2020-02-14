@@ -189,7 +189,8 @@ socket.init = server => {
           // give sample test case result
           let childResultSplited = childResult.split('\n');
           let testOutput = childResultSplited[0];
-          let testExecTime = childResultSplited[1].split('Time: ')[1].split('ms')[0];
+          // get exec time (check if it's ms or s)
+          let testExecTime = (childResultSplited[1].slice(-2) == 'ms') ? (childResultSplited[1].split('Time: ')[1].split('m')[0]) : (childResultSplited[1].split('Time: ')[1].split('s')[0]) * 1000;
           let testExpectedOutput = largeTestCases[i].test_result;
 
           // add sample test result to childResult
