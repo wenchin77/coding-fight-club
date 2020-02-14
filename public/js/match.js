@@ -123,6 +123,9 @@ function pad(val) {
 
 
 function runCode() {
+  if (!document.getElementById('questionDescription')) {
+    return;
+  }
   // 隱藏 test case
   document.getElementById("testCaseArea").style.display = "none";
   document.getElementById("testcaseBtn").style.background = "#444444";
@@ -165,6 +168,9 @@ function submitCode() {
 
 
 function showTestCase() {
+  if (!document.getElementById('questionDescription')) {
+    return;
+  }
   // 顯示 test case
   document.getElementById("testCaseArea").style.display = "flex";
   document.getElementById("testcaseBtn").style.background = "#555555";
