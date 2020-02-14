@@ -117,13 +117,13 @@ socket.init = server => {
         // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
         codeResult = {
           user: user,
-          output: JSON.stringify(childResult)
+          output: (childResult)
         };
       } catch (e) {
         // let errorMessage = "Error: Please put in valid code and test data"
         codeResult = {
           user: user,
-          output: JSON.stringify(e)
+          output: (e)
         };
       }
       // send an event to everyone in the room including the sender
