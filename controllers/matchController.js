@@ -89,7 +89,6 @@ module.exports = {
     console.log(data)
     try {
       let result = await matchModel.queryUpdateMatchDetail(matchID, user, data);
-      console.log('updateMatchDetail result in controller!!!', result)
     } catch (err) {
       console.log(err);
     }
@@ -108,7 +107,6 @@ module.exports = {
   updateMatchWinner: async (key, winner) => {
     try {
       let result = await matchModel.queryUpdateMatchWinner(key, winner);
-      console.log(result)
     } catch (err) {
       console.log(err);
     }

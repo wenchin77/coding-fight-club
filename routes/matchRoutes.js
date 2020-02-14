@@ -51,11 +51,10 @@ router.post('/result/past_performance', async (req, res) => {
   }
   let timeAdded = 0;
   for (i=0; i<result.length; i++) {
-    console.log(result[i].large_exec_time);
-    timeAdded += parseFloat(result[i].large_exec_time);
+    timeAdded += parseInt(result[i].large_exec_time);
   }
   let avgTime = timeAdded / result.length;
-  res.send(`${avgTime} ms`);
+  res.json(avgTime);
 })
 
 module.exports = router;

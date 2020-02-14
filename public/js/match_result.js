@@ -18,7 +18,7 @@ const getMatchID =  async (matchKey) => {
 const getPastExecTime =  async (questionID) => {
   try {
     const response = await axios.post(`/api/v1/match/result/past_performance?questionid=${questionID}`)
-    return response.data;
+    return `${parseInt(response.data)} ms`;
   } catch (error) {
     console.log(error);
   }
@@ -140,12 +140,6 @@ function addDataToTable(elementId, array) {
   generateTableHead(table, data);
   generateTable(table, array);
 }
-
-
-
-
-
-
 
 
 async function main() {
