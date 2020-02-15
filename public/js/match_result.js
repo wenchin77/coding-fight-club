@@ -51,6 +51,8 @@ const convertAnswerTime = (time) => {
   var ret = "";
   if (hrs > 0) {
       ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+  } else {
+    ret += "00:" + (mins < 10 ? "0" : "");
   }
   ret += "" + mins + ":" + (secs < 10 ? "0" : "");
   ret += "" + secs;
@@ -93,12 +95,12 @@ const showMatchResult = async (result) => {
     {Metrics: 'Performance', You: matchResult[myIndex].performance, Opponent: matchResult[opponentIndex].performance},
     {Metrics: '&nbsp;&nbsp;Large Test Cases Performance Check', You: matchResult[myIndex].large_passed, Opponent: matchResult[opponentIndex].large_passed},
     {Metrics: 'Total Points', You: matchResult[myIndex].points, Opponent: matchResult[opponentIndex].points},
-    {Metrics: 'Answer Time', You: convertAnswerTime(matchResult[myIndex].answer_time), Opponent: convertAnswerTime(matchResult[opponentIndex].answer_time)},
+    {Metrics: 'Answer Time (hh:mm:ss)', You: convertAnswerTime(matchResult[myIndex].answer_time), Opponent: convertAnswerTime(matchResult[opponentIndex].answer_time)},
   ];
 
   let largeTime = ((!matchResult[myIndex].large_exec_time) ? 'N/A': `${matchResult[myIndex].large_exec_time} ms`)
-  document.getElementById('resultLargeTest').innerHTML = `Your execution time on large tests is ${largeTime} on average`
-  document.getElementById('resultLargeTestHistoric').innerHTML = `Historic execution time is ${pastExecTime} on average`
+  document.getElementById('resultLargeTest').innerHTML = `Your execution time on large tests is on average ${largeTime}`
+  document.getElementById('resultLargeTestHistoric').innerHTML = `Historic execution time on large tests is on average ${pastExecTime}`
 
   let submittedCode = matchResult[myIndex].answer_code;
 

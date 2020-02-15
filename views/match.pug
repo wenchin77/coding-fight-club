@@ -1,6 +1,13 @@
 extends layout
 
 block content
+  #myModal.modal
+    .modalContent
+      span.close &times;
+      p#modalText
+      .modalButtons
+        button#noButton No
+        button#yesButton Yes
   .matchPageSections
     .titleSection
       .matchQuestion#matchQuestion
@@ -41,6 +48,7 @@ block content
           #testCaseArea
             #sampleTestCase(type='text')
             textarea#testcase(rows='5' cols='200' placeholder='// Each line is a seperate test case (5 max)')
+
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')

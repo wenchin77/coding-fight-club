@@ -16,17 +16,34 @@ async function getLink() {
   document.getElementById('invitationLink').innerHTML = `http://localhost:3000/match/${matchKey}`;
 };
 
+// addEventListener to buttons
+function setElementActive(parent, activeClassName) {
+  let currentActiveElement;
+  Array.prototype.forEach.call(document.querySelectorAll(parent), (item) => {
+    item.addEventListener('click', function(evt) {
+      currentActiveElement && currentActiveElement.classList.remove(activeClassName);
+      currentActiveElement = evt.target;
+      currentActiveElement.classList.add(activeClassName);
+    }, false);
+  });
+}
+
+setElementActive('.category button', 'categoryActive');
+setElementActive('.difficulty button', 'difficultyActive');
+
 async function setUpAMatch() {
-  const category = document.getElementById('category').value;
-  const difficulty = document.getElementById('difficulty').value;
+  if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
+    showAlert("Please select a category and a difficulty level.");
+    return;
+  }
+  const category = document.querySelector('.categoryActive').value;
+  const difficulty = document.querySelector('.difficultyActive').value;
 
   // ajax 打 question list api
   let questionID = await getQuestion(category, difficulty);
-
-  if(!questionID) {
-    window.alert("There aren't this type of questions in our database. Please reselect.")
+  if (!questionID) {
     return;
-  };
+  }
 
   if(!matchKey || matchKey == '') {
     matchKey = await getKey();
@@ -42,6 +59,10 @@ async function setUpAMatch() {
 async function getQuestion(category, difficulty) {
   try {
     const response = await axios.get(`/api/v1/question/${category}?difficulty=${difficulty}`)
+    if (!response.data.question) {
+      showAlert(`Oh no, we can't find this type of questions in our database. Please reselect.`);
+      return false;
+    }
     let questionID = response.data.question.id;
     return questionID;
   } catch (error) {
@@ -59,5 +80,26 @@ async function insertMatch(userID, questionID, matchKey) {
     return response;
   } catch (error) {
     console.log(error);
+  }
+};
+
+function showAlert(text) {
+  const modal = document.getElementById("myModal");
+  const span = document.getElementsByClassName("close")[0];
+  document.getElementById('modalText').innerHTML = text;
+
+  // show modal
+  modal.style.display = "block";
+
+  // When the user clicks on (x), close the modal
+  span.onclick = () => {
+    modal.style.display = "none";
+  }
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = (event) => {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
   }
 };

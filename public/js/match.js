@@ -22,8 +22,9 @@ socket.on('connect', () => {
 
 // too many people in a match: reject and redirect
 socket.on('rejectUser', msg => {
-  window.alert(msg);
-  window.location = '/';
+  showAlert(msg, () => {
+    window.location = '/';
+  });
 })
 
 // 拿到 questionData 顯示在前端 (once: 只有第一次拿到做，之後不動作)
@@ -38,7 +39,9 @@ socket.once('questionData', questionObject => {
 });
 
 socket.once('waitForOpponent', msg => {
-  document.getElementById('runCodeOutput').innerHTML = '<p id="terminalMessage">Hold on. We are waiting for your opponent to join...</p>';
+  showAlert('Hey there, we are waiting for your opponent to join!', () => {
+    document.getElementById('runCodeOutput').innerHTML = '<p id="terminalMessage">Hold on. You will be able to read the question and code right after your opponent joins.</p>';
+  })
 })
 
 socket.on('joinLeaveMessage', msgObject => {
@@ -50,17 +53,12 @@ socket.on('joinLeaveMessage', msgObject => {
 
 socket.once('startMatch', users => {
   // show opponent name
-  let opponent;
-  if (users.user1 === userID) {
-    opponent = users.user2
-  } else {
-    opponent = users.user1
-  }
-  document.getElementById('opponent').innerHTML = `Opponent: ${opponent}`;
-  
+  let opponent = (users.user1 === userID) ? users.user2 : users.user1
   // show start match message
-  document.getElementById('runCodeOutput').innerHTML = '<p id="terminalMessage">The match begins now! Write the code and test cases to begin.</p>'
-
+  showAlert(`The match against ${opponent} begins now!`, () => {
+    document.getElementById('opponent').innerHTML = `Opponent: ${opponent}`;
+    document.getElementById('runCodeOutput').innerHTML = '<p id="terminalMessage">Write the code and test cases to see result.</p>'
+  })
   // start the timer
   let hoursLabel = document.getElementById("hours");
   let minutesLabel = document.getElementById("minutes");
@@ -85,21 +83,21 @@ socket.on('codeResult', (resultObj) =>{
 socket.once('waitForMatchEnd', submitMessage => {
   console.log('waitForMatchEnd')
   if (submitMessage.user === userID) {
-    window.alert(`Awesome! Here's your submit result: \n\n${submitMessage.testCasesResult}Let's wait for your opponent to submit.`);
-    // 等待的時候可以幹啥？
+    text = `Awesome! Let's wait for your opponent to submit.`
+    showAlert(text, () => {
+      // ++++++++++++ 等待的時候可以幹啥？聊天！
+    });
     return;
   }
   document.getElementById('opponentRunCodeOutput').innerHTML = `<p id="terminalMessage">${submitMessage.message}</p>`;
-
-})
-
-socket.once('testCasesResult', testCasesResult => {
-  window.alert(`Here's your submit result:\n${testCasesResult}`)
 })
 
 socket.once('endMatch', (matchKey) => {
-  // redirect to match_result page with match_key param
-  window.location = `/match_result/${matchKey}`;
+  showAlert("The match has ended! Let check out the result.", () => {
+    // redirect to match_result page with match_key param
+    window.location = `/match_result/${matchKey}`;
+    // ++++++++++++ stop timer
+  })
 })
 
 
@@ -153,7 +151,11 @@ function runCode() {
 
 
 function submitCode() {
-  if (window.confirm('Are you sure? You can only submit once')) {
+  let text = 'Are you sure? You can only submit once!';
+  showAlertWithButtons(text, () => {
+    const buttons = document.getElementsByClassName('modalButtons')[0];
+    buttons.style.display = 'none';
+    showAlert('Hold on! Our server is evaluating your code now...');
     // send code to server (get test cases in server)
     let codeareaValue = codemirrorEditor.getValue();
     let payload = {
@@ -162,7 +164,7 @@ function submitCode() {
       difficulty
     };
     socket.emit('submit', payload);
-  }
+  });
 }
 
 
@@ -180,12 +182,64 @@ function showTestCase() {
 }
 
 function exitMatch() {
-  if (window.confirm('Are you sure you want to exit the match? You will not gain any points if you do so :(')){
+  let text = `Are you sure you want to exit the match? You will not be able to gain any points or join this match again...`;
+  showAlertWithButtons(text, () => {
     window.location.pathname='/';
-    alert('You exited the match!');
     socket.emit('exit', userID);
-  }
+  })
 }
+
+function showAlert(text, callback) {
+  const modal = document.getElementById("myModal");
+  const close = document.getElementsByClassName("close")[0];
+  
+  modal.style.display = "flex";
+  document.getElementById('modalText').innerHTML = text;
+
+  close.onclick = () => {
+    modal.style.display = "none";
+    callback();
+  };
+
+  window.onclick = (event) => {
+    if (event.target == modal) {
+      modal.style.display = "none";
+      callback();
+    }
+  }
+};
+
+function showAlertWithButtons(text, callback) {
+  const modal = document.getElementById("myModal");
+  const close = document.getElementsByClassName("close")[0];
+  const buttons = document.getElementsByClassName('modalButtons')[0];
+  const no = document.getElementById("noButton");
+  const yes = document.getElementById("yesButton");
+  
+  modal.style.display = "flex";
+  buttons.style.display = 'flex';
+
+  document.getElementById('modalText').innerHTML = text;
+
+  no.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  yes.onclick = () => {
+    modal.style.display = "none";
+    callback();
+  };
+
+  close.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  window.onclick = (event) => {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+};
 
 
 function showHelp() {

@@ -143,7 +143,6 @@ socket.init = server => {
       // put together the code & run one test case at a time
       let smallTestCasesNumber = smallTestCases.length;
       let smallPassedCasesNumber = 0;
-      let testCasesResult = 'SMALL TEST CASES RESULT\n';
       for (i=0;i<smallTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, smallTestCases[i]);
 
@@ -162,10 +161,8 @@ socket.init = server => {
           if (testOutput == testExpectedOutput) {
             console.log(`test case [${i}] passed`)
             smallPassedCasesNumber += 1;
-            testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
           } else {
             console.log(`test case [${i}] failed`)
-            testCasesResult += `TEST FAILED\nExpected: ${testExpectedOutput}, instead got: ${testOutput}\n\n`;
           }
         } catch (e) {
           console.log(e)
@@ -176,7 +173,6 @@ socket.init = server => {
       let largeTestCasesNumber = largeTestCases.length;
       let largePassedCasesNumber = 0;
       let largeTestExecTimeSum = 0;
-      testCasesResult += 'LARGE TEST CASES RESULT\n';
       let largeExecTimeObj = []; // 這個跟小測資不同！
       for (i=0;i<largeTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, largeTestCases[i]);
@@ -199,11 +195,9 @@ socket.init = server => {
             largePassedCasesNumber += 1;
             largeTestExecTimeSum += parseFloat(testExecTime);
             largeExecTimeObj.push(testExecTime);
-            testCasesResult += `TEST PASSED\nValue equals ${testExpectedOutput}\n\n`;
           } else {
             console.log(`test case [${i}] failed`);
             largeExecTimeObj.push('failed');
-            testCasesResult += `TEST FAILED\nExpected: ${testExpectedOutput}, instead got: ${testOutput}\n\n`;
           }
         } catch (e) {
           console.log(e)
@@ -242,7 +236,7 @@ socket.init = server => {
       // +++++++ 更新兩人的 user table: points (and level table if needed)
 
 
-      // update winnerCheck {} for performance points calculation (temp)
+      // update winnerCheck {} for performance points calculation
       if (!winnerCheck[matchKey]) {
         winnerCheck[matchKey] = [];
       };
@@ -267,19 +261,14 @@ socket.init = server => {
       let submitNumber = winnerCheck[matchKey].length;
 
       if (submitNumber < 2) {
-        // 如果自己是第一個：給 testCasesResult + 等待訊息
         let submitMessage = {
           user,
-          message: `${user} submitted the code! We're waiting for your submission.`,
-          testCasesResult
+          message: `${user} submitted the code! We're waiting for your submission.`
         }
         io.to(matchKey).emit('waitForMatchEnd', submitMessage);
         return;
       }
-      
-      // 如果自己是第二個：給 testCasesResult
-      socket.emit('testCasesResult', testCasesResult);
-      
+            
       // compare correctness, execTime, answerTime to get winner
       let winner = await getWinner(winnerCheck, matchKey);
 
