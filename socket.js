@@ -56,6 +56,8 @@ socket.init = server => {
         io.to(matchKey).emit('joinLeaveMessage', joinMessage);
       });
 
+
+
       // Wait for opponent if there's only 1 person in the room
       if (matchList[matchKey].length === 1) {
         socket.emit('waitForOpponent');
@@ -132,8 +134,23 @@ socket.init = server => {
 
     socket.on('submit', async (data) => {
       let user = data.user;
-      let code = data.code;
 
+      // Check if the user submitted before
+      let submitTime = 0;
+      if (winnerCheck[matchKey]) {
+        console.log('user in winnercheck[matchkey]')
+        for (i=0;i<winnerCheck[matchKey].length;i++) {
+          if (winnerCheck[matchKey][i].user = user) {
+            submitTime += 1;
+          }
+        }
+      };
+      if (submitTime > 0) {
+        socket.emit('alreadySubmitted');
+        return;
+      }
+
+      let code = data.code;
       let questionObject = await getQuestionDetail(matchKey, true);
       let questionConst = questionObject.const;
       let smallTestCases = questionObject.smallSampleCases;
@@ -289,7 +306,7 @@ socket.init = server => {
 
       let leaveMessage = {
         user: user,
-        message: `${user} left the match. You can still get points if you finish the match.`
+        message: `${user} left the match for now and might join again. You will still get your points if you submit your solution.`
       }
       io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
 
@@ -402,20 +419,53 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
     // timeout error setting
     let timeoutMs = getTimeoutMs(difficulty);
     let setTimeoutId = setTimeout(() => {
-      console.log('timeout: killing ls...');
       ls.kill();
+      console.log('timeout: killing child process...')
       reject('EXECUTION TIMED OUT');
     }, timeoutMs);
     
     ls.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
       // output 性質是 ArrayBuffer 所以要先處理
-      // 等每個 output 出來組在一起
-      result += arrayBufferToStr(data); // check 結果型態 -> arrayBufferToStr 可以不用？？
+      result += arrayBufferToStr(data);
     });
     
     ls.stderr.on('data', (data) => {
-      result += arrayBufferToStr(data); // check 結果型態 -> arrayBufferToStr 可以不用？？
+      let dataStr = arrayBufferToStr(data);
+      if (data.includes('out of memory')) {
+        ls.kill();
+        console.log('out of memory: killing child process...')
+        reject('OUT OF MEMORY');
+      };
+      if (dataStr.includes('ReferenceError')) {
+        errorMsg = dataStr.split('ReferenceError')[1].split('\n')[0];
+        reject(`ReferenceError${errorMsg}`)
+      };
+      if (dataStr.includes('SyntaxError')) {
+        errorMsg = dataStr.split('SyntaxError')[1].split('\n')[0];
+        reject(`SyntaxError${errorMsg}`);
+      };
+      if (dataStr.includes('RangeError')) {
+        errorMsg = dataStr.split('RangeError')[1].split('\n')[0];
+        reject(`RangeError${errorMsg}`);
+      };
+      if (dataStr.includes('TypeError')) {
+        errorMsg = dataStr.split('TypeError')[1].split('\n')[0];
+        reject(`TypeError${errorMsg}`);
+      };
+      if (dataStr.includes('URIError')) {
+        errorMsg = dataStr.split('URIError')[1].split('\n')[0];
+        reject(`URIError${errorMsg}`);
+      };
+      if (dataStr.includes('Error')) {
+        errorMsg = dataStr.split('Error')[1].split('\n')[0];
+        reject(`Error${errorMsg}`);
+      };
+      if (dataStr.includes('throw')) {
+        errorMsg = dataStr.split('throw')[1];
+        reject(`throw${errorMsg}`);
+      };
+      result += dataStr;
       console.error(`stderr: ${data}`);
     });
 
@@ -427,12 +477,8 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
         reject(result);
       }
       console.log(`exited child_process at ${matchKey}_${user}.js with code ${code}`);
-      clearTimeout(setTimeoutId);
-      console.log('cleared timeout');
+      clearTimeout(setTimeoutId); // clear it or it'll keep timing
     });
-
-
-    
   });
 }
 

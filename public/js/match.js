@@ -25,6 +25,11 @@ socket.on('rejectUser', msg => {
   showAlert(msg, () => {
     window.location = '/';
   });
+});
+
+// submitted already
+socket.on('alreadySubmitted', () => {
+  showAlert("You already submitted your code in this match. Let's wait a bit for your opponent to submit too!")
 })
 
 // 拿到 questionData 顯示在前端 (once: 只有第一次拿到做，之後不動作)
@@ -182,7 +187,7 @@ function showTestCase() {
 }
 
 function exitMatch() {
-  let text = `Are you sure you want to exit the match? You will not be able to gain any points or join this match again...`;
+  let text = `Are you sure you want to exit the match? You can join this match again if it's within match time.`;
   showAlertWithButtons(text, () => {
     window.location.pathname='/';
     socket.emit('exit', userID);
