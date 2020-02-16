@@ -437,29 +437,9 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
         console.log('out of memory: killing child process...')
         reject('OUT OF MEMORY');
       };
-      if (dataStr.includes('ReferenceError')) {
-        errorMsg = dataStr.split('ReferenceError')[1].split('\n')[0];
-        reject(`ReferenceError${errorMsg}`)
-      };
-      if (dataStr.includes('SyntaxError')) {
-        errorMsg = dataStr.split('SyntaxError')[1].split('\n')[0];
-        reject(`SyntaxError${errorMsg}`);
-      };
-      if (dataStr.includes('RangeError')) {
-        errorMsg = dataStr.split('RangeError')[1].split('\n')[0];
-        reject(`RangeError${errorMsg}`);
-      };
-      if (dataStr.includes('TypeError')) {
-        errorMsg = dataStr.split('TypeError')[1].split('\n')[0];
-        reject(`TypeError${errorMsg}`);
-      };
-      if (dataStr.includes('URIError')) {
-        errorMsg = dataStr.split('URIError')[1].split('\n')[0];
-        reject(`URIError${errorMsg}`);
-      };
       if (dataStr.includes('Error')) {
-        errorMsg = dataStr.split('Error')[1].split('\n')[0];
-        reject(`Error${errorMsg}`);
+        errorMsg = dataStr.split('Error')[0].split('\n').pop(-1) + 'Error' + dataStr.split('Error')[1].split('\n')[0];
+        reject(errorMsg);
       };
       if (dataStr.includes('throw')) {
         errorMsg = dataStr.split('throw')[1];
