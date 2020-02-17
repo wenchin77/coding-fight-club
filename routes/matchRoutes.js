@@ -11,7 +11,7 @@ router.post('/get_key', (req, res) => {
 });
 
 router.post('/insert_match', (req, res) => {
-  let result = matchController.insertMatch(req.body.userID, req.body.questionID, req.body.matchKey);
+  let result = matchController.insertMatch(req.body.questionID, req.body.matchKey);
   res.send(result);
 });
 

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const matchController = require('./controllers/matchController');
 const questionController = require('./controllers/questionController');
+const userController = require('./controllers/userController');
 
 // child process setup for code execution
 const { spawn } = require("child_process");
@@ -13,7 +14,8 @@ socket.init = server => {
   const io = socketio.listen(server);
   const matchList = {}; // to save match key & user mapping info
   const socketidMapping = {}; // to save socketid & user mapping info
-  const winnerCheck = {}; // on submit: to compare exec time and assign performance points
+  const winnerCheck = {}; // on submit: to assign performance points
+  const userIdNameMapping = {}; // to display username in frontend
 
   io.on("connection", socket => {
     console.log("Socket: a user connected!");
@@ -21,9 +23,12 @@ socket.init = server => {
     let url = socket.request.headers.referer;
     let matchKey = getMatchKey(url);
     
-    socket.on("join", async (userID) => {
+    socket.on("join", async (token) => {
+      console.log('token from frontend ===== ', token)
+      let result = await userController.selectUserInfoByToken(token);
       
-      let user = userID;
+      let user = result[0].id;
+      let username = result[0].user_name;
 
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
@@ -32,30 +37,44 @@ socket.init = server => {
 
       // Reject a user if there are already 2 people in the room
       if (matchList[matchKey].length >= 2) {
+        console.log('matchList for too many people ===', matchList)
         socket.emit('rejectUser', 'Oops, there are already two people in this match!');
         return;
       }
 
-      // Add user to the room
+      // Add user to the room list
       matchList[matchKey].push(user);
+      console.log('matchList', matchList);
 
-      // Add user to socketidMapping (socketid: user)
+      // Add user to socketidMapping (socketid: userid)
       if (!socketidMapping[socket.id]) {
         socketidMapping[socket.id] = user;
       };
+      console.log('socketidMapping', socketidMapping)
 
+      // Add user to userIdNameMapping (userid: username)
+      if (!userIdNameMapping[user]) {
+        userIdNameMapping[user] = username;
+      };
+      console.log('userIdNameMapping', userIdNameMapping)
+
+      
       // Join room
       socket.join(matchKey, () => {
         console.log(`Socket: ${user} joined ${matchKey} (socket.id = ${socket.id})`);
-        console.log('matchList: ', matchList);
-        console.log('socketidMapping', socketidMapping)
         let joinMessage = {
           user: user,
-          message: `${user} joined the match.`
+          message: `${username} joined the match.`
         }
         io.to(matchKey).emit('joinLeaveMessage', joinMessage);
       });
 
+      // send back user data
+      let userData = {
+        userid: user,
+        username,
+      }
+      socket.emit('userData', userData);
 
 
       // Wait for opponent if there's only 1 person in the room
@@ -69,19 +88,28 @@ socket.init = server => {
       io.to(matchKey).emit("questionData", questionObject);
 
       // send user info to display
+      let userid1 = matchList[matchKey][0];
+      let userid2 = matchList[matchKey][1];
+
       let users = {
-        user1: matchList[matchKey][0],
-        user2: matchList[matchKey][1]
+        user1: {
+          user: userid1,
+          username: userIdNameMapping[userid1]
+        },
+        user2: {
+          user: userid2,
+          username: userIdNameMapping[userid2]
+        }
       };
+      console.log('users', users)
       io.to(matchKey).emit('startMatch', users);
 
-      // update match start time & user2 (when user2 joins)
+      // update match start time
       let matchID = await matchController.updateMatch(matchKey, user);
 
       // insert into match_detail (make sure there are no duplicated rows)
       await matchController.insertMatchDetail(matchID, matchList[matchKey][0]);
       await matchController.insertMatchDetail(matchID, matchList[matchKey][1]);
-      
     });
 
     socket.on("codeObject", async data => {
@@ -137,14 +165,20 @@ socket.init = server => {
 
       // Check if the user submitted before
       let submitTime = 0;
+      console.log('winnerCheck -------', winnerCheck)
       if (winnerCheck[matchKey]) {
-        console.log('user in winnercheck[matchkey]')
+        console.log('winnerCheck[matchKey][0]', winnerCheck[matchKey][0])
+        console.log('user', user)
+
         for (i=0;i<winnerCheck[matchKey].length;i++) {
-          if (winnerCheck[matchKey][i].user = user) {
+          if (winnerCheck[matchKey][i].user === user) {
             submitTime += 1;
+            console.log('winnerCheck[matchKey][i].user --- ', winnerCheck[matchKey][i].user)
+            console.log('i --- ', i)
           }
         }
       };
+      console.log('submitTime ---', submitTime);
       if (submitTime > 0) {
         socket.emit('alreadySubmitted');
         return;
@@ -303,10 +337,12 @@ socket.init = server => {
       // 用 socketidMapping (socketid: user) 找出退出的 user
       let socketid = socket.id;
       let user = socketidMapping[socketid];
+      let username = userIdNameMapping[user];
+      console.log('username --- ', username)
 
       let leaveMessage = {
         user: user,
-        message: `${user} left the match for now and might join again. You will still get your points if you submit your solution.`
+        message: `${username} left the match for now and might join again. You will still get your points if you submit your solution.`
       }
       io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
 

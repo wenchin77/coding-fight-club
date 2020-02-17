@@ -26,4 +26,8 @@ module.exports = {
     return mysql.query('SELECT * FROM user_table WHERE email = ?', [email]);
   },
 
+  querySelectUserInfoByToken: (token) => {
+    return mysql.query('SELECT id, user_name FROM user_table WHERE token = ?', [token]);
+  }
+
 }

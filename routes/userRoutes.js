@@ -60,5 +60,11 @@ router.post('/signup', async (req, res)=> {
   res.status(200).send(result);
 });
 
+router.post('/get_userInfo', async (req, res) => {
+  let token = req.query.token;
+  let result = await userController.selectUserInfoByToken(token);
+  res.json(result);
+})
+
 
 module.exports = router;

@@ -42,7 +42,11 @@ module.exports = {
   },
 
   queryGetMatchDetails: (match_id) => {
-    return mysql.query('SELECT match_table.question_id, match_table.winner_user_id, match_table.match_start_time, match_table.updated_at, match_detail.* FROM match_table INNER JOIN match_detail ON match_table.id = match_detail.match_id WHERE match_table.id = ?', [match_id])
+    return mysql.query(`SELECT match_table.question_id, match_table.winner_user_id, match_table.match_start_time,
+    match_table.updated_at, match_detail.*, user_table.user_name
+    FROM match_table INNER JOIN match_detail ON match_table.id = match_detail.match_id 
+    INNER JOIN user_table ON match_detail.user_id = user_table.id
+    WHERE match_table.id = ?`, [match_id])
   }
 
 }

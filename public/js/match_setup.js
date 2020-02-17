@@ -1,9 +1,8 @@
 // verify signin first
-if(!localStorage.getItem('name')) {
+if(!(localStorage.getItem('token'))) {
   window.location.pathname = 'signin';
 };
 
-let userID = localStorage.getItem('name');
 let matchKey;
 
 async function getKey() {
@@ -70,10 +69,9 @@ async function getQuestion(category, difficulty) {
   }
 };
 
-async function insertMatch(userID, questionID, matchKey) {
+async function insertMatch(questionID, matchKey) {
   try {
     const response = await axios.post('/api/v1/match/insert_match', {
-      userID,
       questionID,
       matchKey
     })

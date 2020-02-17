@@ -1,8 +1,20 @@
-const userID = localStorage.getItem('name');
+const token = localStorage.getItem('token');
 
 // get matchID
 const url = window.location.pathname;
 const matchKey = url.substring(url.lastIndexOf('/') + 1);
+
+
+
+const getUserInfo =  async (token) => {
+  try {
+    let response = await axios.post(`/api/v1/user/get_userInfo?token=${token}`);
+    console.log(response.data[0].id)
+    return response.data[0].id;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 
 const getMatchID =  async (matchKey) => {
@@ -28,6 +40,7 @@ const getPastExecTime =  async (questionID) => {
 const getMatchDetails =  async (matchID, userID) => {
   try {
     const response = await axios.post(`/api/v1/match/result/details?userid=${userID}&matchid=${matchID}`)
+    console.log('match detail data===', response.data)
     return response.data;
   } catch (error) {
     console.log(error);
@@ -60,7 +73,7 @@ const convertAnswerTime = (time) => {
 }
 
 
-const showMatchResult = async (result) => {
+const showMatchResult = async (userID, result) => {
   let matchResult = result.matchResult;
   let question = result.question;
   let winner = matchResult[0].winner_user_id;
@@ -83,7 +96,7 @@ const showMatchResult = async (result) => {
   let localStartTime = startTime.toLocaleString()
 
   let matchResultSummary = [
-    {'Match Time': localStartTime, Opponent: matchResult[opponentIndex].user_id, Result: winLose, Topic: capitalize(question.category), Difficulty: capitalize(question.difficulty), Question: question.question_name}
+    {'Match Time': localStartTime, Opponent: matchResult[opponentIndex].user_name, Result: winLose, Topic: capitalize(question.category), Difficulty: capitalize(question.difficulty), Question: question.question_name}
   ]
 
   let pastExecTime = await getPastExecTime(question.id);
@@ -145,9 +158,13 @@ function addDataToTable(elementId, array) {
 
 
 async function main() {
+  let userID = await getUserInfo(token);
+  // let username = userInfo.user_name;
+  console.log('userid', userID)
+
   let matchID = await getMatchID(matchKey);
   let matchDetails = await getMatchDetails(matchID, userID);
-  showMatchResult(matchDetails);
+  showMatchResult(userID, matchDetails);
 }
 main();
 

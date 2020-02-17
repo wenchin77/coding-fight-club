@@ -6,7 +6,6 @@ const crypto = require("crypto");
 
 module.exports = {
   insertUser: async (data) => {
-    // generate token and pass it to db & frontend
     let now = Date.now();
     let hash = crypto.createHash("sha256");
     hash.update(data.email + data.password + now);
@@ -42,7 +41,6 @@ module.exports = {
   },
 
   updateUser: async (data) => {
-    // generate token and pass it to db & frontend
     let now = Date.now();
     let hash = crypto.createHash("sha256");
     hash.update(data.email + data.password + now);
@@ -58,7 +56,6 @@ module.exports = {
       console.log('updating user...')
       await userModel.queryUpdateUser(userInfo);
       let getUserInfo = await userModel.querySelectUser(data.email);
-      console.log('getUserInfo result',getUserInfo[0])
       return({
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
@@ -102,6 +99,16 @@ module.exports = {
       console.log(err);
     }
   },
+
+  selectUserInfoByToken: async (token) => {
+    try {
+      let result = await userModel.querySelectUserInfoByToken(token);
+      console.log('selectUserInfoByToken', result)
+      return(result);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   
 
