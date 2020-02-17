@@ -4,17 +4,18 @@ const cors = require('cors');
 const AppError = require('./util/appError.js');
 const socket = require('./socket');
 const path = require('path');
+const bodyparser = require("body-parser");
+// const cst=require("./util/constants.js");
 
 const matchRoutes = require('./routes/matchRoutes');
 const questionRoutes = require('./routes/questionRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(express.static('public'));
-// const cst=require("./util/constants.js");
-const bodyparser = require("body-parser");
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 
@@ -44,8 +45,8 @@ app.get('/signin', (req, res) => {
   res.render('signin');
 });
 
-app.get('/signup', (req, res) => {
-  res.render('signup');
+app.get('/profile', (req, res) => {
+  res.render('profile');
 });
 
 // bug report
@@ -56,6 +57,7 @@ app.get('/bug_report', (req, res) => {
 // api routes
 app.use('/api/v1/match', matchRoutes);
 app.use('/api/v1/question', questionRoutes);
+app.use('/api/v1/user', userRoutes);
 
 
 // handle undefined routes

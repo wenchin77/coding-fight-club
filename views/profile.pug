@@ -1,0 +1,25 @@
+extends layout
+
+block content
+
+  .profileWrapper
+    .profileTitle
+      h2#matchResult Match Result 
+      img.questionImg(src='../img/question.png')
+
+    .profileContent
+      h3#winLose
+      h4 Match Summary
+      .summaryTableContainer
+        table#summaryTable
+      br
+      h4 Match Details
+      .resultTableContainer
+        table#resultTable
+        p#resultLargeTest
+        p#resultLargeTestHistoric
+      h4 Your Submitted Code
+      .submittedCodeContainer
+        textarea#submittedCode
+
+  script(src='../js/profile.js')

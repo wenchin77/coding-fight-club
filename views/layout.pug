@@ -20,7 +20,7 @@ html
           a(href='/')
             ul.codingfightclub
               li 
-                img.logo(src='../img/fight.png', alt='Coding Fight Club Logo')
+                img.logo(src='../img/fight.png' alt='Coding Fight Club Logo')
               li Coding Fight Club
           div
             ul.nav-cat
@@ -43,10 +43,10 @@ html
 
       script.
         // after signed in:
-        if (localStorage.getItem('name')) {
-          let userName = localStorage.getItem('name');
-          document.getElementById('membername').innerHTML = userName;
-          document.getElementById('member').href = '/profile'
+        if (localStorage.getItem('username')) {
+          let username = localStorage.getItem('username');
+          document.getElementById('membername').innerHTML = username;
+          document.getElementById('member').href = '/profile';
         }
 
 

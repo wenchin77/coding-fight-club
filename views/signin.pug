@@ -4,41 +4,14 @@ block content
   //- for fb loging
   //- script(src='../js/fb_init.js')
 
-  //- to be deleted
-  //- .signin-container Temp Sign In
-  //-   p What's your name? (temp login: please type in either 1 or 2!)
-  //-   input#signinName(type='text' name='Name')
-  //-   .signin-button
-  //-     button#signinBtn(type='button' onclick='tempSignin()') Send
-  
-  //- .signinSignup
-  //-   #signin
-  //-     .nativeSignin 
-  //-       span
-  //-         h2 Sign In
-  //-         form
-  //-           .signinInput
-  //-             label Email
-  //-             input#signinEmail(type='email' name='email' value='test@test.com' required)
-  //-           .signinInput
-  //-             label Password
-  //-             input#signinPassword(type='password' name='password' value='123' required)
-  //-           button(onclick='nativeSignIn()') Submit
-  //-     //- FB 用 input onclick 在 signin.js 裡面操作 (get token, log in)
-  //-     .fbSignin
-  //-       span
-  //-         h2 Facebook Sign In (改成圖片)
-  //-         button(onclick='FBLogin();') Log in
-  //-         br
-  //-         button(onclick='Del_FB_App()') Log out (for dev)
-  //-     .googleSignin
-  //-       span
-  //-         h2 Google Sign In (改成圖片)
-  //-         .g-signin2(data-onsuccess='onSignIn')
-  //-     .switchToSignup
-  //-       button(onclick='switchToSignup()') Sign up now
+  #myModal.modal
+    .modalContent
+      span.close &times;
+      p#modalText
+      .modalButtons
+        button#noButton No
+        button#yesButton Yes
 
-  
   .signinSignupWrapper
 
     .signinSignupForm
@@ -48,21 +21,22 @@ block content
         button(type='button' class='toggleBtn' onclick='switchToSignup()') SIGN UP
 
       .socialIcons
-        img(src='../img/github.png')
-        img(src='../img/google.png')
-        img(src='../img/facebook.png')
+        img(src='../img/github.png' alt='Github')
+        img(src='../img/google.png' alt='Google')
+        img(src='../img/facebook.png' alt='Facebook')
 
-      form.inputGroup#signin
-        input.inputField#signinEmail(type='text' name='Email' placeholder='Email' required)
-        input.inputField#signinPassword(type='password' name='Password' placeholder='Password' required)
+      form.inputGroup#signin(action='/api/v1/user/signin' method='post')
+        input.inputField#signinEmail(type='email' name='email' placeholder='Email' required)
+        input.inputField#signinPassword(type='password' name='password' placeholder='Password' required)
         input#testCheckbox(type='checkbox' onclick='useTestUser()')
         span.checkboxText Sign in as a test user
+          img.questionImg#checkboxQuestionImg(src='../img/question_dark.png' onclick='showTestUserHelp()')
         button.submitBtn(type='submit') SIGN ME IN
 
-      form.inputGroup#signup
-        input.inputField(type='text' name='name' placeholder='User Name' required)
-        input.inputField(type='text' name='email' placeholder='Email' required)
-        input.inputField(type='password' name='password' placeholder='Password' required)
+      form.inputGroup#signup(action='/api/v1/user/signup' method='post')
+        input.inputField#signupUsername(type='text' name='username' placeholder='Username (4-10 letters, numbers or the underscore)' pattern='[A-Za-z0-9_]{4,10}' required)
+        input.inputField#signupEmail(type='email' name='email' placeholder='Email' required)
+        input.inputField#signupPassword(type='password' name='password' placeholder='Password' required)
         button.submitBtn(type='submit') JOIN THE CLUB
 
 

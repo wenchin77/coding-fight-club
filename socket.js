@@ -445,7 +445,7 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
         errorMsg = dataStr.split('throw')[1];
         reject(`throw${errorMsg}`);
       };
-      result += dataStr;
+      reject('Unknow error')
       console.error(`stderr: ${data}`);
     });
 

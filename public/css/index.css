@@ -246,6 +246,7 @@ button:hover {
 }
 
 
+
 /* Match page ------------------- */
 .matchPageSections {
   display: flex;
@@ -266,10 +267,6 @@ button:hover {
   margin-bottom: 50px;
   height: 300px;
 }
-/* 
-.CodeMirror {
-  height: auto;
-} */
 
 .matchQuestion,
 .opponent,
@@ -498,8 +495,8 @@ button:hover {
   width: 220px;
   margin: 35px auto;
   position: relative;
-  background-color: #777;
-  box-shadow: 0 0 20px 9px #ccc;
+  background-color: #999;
+  box-shadow: 0 0 20px 9px #aaa;
 }
 
 .toggleBtn {
@@ -578,10 +575,18 @@ button:hover {
 
 .checkboxText {
   font-family: Arial, Helvetica, sans-serif;
-  color: #555;
+  color: #666;
   font-size: 0.75em;
-  bottom: 98px;
+  bottom: 100px;
   position: absolute;
+}
+
+#checkboxQuestionImg {
+  height: 12px;
+  width: 12px;
+  bottom: -2px;
+  position: absolute;
+  cursor: pointer;
 }
 
 

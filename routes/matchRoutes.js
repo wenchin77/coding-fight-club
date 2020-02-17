@@ -2,9 +2,6 @@ const express = require('express');
 const router = express.Router();
 const matchController = require('../controllers/matchController');
 const questionController = require('../controllers/questionController');
-const bodyparser = require("body-parser");
-router.use(bodyparser.json());
-router.use(bodyparser.urlencoded({extended:true}));
 
 // 路徑是 /api/v1/match
 
@@ -28,11 +25,9 @@ router.post('/result/details', async (req, res) => {
   let userID = req.query.userid;
   let matchID = req.query.matchid;
   let result = await matchController.getMatchDetails(userID, matchID);
-  console.log('getMatchDetails ----', result)
 
   let questionID = result[0].question_id;
   let question = await questionController.selectQuestion(questionID);
-  console.log('question ----', question);
 
   let final = {
     matchResult: result,
