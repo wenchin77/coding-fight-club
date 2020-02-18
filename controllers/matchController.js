@@ -112,9 +112,18 @@ module.exports = {
     }
   },
 
-  getMatchDetails: async (user_id, match_id) => {
+  getMatchDetails: async (match_id) => {
     try {
       let result = await matchModel.queryGetMatchDetails(match_id);
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  getMatchSummary: async (user_id) => {
+    try {
+      let result = await matchModel.queryGetMatchSummary(user_id);
       return result;
     } catch (err) {
       console.log(err);

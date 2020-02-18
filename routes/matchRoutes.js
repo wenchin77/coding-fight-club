@@ -5,6 +5,7 @@ const questionController = require('../controllers/questionController');
 
 // 路徑是 /api/v1/match
 
+
 router.post('/get_key', (req, res) => {
   let key = matchController.getKey();
   res.send(key);
@@ -22,9 +23,8 @@ router.post('/get_matchid', async (req, res) => {
 });
 
 router.post('/result/details', async (req, res) => {
-  let userID = req.query.userid;
   let matchID = req.query.matchid;
-  let result = await matchController.getMatchDetails(userID, matchID);
+  let result = await matchController.getMatchDetails(matchID);
 
   let questionID = result[0].question_id;
   let question = await questionController.selectQuestion(questionID);
@@ -34,6 +34,13 @@ router.post('/result/details', async (req, res) => {
     question
   }
   res.send(final);
+});
+
+router.post('/result/summary', async (req, res) => {
+  let userID = req.query.userid;
+  console.log('userID', parseInt(userID))
+  let result = await matchController.getMatchSummary(parseInt(userID));
+  res.send(result);
 });
 
 router.post('/result/past_performance', async (req, res) => {
@@ -50,6 +57,6 @@ router.post('/result/past_performance', async (req, res) => {
   }
   let avgTime = timeAdded / result.length;
   res.json(avgTime);
-})
+});
 
 module.exports = router;

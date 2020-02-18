@@ -47,6 +47,16 @@ module.exports = {
     FROM match_table INNER JOIN match_detail ON match_table.id = match_detail.match_id 
     INNER JOIN user_table ON match_detail.user_id = user_table.id
     WHERE match_table.id = ?`, [match_id])
-  }
+  },
+
+  queryGetMatchSummary: (user_id) => {
+    return mysql.query(`SELECT match_table.question_id, match_table.winner_user_id, match_table.match_start_time,
+    match_detail.user_id, match_detail.points, user_table.user_name,
+    question.question_name, question.difficulty, question.category
+    FROM match_table INNER JOIN match_detail ON match_table.id = match_detail.match_id 
+    INNER JOIN user_table ON match_detail.user_id = user_table.id
+    INNER JOIN question ON match_table.question_id = question.id
+    WHERE user_table.id = ? AND match_table.winner_user_id IS NOT NULL`, [user_id])
+  },
 
 }

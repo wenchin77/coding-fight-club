@@ -4,8 +4,6 @@ const token = localStorage.getItem('token');
 const url = window.location.pathname;
 const matchKey = url.substring(url.lastIndexOf('/') + 1);
 
-
-
 const getUserInfo =  async (token) => {
   try {
     let response = await axios.post(`/api/v1/user/get_userInfo?token=${token}`);
@@ -37,9 +35,9 @@ const getPastExecTime =  async (questionID) => {
 };
 
 
-const getMatchDetails =  async (matchID, userID) => {
+const getMatchDetails =  async (matchID) => {
   try {
-    const response = await axios.post(`/api/v1/match/result/details?userid=${userID}&matchid=${matchID}`)
+    const response = await axios.post(`/api/v1/match/result/details?matchid=${matchID}`)
     console.log('match detail data===', response.data)
     return response.data;
   } catch (error) {
@@ -96,7 +94,7 @@ const showMatchResult = async (userID, result) => {
   let localStartTime = startTime.toLocaleString()
 
   let matchResultSummary = [
-    {'Match Time': localStartTime, Opponent: matchResult[opponentIndex].user_name, Result: winLose, Topic: capitalize(question.category), Difficulty: capitalize(question.difficulty), Question: question.question_name}
+    {'Match Time': localStartTime, Opponent: matchResult[opponentIndex].user_name, Result: winLose, Topic: capitalize(question.category), Difficulty: capitalize(question.difficulty), Question: question.question_name, Points: matchResult[myIndex].points}
   ]
 
   let pastExecTime = await getPastExecTime(question.id);
@@ -170,4 +168,6 @@ main();
 
 
 
-
+function showHelp() {
+  showAlert('How we evaluate your code: correctness & performance')
+}

@@ -62,6 +62,8 @@ document.forms['signin'].addEventListener('submit', (event) => {
     localStorage.setItem('email', res.data.email);
     localStorage.setItem('provider', res.data.provider);
     localStorage.setItem('token', res.data.token);
+    localStorage.setItem('points', res.data.points);
+    localStorage.setItem('level', res.data.level);
     showAlert('Welcome back!', () => {
       // redirect to profile page
       window.location.pathname = 'profile';
@@ -90,6 +92,9 @@ document.forms['signup'].addEventListener('submit', (event) => {
     localStorage.setItem('email', res.data.email);
     localStorage.setItem('provider', res.data.provider);
     localStorage.setItem('token', res.data.token);
+    localStorage.setItem('points', res.data.points);
+    localStorage.setItem('level', res.data.level);
+
     showAlert('Welcome to the Coding Fight Club!', () => {
       // redirect to profile page
       window.location.pathname = 'profile';

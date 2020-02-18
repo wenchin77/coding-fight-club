@@ -23,7 +23,8 @@ module.exports = {
         email: data.email,
         provider: 'native',
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
-        token
+        token,
+        points: 0
       }
       console.log('inserting user...')
       let result = await userModel.queryInsertUser(userInfo);
@@ -33,7 +34,9 @@ module.exports = {
         username: data.username,
         email: data.email,
         provider: 'native',
-        token
+        token,
+        points: 0,
+        level: 'beginner'
       });
     } catch (err) {
       console.log(err);
@@ -61,7 +64,9 @@ module.exports = {
         username: getUserInfo[0].user_name,
         email: data.email,
         provider: 'native',
-        token
+        token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level
       });
     } catch (err) {
       console.log(err);
@@ -103,7 +108,6 @@ module.exports = {
   selectUserInfoByToken: async (token) => {
     try {
       let result = await userModel.querySelectUserInfoByToken(token);
-      console.log('selectUserInfoByToken', result)
       return(result);
     } catch (err) {
       console.log(err);

@@ -4,32 +4,33 @@ block content
   //- for fb loging
   //- script(src='../js/fb_init.js')
 
-  .matchResultWrapper
-    .resultTitle
-      h2#matchResult Member Profile 
-      img.questionImg(src='../img/question.png')
-
-    .resultContent
-      h3 Profile
-      p send axios to get profile info
-      
-      br
-      h3 Match History 
-      .resultTableContainer
-        .summaryTableContainer Match Summary Table Here (w/ link to match_result)
-        table#summaryTable
+  .backgroundImageWrapper
+    .profileWrapper
+      .profileTitle
+        h2#matchResult Member Profile 
+        //- img.questionImg(src='../img/question.png')
         
-        table#resultTable
-        p#resultLargeTest
-        p#resultLargeTestHistoric
-      h3 Blah blah blah??? 
-      .submittedCodeContainer
 
-      a(href='/match_setup')
-        button Start a Match Now
-      br
-      button Edit Profile
-      br
-      button Share with Friends
+      .profileContent
+        h3 Profile
+        p#username
+        p#email
+        p#points
+        p#level
+
+        br
+        h3 Match History 
+        .profileTableContainer
+          p.summaryTableContainer Match Summary Table Here (w/ link to match_result)
+          p No match result yet
+          table#summaryTable
+          
+        .profileButtons
+          a(href='/match_setup')
+            button#profileBtn Start a Match
+          a(href='/')
+            button#profileBtn Edit Profile
+        //- br
+        //- button Share with Friends
 
   script(src='../js/profile.js')

@@ -188,6 +188,7 @@ section {
   margin-left: 10px;
   margin-bottom: 3px;
   margin-right: 10px;
+  cursor: pointer;
 }
 
 
@@ -470,9 +471,18 @@ button:hover {
   width: 80%;
 }
 
+.resultBtns {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+#resultBtn {
+  margin-right: 30px;
+  width: 35%;
+}
 
 /* Signin page -------------------- */
-.signinSignupWrapper {
+.backgroundImageWrapper {
   height: 100%;
   width: 100%;
   background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),url('../img/main.jpg');
@@ -591,15 +601,48 @@ button:hover {
 
 
 /* Profile page -------------------- */
+.profileWrapper {
+  width: 1000px;
+  height: 500px;
+  position: relative;
+  margin: 10% auto;
+  background: rgba(0,0,0,0.65);
+  padding: 25px;
+  overflow: hidden;
+}
 
+.profileTableContainer {
+  overflow: auto;
+}
 
+/* .profileButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+} */
 
+#profileBtn {
+  width: 30%;
+  padding: 10px 30px;
+  cursor: pointer;
+  margin: 20px;
+  background: #ccc;
+  border: 0;
+  outline: none;
+}
 
-
-
-
-
-
+/* home page --------------------*/
+.homeContent {
+  width: 500px;
+  height: 430px;
+  position: relative;
+  text-align: center;
+  margin: 12% auto;
+  /* background: rgba(256,256,256,0.75); */
+  padding: 5px;
+  overflow: hidden;
+}
 
 /* modal layout --------------------*/
 .modal {

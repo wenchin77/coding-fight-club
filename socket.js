@@ -168,13 +168,11 @@ socket.init = server => {
       console.log('winnerCheck -------', winnerCheck)
       if (winnerCheck[matchKey]) {
         console.log('winnerCheck[matchKey][0]', winnerCheck[matchKey][0])
-        console.log('user', user)
 
         for (i=0;i<winnerCheck[matchKey].length;i++) {
           if (winnerCheck[matchKey][i].user === user) {
             submitTime += 1;
             console.log('winnerCheck[matchKey][i].user --- ', winnerCheck[matchKey][i].user)
-            console.log('i --- ', i)
           }
         }
       };
@@ -284,7 +282,7 @@ socket.init = server => {
       // 紀錄 code 跟項目評分在 match_detail
       let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, largePassed, largeExecTime, performance, answerTime, points);
       
-      // +++++++ 更新兩人的 user table: points (and level table if needed)
+      // +++++++ 更新 user table: + points (and level table if needed)
 
 
       // update winnerCheck {} for performance points calculation
@@ -303,7 +301,6 @@ socket.init = server => {
         points
       };
       winnerCheck[matchKey].push(result);
-      console.log('winnerCheck', winnerCheck); 
 
       // fs 刪掉 ./sessions js files
       deleteFile(matchKey, user);
@@ -328,7 +325,10 @@ socket.init = server => {
 
       // for frontend to redirect
       io.to(matchKey).emit('endMatch', matchKey);
-      
+      console.log('winnerCheck after match', winnerCheck)
+
+      // +++++++++++ delete winnerCheck match info
+      delete winnerCheck[matchKey]
     })
 
     socket.on(('disconnect' || 'exit'), () => {
@@ -569,7 +569,7 @@ const getWinner = async (winnerCheck, matchKey) => {
     } else if (answerTime_0 > answerTime_1) {
       winner = user_1;
     } else {
-      winner = null;
+      winner = 'tie';
     }
   }
   return winner;

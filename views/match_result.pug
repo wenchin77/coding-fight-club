@@ -4,7 +4,7 @@ block content
   .matchResultWrapper
     .resultTitle
       h2#matchResult Match Result 
-      img.questionImg(src='../img/question.png')
+      img.questionImg(src='../img/question.png' onclick='showHelp()')
 
     .resultContent
       h3#winLose
@@ -20,6 +20,12 @@ block content
       h4 Your Submitted Code
       .submittedCodeContainer
         textarea#submittedCode
+      
+      .resultBtns
+        a(href='/profile')
+          button#resultBtn See match history
+        a(href='/match_setup')
+          button#resultBtn Start another match
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')

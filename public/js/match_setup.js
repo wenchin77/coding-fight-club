@@ -11,8 +11,29 @@ async function getKey() {
 };
 
 async function getLink() {
+  if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
+    showAlert("Please select a category and a difficulty level.");
+    return;
+  }
+  const category = document.querySelector('.categoryActive').value;
+  const difficulty = document.querySelector('.difficultyActive').value;
   matchKey = await getKey();
-  document.getElementById('invitationLink').innerHTML = `http://localhost:3000/match/${matchKey}`;
+  showAlertWithButtons(`Send the match link to challenge your friend in this ${difficulty}, ${category} match: http://localhost:3000/match/${matchKey}`, () => {
+    setUpAMatch();
+  });
+};
+
+async function getOnlineUser() {
+  try {
+    let result = await axios.post(`/api/v1/user/get_online_user?token=${localStorage.getItem('token')}`);
+    showAlert(`Match with ${result.data} is beginning soon!`)
+    console.log('getOnlineUser result', result);
+    // print users except myself
+
+  } catch (error) {
+    showAlert(error.response.data)
+    console.log(error.response);
+  }
 };
 
 // addEventListener to buttons
@@ -101,3 +122,36 @@ function showAlert(text) {
     }
   }
 };
+
+
+function showAlertWithButtons(text, callback) {
+  const modal = document.getElementById("myModal");
+  const close = document.getElementsByClassName("close")[0];
+  const buttons = document.getElementsByClassName("modalButtons")[0];
+  const no = document.getElementById("noButton");
+  const yes = document.getElementById("yesButton");
+
+  modal.style.display = "flex";
+  buttons.style.display = "flex";
+
+  document.getElementById("modalText").innerHTML = text;
+
+  no.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  yes.onclick = () => {
+    modal.style.display = "none";
+    callback();
+  };
+
+  close.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  window.onclick = event => {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  };
+}
