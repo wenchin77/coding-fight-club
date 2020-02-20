@@ -24,11 +24,12 @@ module.exports = {
         provider: 'native',
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token,
-        points: 0
+        points: 0,
+        level: 0
       }
       console.log('inserting user...')
       let result = await userModel.queryInsertUser(userInfo);
-      let id = result.insertId;
+      let getUserInfo = await userModel.querySelectUser(data.email);
       return({
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
