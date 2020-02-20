@@ -26,6 +26,7 @@ socket.init = server => {
     socket.on("join", async (token) => {
       console.log('token from frontend ===== ', token)
       let result = await userController.selectUserInfoByToken(token);
+      console.log('userController.selectUserInfoByToken(token) result', result)
       
       let user = result[0].id;
       let username = result[0].user_name;
