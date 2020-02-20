@@ -25,7 +25,7 @@ async function inviteAFriend() {
   }
   let matchKey = await getKey();
   
-  showAlertWithButtons(`Send the match link to challenge your friend in a random ${difficulty}, ${category} problem: http://localhost:3000/match/${matchKey}`, async () => {
+  showAlertWithButtons(`Send the match link to challenge your friend in a random ${difficulty}, ${category} problem: https://coding-fight-club.thewenchin.com/match/${matchKey}`, async () => {
     // insert a match
     let match = await insertMatch(questionID, matchKey);
     // redirect to a room in match page with match key

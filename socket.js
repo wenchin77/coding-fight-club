@@ -24,13 +24,12 @@ socket.init = server => {
     let matchKey = getMatchKey(url);
     
     socket.on("join", async (token) => {
-      console.log('token from frontend ===== ', token)
       let result = await userController.selectUserInfoByToken(token);
       console.log('userController.selectUserInfoByToken(token) result', result);
 
       // if can't find the user in db, ask to login again to prevent error
-      if (!result || result === []) {
-        socket.emit('noUserFound', 'It seems like we cannot identify who you are. Please log in again.');
+      if (!result[0] || result === []) {
+        socket.emit('noUserFound', 'It seems like we cannot identify who you are... Please log in again.');
         return;
       }
       
@@ -42,10 +41,16 @@ socket.init = server => {
         matchList[matchKey] = [];
       };
 
-      // Reject a user if there are already 2 people in the room
+      // Reject user if there are already 2 people in the room
       if (matchList[matchKey].length >= 2) {
         console.log('matchList for too many people ===', matchList)
         socket.emit('rejectUser', 'Oops, there are already two people in this match!');
+        return;
+      }
+
+      // Reject user if the him / her was already in the room
+      if (matchList[matchKey].length === 1) {
+        socket.emit('rejectUser', 'You cannot start a match with yourself!');
         return;
       }
 
@@ -86,7 +91,7 @@ socket.init = server => {
 
       // Wait for opponent if there's only 1 person in the room
       if (matchList[matchKey].length === 1) {
-        socket.emit('waitForOpponent');
+        socket.emit('waitForOpponent', 'Hey there, we are waiting for your opponent to join!');
         return;
       };
       

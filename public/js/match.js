@@ -67,7 +67,7 @@ function socketInit() {
   });
 
   socket.once("waitForOpponent", msg => {
-    showAlert("Hey there, we are waiting for your opponent to join!", () => {
+    showAlert(msg, () => {
       document.getElementById("runCodeOutput").innerHTML =
         '<p id="terminalMessage">Hold on. You will be able to read the question and code right after your opponent joins.</p>';
     });
@@ -162,6 +162,7 @@ function pad(val) {
 function runCode() {
   console.log('userID in runCode',userID);
   if (!document.getElementById("questionDescription")) {
+    showAlert('You can only run your code after the match starts.')
     return;
   }
   // 隱藏 test case
@@ -189,6 +190,10 @@ function runCode() {
 }
 
 function submitCode() {
+  if (!document.getElementById("questionDescription")) {
+    showAlert('You can only submit after the match starts.')
+    return;
+  }
   let text = "Are you sure? You can only submit once!";
   showAlertWithButtons(text, () => {
     const buttons = document.getElementsByClassName("modalButtons")[0];

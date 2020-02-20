@@ -1,4 +1,8 @@
-// ping.js 已取得 token
+// verify signin first
+if (!localStorage.getItem("token")) {
+  window.location.pathname = "signin";
+}
+
 const token = localStorage.getItem('token');
 
 
