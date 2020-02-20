@@ -30,13 +30,14 @@ module.exports = {
       let result = await userModel.queryInsertUser(userInfo);
       let id = result.insertId;
       return({
-        id,
-        username: data.username,
-        email: data.email,
-        provider: 'native',
-        token,
-        points: 0,
-        level: 0
+        id: getUserInfo[0].id,
+        username: getUserInfo[0].user_name,
+        email: getUserInfo[0].email,
+        provider: getUserInfo[0].provider,
+        token: getUserInfo[0].token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level,
+        access_expired: getUserInfo[0].access_expired
       });
     } catch (err) {
       console.log(err);
@@ -56,7 +57,8 @@ module.exports = {
         provider: getUserInfo[0].provider,
         token: getUserInfo[0].token,
         points: getUserInfo[0].points,
-        level: getUserInfo[0].level
+        level: getUserInfo[0].level,
+        access_expired: getUserInfo[0].access_expired
       });
     };
 
@@ -81,7 +83,8 @@ module.exports = {
           provider: getUserInfo[0].provider,
           token: getUserInfo[0].token,
           points: getUserInfo[0].points,
-          level: getUserInfo[0].level
+          level: getUserInfo[0].level,
+          access_expired: getUserInfo[0].access_expired
         });
       } catch (err) {
         console.log(err);

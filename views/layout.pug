@@ -10,7 +10,7 @@ html
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
     script(src='/socket.io/socket.io.js')
     script(src='../js/index.js')
-    script(src='../js/ping.js')
+    //- script(src='../js/ping.js')
     script(src="https://unpkg.com/axios/dist/axios.min.js")
 
 
@@ -44,6 +44,13 @@ html
           a(href='/bug_report') Report a bug
         .popupNotification
           div#alert-area.alert-area
+        #myModal.modal
+          .modalContent
+            span.close &times;
+            p#modalText
+            .modalButtons
+              button#noButton No
+              button#yesButton Okay
         block content
 
       script.
@@ -53,6 +60,8 @@ html
           document.getElementById('membername').innerHTML = username;
           document.getElementById('member').href = '/profile';
         }
+
+        
 
 
         

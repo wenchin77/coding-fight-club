@@ -734,6 +734,11 @@ button:hover {
   overflow: hidden;
 }
 
+/* Bug report page -------------------- */
+.bugReportWrapper {
+  margin: 15px;
+}
+
 /* modal layout --------------------*/
 .modal {
   display: none;

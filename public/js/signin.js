@@ -4,7 +4,7 @@ const switchToSignup = () => {
   let button = document.getElementById('toggleButton');
   signin.style.left = '-400px';
   signup.style.left = '50px';
-  button.style.left = '110px'
+  button.style.left = '110px';
 }
 
 const switchToSignin = () => {
@@ -13,7 +13,7 @@ const switchToSignin = () => {
   let button = document.getElementById('toggleButton');
   signin.style.left = '50px';
   signup.style.left = '450px';
-  button.style.left = '0px'
+  button.style.left = '0px';
 }
 
 const useTestUser = () => {
@@ -28,26 +28,6 @@ const useTestUser = () => {
   email.value = '';
   password.value = '';
 }
-
-const showAlert = (text, callback) => {
-  const modal = document.getElementById("myModal");
-  const close = document.getElementsByClassName("close")[0];
-  
-  modal.style.display = "flex";
-  document.getElementById('modalText').innerHTML = text;
-
-  close.onclick = () => {
-    modal.style.display = "none";
-    callback();
-  };
-
-  window.onclick = (event) => {
-    if (event.target == modal) {
-      modal.style.display = "none";
-      callback();
-    }
-  }
-};
 
 // signin via axios
 document.forms['signin'].addEventListener('submit', (event) => {
@@ -64,6 +44,7 @@ document.forms['signin'].addEventListener('submit', (event) => {
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('points', res.data.points);
     localStorage.setItem('level', res.data.level);
+    localStorage.setItem('access_expired', res.data.access_expired);
     showAlert('Welcome back!', () => {
       // redirect to profile page
       window.location.pathname = 'profile';
@@ -94,6 +75,7 @@ document.forms['signup'].addEventListener('submit', (event) => {
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('points', res.data.points);
     localStorage.setItem('level', res.data.level);
+    localStorage.setItem('access_expired', res.data.access_expired);
 
     showAlert('Welcome to the Coding Fight Club!', () => {
       // redirect to profile page

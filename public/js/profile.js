@@ -112,17 +112,6 @@ function showProfile() {
 }
 
 
-function logout() {
-  localStorage.removeItem('id');
-  localStorage.removeItem('username')
-  localStorage.removeItem('email');
-  localStorage.removeItem('provider');
-  localStorage.removeItem('token');
-  localStorage.removeItem('points');
-  localStorage.removeItem('level');
-}
-
-
 async function main() {
   let userID = await getUserInfo(token);
   // let username = userInfo.user_name;
