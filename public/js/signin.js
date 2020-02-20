@@ -110,7 +110,7 @@ document.forms['signup'].addEventListener('submit', (event) => {
   });
 });
 
-function GoogleSigninInit() {
+function googleSigninInit() {
 	gapi.load('auth2', () => {
 		gapi.auth2.init({
 			client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh" //必填，記得開發時期要開啟 Chrome開發人員工具 查看有沒有403錯誤(Javascript來源被禁止)
@@ -118,34 +118,26 @@ function GoogleSigninInit() {
 	}); //end gapi.load
 }
 
-let google_res;
 function googleSignin() {
-	let auth2 = gapi.auth2.getAuthInstance(); //取得GoogleAuth物件
-	auth2.signIn().then((GoogleUser) => {
+  let auth2 = gapi.auth2.getAuthInstance(); // 取得GoogleAuth物件
+  console.log('auth2', auth2)
+	auth2.signIn().then(async (GoogleUser) => {
 		console.log("Google登入成功"); 
-		console.log('ID: ' + GoogleUser.getId()); // Do not send to your backend! Use an ID token instead.
-
-		// The ID token you need to pass to your backend:
+		console.log('ID: ' + GoogleUser.getId()); // Do not send to your backend! Use an ID token instead
 		let id_token = GoogleUser.getAuthResponse().id_token;
 		console.log("ID Token: " + id_token);
-
 		const data = {
 			provider: "google",
 			access_token: id_token
 		};
 		console.log(data);
 
-		// 把登入資料拿去打後端 signin api, 再轉址到 member.html 顯示用戶資料
-		app.ajax("post", "api/v1/user/signin", data, {}, function (res) {
-			if (res.readyState === 4 && res.status === 200) {
-				console.log(res);
-				google_res = res;
-				document.cookie = `token=${JSON.parse(res.response).data.access_token}`;
-				window.location = "./member.html";
-			} else {
-				alert(res.responseText);
-			}
-		});
+		// 把登入資料拿去打後端 signin api 再轉址顯示用戶資料
+    let res = await axios.post("api/v1/user/signin", data);
+    console.log(res);
+    document.cookie = `token=${JSON.parse(res.response).data.token}`;
+    window.location = "/profile";
+    showAlert(error.response.data.error);
 	})
 }
 

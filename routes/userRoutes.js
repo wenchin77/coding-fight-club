@@ -5,52 +5,52 @@ const onlineUsers = {};
 
 // 路徑是 /api/v1/user
 
-router.post('/get_stranger', async (req, res) => {
-  let token = req.query.token;
-  let category = req.query.category;
-  let difficulty = req.query.difficulty;
-  let stranger = await getStranger(onlineUsers, token);
-  if (!stranger) {
-    res.status(403).send('We cannot find users online now... Try again later or invite a friend instead?')
-  }
-  console.log('stranger', stranger);
-  // add to invitations 
-  onlineUsers[stranger.strangerToken].invited = {
-    inviter: token,
-    category,
-    difficulty
-  }
-  // console.log('onlineUsers ==== ',onlineUsers)
-  res.status(200).send('found someone');
-});
-
-router.get('/ping', async (req, res) => {
-  let token = req.query.token;
-  // get username in db if it's not in memory
-  if (!onlineUsers[token]) {
-    let result = await userController.selectUserInfoByToken(token);
-    onlineUsers[token] = {
-      username: result[0].user_name, 
-      time: Date.now(),
-      in_a_match: 0, // turn this to 1 in match page
-      invited: null
-    };
-  }
-  // update ping time
-  onlineUsers[token].time = Date.now();
-
-  // if there's an invitation notify the user
-  if (onlineUsers[token].invited) {
-    let result = await userController.selectUserInfoByToken(onlineUsers[token].invited.inviter);
-    let inviter = result[0].user_name;
-    let invitation =  onlineUsers[token].invited
-    res.status(200).send({inviter, category: invitation.category, difficulty: invitation.difficulty});
-    return;
-  }
-  res.status(200).send('ok');
-});
-
 // // 暫時暫停 ping --------------------------
+// router.post('/get_stranger', async (req, res) => {
+//   let token = req.query.token;
+//   let category = req.query.category;
+//   let difficulty = req.query.difficulty;
+//   let stranger = await getStranger(onlineUsers, token);
+//   if (!stranger) {
+//     res.status(403).send('We cannot find users online now... Try again later or invite a friend instead?')
+//   }
+//   console.log('stranger', stranger);
+//   // add to invitations 
+//   onlineUsers[stranger.strangerToken].invited = {
+//     inviter: token,
+//     category,
+//     difficulty
+//   }
+//   // console.log('onlineUsers ==== ',onlineUsers)
+//   res.status(200).send('found someone');
+// });
+
+// router.get('/ping', async (req, res) => {
+//   let token = req.query.token;
+//   // get username in db if it's not in memory
+//   if (!onlineUsers[token]) {
+//     let result = await userController.selectUserInfoByToken(token);
+//     onlineUsers[token] = {
+//       username: result[0].user_name, 
+//       time: Date.now(),
+//       in_a_match: 0, // turn this to 1 in match page
+//       invited: null
+//     };
+//   }
+//   // update ping time
+//   onlineUsers[token].time = Date.now();
+
+//   // if there's an invitation notify the user
+//   if (onlineUsers[token].invited) {
+//     let result = await userController.selectUserInfoByToken(onlineUsers[token].invited.inviter);
+//     let inviter = result[0].user_name;
+//     let invitation =  onlineUsers[token].invited
+//     res.status(200).send({inviter, category: invitation.category, difficulty: invitation.difficulty});
+//     return;
+//   }
+//   res.status(200).send('ok');
+// });
+
 // remove timeout users (3 min with no ping) in onlineUserList
 // check every 30 sec
 // setInterval(() => {
@@ -124,10 +124,15 @@ router.post('/signin', async (req, res)=> {
       res.status(403).send({error: 'Wrong password. Signin failed.'})
       return;
     }
+    // check if token's not expired, if not send back the same token, if so set a new token
+    let result = await userController.updateUser(data);
+    res.status(200).send(result);
+    return;
   }
 
   // google
   if (data.provider === 'google') {
+    console.log('getting ajax for google signin...', data)
     if (!data.access_token) {
       res.status(400).send({ error: "Request Error: can't find Google access token." });
       return;
@@ -141,6 +146,10 @@ router.post('/signin', async (req, res)=> {
         });
         return;
       }
+      console.log('profile', profile)
+      // insert / update user in controller
+
+
       res.send({
         user: {
           name: profile.name,
@@ -154,8 +163,7 @@ router.post('/signin', async (req, res)=> {
     });
   }
   
-  let result = await userController.updateUser(data);
-  res.status(200).send(result);
+
 });
 
 

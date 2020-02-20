@@ -44,7 +44,23 @@ module.exports = {
   },
 
   updateUser: async (data) => {
+    // check if token's not expired, if not send back the same token
     let now = Date.now();
+    let getUserInfo = await userModel.querySelectUser(data.email);
+    let accessExpired = getUserInfo[0].access_expired;
+    if (now <= accessExpired) {
+      return({
+        id: getUserInfo[0].id,
+        username: getUserInfo[0].user_name,
+        email: getUserInfo[0].email,
+        provider: getUserInfo[0].provider,
+        token: getUserInfo[0].token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level
+      });
+    };
+
+    // token expired: set a new token and send back to frontend
     let hash = crypto.createHash("sha256");
     hash.update(data.email + data.password + now);
     let token = hash.digest("hex");
@@ -52,8 +68,6 @@ module.exports = {
     if (data.provider === 'native') {
       try  {
         let userInfo = {
-          email: data.email,
-          password: data.password,
           access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
           token
         }
@@ -63,9 +77,9 @@ module.exports = {
         return({
           id: getUserInfo[0].id,
           username: getUserInfo[0].user_name,
-          email: data.email,
-          provider: 'native',
-          token,
+          email: getUserInfo[0].email,
+          provider: getUserInfo[0].provider,
+          token: getUserInfo[0].token,
           points: getUserInfo[0].points,
           level: getUserInfo[0].level
         });
@@ -73,11 +87,10 @@ module.exports = {
         console.log(err);
       }
     }
-    
   },
+  
 
   countUsersByEmail: async (email) => {
-    console.log('countUsersByEmail email', email)
     try {
       let emailNumObj = await userModel.queryCountUsersByEmail(email);
       return(emailNumObj[0]['COUNT (*)']);
