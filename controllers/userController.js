@@ -25,11 +25,12 @@ module.exports = {
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token,
         points: 0,
-        level: 0
+        level_id: 1 // beginner level id
       }
       console.log('inserting user...')
       let result = await userModel.queryInsertUser(userInfo);
       let getUserInfo = await userModel.querySelectUser(data.email);
+      console.log(getUserInfo)
       return({
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
@@ -37,7 +38,7 @@ module.exports = {
         provider: getUserInfo[0].provider,
         token: getUserInfo[0].token,
         points: getUserInfo[0].points,
-        level: getUserInfo[0].level,
+        level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
       });
     } catch (err) {
@@ -58,7 +59,7 @@ module.exports = {
         provider: getUserInfo[0].provider,
         token: getUserInfo[0].token,
         points: getUserInfo[0].points,
-        level: getUserInfo[0].level,
+        level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
       });
     };
@@ -140,6 +141,24 @@ module.exports = {
     } catch (err) {
       console.log(err);
     }
+  },
+
+  updateUserPointsLevel: async (user_id, points) => {
+    try {
+      // check next level's min points
+      let checkNextLevelMin = await userModel.querySelectNextLevelMin(user_id);
+      let userLevel = checkNextLevelMin[0].level_id;
+      let nextLevelMin = checkNextLevelMin[0].min_points;
+
+      // if user points > next level's min points, update level id too
+      if (points >= nextLevelMin) {
+        let level = userLevel + 1;
+        await userModel.queryUpdateUserLevel(level, user_id);
+      }
+    } catch (err) {
+      console.log(err)
+    }
+
   },
 
   

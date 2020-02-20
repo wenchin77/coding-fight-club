@@ -23,7 +23,7 @@ module.exports = {
   },
 
   querySelectUser: (email) => {
-    return mysql.query('SELECT * FROM user_table WHERE email = ?', [email]);
+    return mysql.query('SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?', [email]);
   },
 
   querySelectUserInfoByToken: (token) => {
@@ -32,6 +32,14 @@ module.exports = {
 
   queryInsertBugReport: (data) => {
     return mysql.query('INSERT INTO bug_report SET ?', data);
+  },
+
+  querySelectNextLevelMin: (user_id) => {
+    return mysql.query('SELECT level_table.*, user_table.level_id, user_table.points FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.id = ?', [user_id])
+  },
+
+  queryUpdateUserLevel: (level_id, user_id) => {
+    return mysql.query('UPDATE user_table SET level_id = ? WHERE id = ?', [level_id, user_id])
   }
 
 }

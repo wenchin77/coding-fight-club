@@ -68,6 +68,7 @@ const onlineUsers = {};
 
 router.post('/signup', async (req, res)=> {
   let data = req.body;
+  console.log(data)
   // req.body eg. { username: '1234', email: '1234@com', password: '1234' }
 
   // check in db if username exists
@@ -94,7 +95,7 @@ router.post('/signup', async (req, res)=> {
   res.status(200).send(result);
 });
 
-router.post('/get_userInfo', async (req, res) => {
+router.post('/get_user_info', async (req, res) => {
   let token = req.query.token;
   let result = await userController.selectUserInfoByToken(token);
   res.json(result);

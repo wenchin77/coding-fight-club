@@ -6,7 +6,7 @@ if (!localStorage.getItem("token")) {
 }
 
 let userID;
-let username; // to be deleted??? (do i need it?)
+let username;
 let opponent;
 let sampleCaseExpected;
 let questionConst;

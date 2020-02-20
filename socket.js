@@ -25,7 +25,7 @@ socket.init = server => {
     
     socket.on("join", async (token) => {
       let result = await userController.selectUserInfoByToken(token);
-      console.log('userController.selectUserInfoByToken(token) result', result);
+      console.log('socket on join selectUserInfoByToken result', result)
 
       // if can't find the user in db, ask to login again to prevent error
       if (!result[0] || result === []) {
@@ -50,8 +50,10 @@ socket.init = server => {
 
       // Reject user if the him / her was already in the room
       if (matchList[matchKey].length === 1) {
-        socket.emit('rejectUser', 'You cannot start a match with yourself!');
-        return;
+        if (matchList[matchKey][0] === user) {
+          socket.emit('rejectUser', 'You cannot start a match with yourself!');
+          return;
+        }
       }
 
       // Add user to the room list
@@ -292,9 +294,11 @@ socket.init = server => {
       let points = calculated.points;
       let largePassed = calculated.largePassed;
       // 紀錄 code 跟項目評分在 match_detail
-      let updateMatchDetailResult = await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, largePassed, largeExecTime, performance, answerTime, points);
+      await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, largePassed, largeExecTime, performance, answerTime, points);
       
       // +++++++ 更新 user table: + points (and level table if needed)
+      await userController.updateUserPointsLevel(user, points);
+
 
 
       // update winnerCheck {} for performance points calculation

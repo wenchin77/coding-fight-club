@@ -8,7 +8,7 @@ const token = localStorage.getItem('token');
 
 const getUserInfo =  async (token) => {
   try {
-    let response = await axios.post(`/api/v1/user/get_userInfo?token=${token}`);
+    let response = await axios.post(`/api/v1/user/get_user_info?token=${token}`);
     return response.data[0].id;
   } catch (error) {
     console.log(error);
