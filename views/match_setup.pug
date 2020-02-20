@@ -7,13 +7,13 @@ block content
       img.questionImg(src='../img/question.png')
     .setupContentSection
       .chooseQuestion 
-        h3 What kind of algorithms question would you like to set up?
-        div We'll pick a question for you randomly based on your choices
+        h3 Choose an algorithms question
+        div We'll pick a question for you randomly based on your category and difficulty choices
         .category 
           .categoryTitle - Category 
           button(value='array') Array
-          button(value='hash_table') Hash Table
-          button(value='string') String
+          //- button(value='hash_table') Hash Table
+          //- button(value='string') String
           button(value='binary_search') Binary Search
 
         .difficulty 
@@ -23,16 +23,18 @@ block content
           button(value='hard') Hard
     
       .chooseOpponent 
-        h3 Who would you like to challenge?
-        button.strangerMode(type='button' onclick='getOnlineUser()') Challenge a Stanger
+        h3 Choose your opponent
+        button.strangerMode(type='button' onclick='getAStranger()') Challenge a Stanger
         //- p Temp: please copy and paste the match link to your friend
-        button.getLinkBtn(type='button' onclick='getLink()') Invite a Friend
-    button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
+        button.friendMode(type='button' onclick='inviteAFriend()') Invite a Friend
 
     #myModal.modal
       .modalContent
         span.close &times;
         p#modalText
+        .modalButtons
+          button#noButton No
+          button#yesButton Okay let's do it!
 
 
   script(src='../js/match_setup.js')

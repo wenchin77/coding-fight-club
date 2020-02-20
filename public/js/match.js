@@ -8,8 +8,6 @@ if (!localStorage.getItem("token")) {
 let userID;
 let username; // to be deleted??? (do i need it?)
 let opponent;
-
-// 把要跑程式需要的這些東西存在前端，跑 runCode 時丟到後面
 let sampleCaseExpected;
 let questionConst;
 let difficulty;
@@ -39,7 +37,7 @@ function socketInit() {
   // too many people in a match: reject and redirect
   socket.on("rejectUser", msg => {
     showAlert(msg, () => {
-      window.location = "/";
+      window.location = "/match_setup";
     });
   });
 
@@ -52,11 +50,8 @@ function socketInit() {
 
   // 拿到 questionData 顯示在前端 (once: 只有第一次拿到做，之後不動作)
   socket.once("questionData", questionObject => {
-    document.getElementById("matchQuestion").innerHTML =
-      questionObject.question;
-    document.getElementById(
-      "question"
-    ).innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;
+    document.getElementById("matchQuestion").innerHTML = questionObject.question;
+    document.getElementById("question").innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;
     document.getElementById("sampleTestCase").innerHTML = questionObject.sampleCase;
     codemirrorEditor.setValue(questionObject.code);
     sampleCaseExpected = questionObject.sampleExpected;

@@ -110,6 +110,48 @@ document.forms['signup'].addEventListener('submit', (event) => {
   });
 });
 
+function GoogleSigninInit() {
+	gapi.load('auth2', () => {
+		gapi.auth2.init({
+			// client_id: "971378714869-2on8bpfjn13qfkof1elr2bs1vt3ksd8e" //必填，記得開發時期要開啟 Chrome開發人員工具 查看有沒有403錯誤(Javascript來源被禁止)
+		});
+	}); //end gapi.load
+}
+
+let google_res;
+function googleSignin() {
+	let auth2 = gapi.auth2.getAuthInstance(); //取得GoogleAuth物件
+	auth2.signIn().then((GoogleUser) => {
+		console.log("Google登入成功"); 
+		console.log('ID: ' + GoogleUser.getId()); // Do not send to your backend! Use an ID token instead.
+
+		// The ID token you need to pass to your backend:
+		let id_token = GoogleUser.getAuthResponse().id_token;
+		console.log("ID Token: " + id_token);
+
+		const data = {
+			provider: "google",
+			access_token: id_token
+		};
+		console.log(data);
+
+		// 把登入資料拿去打後端 signin api, 再轉址到 member.html 顯示用戶資料
+		app.ajax("post", "api/v1/user/signin", data, {}, function (res) {
+			if (res.readyState === 4 && res.status === 200) {
+				console.log(res);
+				google_res = res;
+				document.cookie = `token=${JSON.parse(res.response).data.access_token}`;
+				window.location = "./member.html";
+			} else {
+				alert(res.responseText);
+			}
+		});
+	})
+}
+
+
 const showTestUserHelp = () => {
   showAlert(`Check this box to sign in as a test user to try out Coding Fight Club without using your own email. Feel free to also use 'test1@codingfightclub.com' and '123456' to sign in as another user if you want to experience the matches!`)
 }
+
+

@@ -1,3 +1,4 @@
+// ping.js 已取得 token
 const token = localStorage.getItem('token');
 
 

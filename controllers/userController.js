@@ -36,7 +36,7 @@ module.exports = {
         provider: 'native',
         token,
         points: 0,
-        level: 'beginner'
+        level: 0
       });
     } catch (err) {
       console.log(err);
@@ -49,28 +49,31 @@ module.exports = {
     hash.update(data.email + data.password + now);
     let token = hash.digest("hex");
     
-    try  {
-      let userInfo = {
-        email: data.email,
-        password: data.password,
-        access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
-        token
+    if (data.provider === 'native') {
+      try  {
+        let userInfo = {
+          email: data.email,
+          password: data.password,
+          access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
+          token
+        }
+        console.log('updating user...')
+        await userModel.queryUpdateUser(userInfo);
+        let getUserInfo = await userModel.querySelectUser(data.email);
+        return({
+          id: getUserInfo[0].id,
+          username: getUserInfo[0].user_name,
+          email: data.email,
+          provider: 'native',
+          token,
+          points: getUserInfo[0].points,
+          level: getUserInfo[0].level
+        });
+      } catch (err) {
+        console.log(err);
       }
-      console.log('updating user...')
-      await userModel.queryUpdateUser(userInfo);
-      let getUserInfo = await userModel.querySelectUser(data.email);
-      return({
-        id: getUserInfo[0].id,
-        username: getUserInfo[0].user_name,
-        email: data.email,
-        provider: 'native',
-        token,
-        points: getUserInfo[0].points,
-        level: getUserInfo[0].level
-      });
-    } catch (err) {
-      console.log(err);
     }
+    
   },
 
   countUsersByEmail: async (email) => {

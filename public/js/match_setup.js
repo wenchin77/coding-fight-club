@@ -3,35 +3,71 @@ if(!(localStorage.getItem('token'))) {
   window.location.pathname = 'signin';
 };
 
-let matchKey;
+setElementActive('.category button', 'categoryActive');
+setElementActive('.difficulty button', 'difficultyActive');
 
 async function getKey() {
   let keyObject = await axios.post('/api/v1/match/get_key');
   return keyObject.data;
 };
 
-async function getLink() {
+async function inviteAFriend() {
   if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
     showAlert("Please select a category and a difficulty level.");
     return;
   }
-  const category = document.querySelector('.categoryActive').value;
-  const difficulty = document.querySelector('.difficultyActive').value;
-  matchKey = await getKey();
-  showAlertWithButtons(`Send the match link to challenge your friend in this ${difficulty}, ${category} match: http://localhost:3000/match/${matchKey}`, () => {
-    setUpAMatch();
+  let category = document.querySelector('.categoryActive').value;
+  let difficulty = document.querySelector('.difficultyActive').value;
+
+  let questionID = await getQuestion(category, difficulty);
+  if (!questionID) {
+    return;
+  }
+  let matchKey = await getKey();
+  
+  showAlertWithButtons(`Send the match link to challenge your friend in a random ${difficulty}, ${category} problem: http://localhost:3000/match/${matchKey}`, async () => {
+    // insert a match
+    let match = await insertMatch(questionID, matchKey);
+    // redirect to a room in match page with match key
+    window.location = `match/${matchKey}`;
   });
 };
 
-async function getOnlineUser() {
-  try {
-    let result = await axios.post(`/api/v1/user/get_online_user?token=${localStorage.getItem('token')}`);
-    showAlert(`Match with ${result.data} is beginning soon!`)
-    console.log('getOnlineUser result', result);
-    // print users except myself
 
+
+async function getAStranger() {
+  if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
+    showAlert("Please select a category and a difficulty level.");
+    return;
+  }
+  let category = document.querySelector('.categoryActive').value;
+  let difficulty = document.querySelector('.difficultyActive').value;
+
+  let questionID = await getQuestion(category, difficulty);
+  if (!questionID) {
+    return;
+  }
+
+  // find a random user online 
+  try {
+    let result = await axios.post(`/api/v1/user/get_stranger?token=${localStorage.getItem('token')}&category=${category}&difficulty=${difficulty}`);
+    showAlert("We found someone but we still need the user to confirm!");
+    // showAlertWithButtons(`Are you ready to start the match with ${result.data} now?`, async () => {
+    //   let matchKey = await getKey();
+  
+    //   // insert a match
+    //   let match = await insertMatch(questionID, matchKey);
+    
+    //   // redirect to a room in match page with match key
+    //   window.location = `match/${matchKey}`;
+    // })  
   } catch (error) {
-    showAlert(error.response.data)
+    if (error.response.status === 403) {
+      // can't find another online user
+      showAlert(error.response.data);
+      return;
+    }
+    showAlert('Server error. Please try again later.')
     console.log(error.response);
   }
 };
@@ -48,33 +84,31 @@ function setElementActive(parent, activeClassName) {
   });
 }
 
-setElementActive('.category button', 'categoryActive');
-setElementActive('.difficulty button', 'difficultyActive');
 
-async function setUpAMatch() {
-  if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
-    showAlert("Please select a category and a difficulty level.");
-    return;
-  }
-  const category = document.querySelector('.categoryActive').value;
-  const difficulty = document.querySelector('.difficultyActive').value;
+// async function setUpAMatch() {
+  // if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
+  //   showAlert("Please select a category and a difficulty level.");
+  //   return;
+  // }
+  // const category = document.querySelector('.categoryActive').value;
+  // const difficulty = document.querySelector('.difficultyActive').value;
 
-  // ajax 打 question list api
-  let questionID = await getQuestion(category, difficulty);
-  if (!questionID) {
-    return;
-  }
+  // // ajax 打 question list api
+  // let questionID = await getQuestion(category, difficulty);
+  // if (!questionID) {
+  //   return;
+  // }
 
-  if(!matchKey || matchKey == '') {
-    matchKey = await getKey();
-  };
+//   if(!matchKey || matchKey == '') {
+//     matchKey = await getKey();
+//   };
 
-  // insert a match
-  let match = await insertMatch(questionID, matchKey);
+//   // insert a match
+//   let match = await insertMatch(questionID, matchKey);
 
-  // redirect to a room in match page with match key
-  window.location = `match/${matchKey}`;
-}
+//   // redirect to a room in match page with match key
+//   window.location = `match/${matchKey}`;
+// }
 
 async function getQuestion(category, difficulty) {
   try {
@@ -105,7 +139,9 @@ async function insertMatch(questionID, matchKey) {
 function showAlert(text) {
   const modal = document.getElementById("myModal");
   const span = document.getElementsByClassName("close")[0];
+  const buttons = document.getElementsByClassName("modalButtons")[0];
   document.getElementById('modalText').innerHTML = text;
+  buttons.style.display = "none";
 
   // show modal
   modal.style.display = "block";

@@ -22,7 +22,7 @@ block content
 
       .socialIcons
         img(src='../img/github.png' alt='Github')
-        img(src='../img/google.png' alt='Google')
+        img(src='../img/google.png' alt='Google' onclick='googleSignin()')
         img(src='../img/facebook.png' alt='Facebook')
 
       form.inputGroup#signin(action='/api/v1/user/signin' method='post')
