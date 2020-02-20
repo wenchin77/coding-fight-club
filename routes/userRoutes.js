@@ -97,7 +97,7 @@ router.post('/signup', async (req, res)=> {
 
 router.post('/get_user_info', async (req, res) => {
   let token = req.query.token;
-  let result = await userController.selectUserInfoByToken(token);
+  let result = await userController.querySelectUserByToken(token);
   res.json(result);
 });
 

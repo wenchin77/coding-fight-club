@@ -89,6 +89,7 @@ module.exports = {
     console.log(data)
     try {
       let result = await matchModel.queryUpdateMatchDetail(matchID, user, data);
+      await matchModel.queryAddUserPoints(user, points);
     } catch (err) {
       console.log(err);
     }

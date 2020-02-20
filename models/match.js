@@ -29,8 +29,13 @@ module.exports = {
   queryCountMatchDetailRows: (match_id, user_id) => {
     return mysql.query('SELECT COUNT (*) FROM match_detail WHERE match_id = ? AND user_id = ?', [match_id, user_id])
   },
+
   queryUpdateMatchDetail: (match_id, user_id, data) => {
-    return mysql.query('UPDATE match_detail SET ? WHERE match_id = ? AND user_id = ? LIMIT 1', [data, match_id, user_id])
+    return mysql.query('UPDATE match_detail SET ? WHERE match_id = ? AND user_id = ? LIMIT 1', [data, match_id, user_id]);
+  },
+
+  queryAddUserPoints: (user_id, points) => {
+    return mysql.query('UPDATE user_table SET points = points + ? WHERE id = ?', [points, user_id]);
   },
 
   queryGetMatchDetailPastExecTime: (question_id) => {

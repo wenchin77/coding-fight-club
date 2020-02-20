@@ -45,7 +45,13 @@ document.forms['signin'].addEventListener('submit', (event) => {
     localStorage.setItem('points', res.data.points);
     localStorage.setItem('level', res.data.level);
     localStorage.setItem('access_expired', res.data.access_expired);
+    
     showAlert('Welcome back!', () => {
+      // if user was invited in a match before signing in, redirect to match page
+      if (localStorage.getItem('invited_url')) {
+        window.location.pathname = localStorage.getItem('invited_url');
+        return;
+      }
       // redirect to profile page
       window.location.pathname = 'profile';
     })
@@ -78,6 +84,11 @@ document.forms['signup'].addEventListener('submit', (event) => {
     localStorage.setItem('access_expired', res.data.access_expired);
 
     showAlert('Welcome to the Coding Fight Club!', () => {
+      // if user was invited in a match before signing in, redirect to match page
+      if (localStorage.getItem('invited_url')) {
+        window.location.pathname = localStorage.getItem('invited_url');
+        return;
+      }
       // redirect to profile page
       window.location.pathname = 'profile';
     })

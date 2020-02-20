@@ -64,7 +64,10 @@ socket.init = server => {
       if (!socketidMapping[socket.id]) {
         socketidMapping[socket.id] = user;
       };
-      console.log('socketidMapping', socketidMapping)
+      console.log('==================')
+      console.log('socketidMapping on join', socketidMapping)
+      console.log('==================')
+
 
       // Add user to userIdNameMapping (userid: username)
       if (!userIdNameMapping[user]) {
@@ -354,7 +357,12 @@ socket.init = server => {
       let socketid = socket.id;
       let user = socketidMapping[socketid];
       let username = userIdNameMapping[user];
+      console.log('-------------------------')
+      console.log('my socketid', socketid)
+      console.log('socketidMapping', socketidMapping)
       console.log('username --- ', username)
+      console.log('userIdNameMapping', userIdNameMapping)
+      console.log('-------------------------')
 
       let leaveMessage = {
         user: user,
@@ -363,6 +371,8 @@ socket.init = server => {
       io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
 
       delete socketidMapping[socketid];
+      console.log('socketidMapping after deleting disconnected user', socketidMapping)
+
 
       if (matchList[matchKey]) {
         let index = matchList[matchKey].indexOf(user);

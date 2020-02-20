@@ -22,8 +22,12 @@ module.exports = {
     return mysql.query('UPDATE user_table SET token = ?, access_expired = ? WHERE email = ? LIMIT 1', [data.token, data.access_expired, data.email])
   },
 
-  querySelectUser: (email) => {
+  querySelectUserByEmail: (email) => {
     return mysql.query('SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?', [email]);
+  },
+
+  querySelectUserByToken: (token) => {
+    return mysql.query('SELECT user_table.id, user_table.email, user_table.user_name, user_table.points, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.token = ?', [token]);
   },
 
   querySelectUserInfoByToken: (token) => {

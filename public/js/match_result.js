@@ -4,9 +4,26 @@ const token = localStorage.getItem('token');
 const url = window.location.pathname;
 const matchKey = url.substring(url.lastIndexOf('/') + 1);
 
-const getUserInfo =  async (token) => {
+async function main() {
   try {
-    let response = await axios.post(`/api/v1/user/get_userInfo?token=${token}`);
+    let userID = await getUserInfo(token);
+    // let username = userInfo.user_name;
+    console.log('userid', userID)
+
+    let matchID = await getMatchID(matchKey);
+    let matchDetails = await getMatchDetails(matchID, userID);
+    showMatchResult(userID, matchDetails);
+  } catch (err) {
+    showAlert('Something went wrong. Refresh the page to see result.')
+    console.log(err)
+  }
+}
+main();
+
+
+async function getUserInfo(token) {
+  try {
+    let response = await axios.post(`/api/v1/user/get_user_info?token=${token}`);
     console.log(response.data[0].id)
     return response.data[0].id;
   } catch (error) {
@@ -15,7 +32,7 @@ const getUserInfo =  async (token) => {
 };
 
 
-const getMatchID =  async (matchKey) => {
+async function getMatchID (matchKey) {
   try {
     let response = await axios.post(`/api/v1/match/get_matchid?matchkey=${matchKey}`)
     let matchID = response.data;
@@ -25,7 +42,7 @@ const getMatchID =  async (matchKey) => {
   }
 };
 
-const getPastExecTime =  async (questionID) => {
+async function getPastExecTime (questionID) {
   try {
     const response = await axios.post(`/api/v1/match/result/past_performance?questionid=${questionID}`)
     return `${parseInt(response.data)} ms`;
@@ -35,7 +52,7 @@ const getPastExecTime =  async (questionID) => {
 };
 
 
-const getMatchDetails =  async (matchID) => {
+async function getMatchDetails (matchID) {
   try {
     const response = await axios.post(`/api/v1/match/result/details?matchid=${matchID}`)
     console.log('match detail data===', response.data)
@@ -48,12 +65,12 @@ const getMatchDetails =  async (matchID) => {
 
 
 
-const capitalize = (str) => {
+function capitalize (str) {
   if (typeof str !== 'string') return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-const convertAnswerTime = (time) => {   
+function convertAnswerTime (time) {   
   // Hours, minutes and seconds
   var hrs = Math.floor(time / 3600);
   var mins = Math.floor((time % 3600) / 60);
@@ -71,7 +88,7 @@ const convertAnswerTime = (time) => {
 }
 
 
-const showMatchResult = async (userID, result) => {
+async function showMatchResult (userID, result) {
   let matchResult = result.matchResult;
   let question = result.question;
   let winner = matchResult[0].winner_user_id;
@@ -155,16 +172,6 @@ function addDataToTable(elementId, array) {
 }
 
 
-async function main() {
-  let userID = await getUserInfo(token);
-  // let username = userInfo.user_name;
-  console.log('userid', userID)
-
-  let matchID = await getMatchID(matchKey);
-  let matchDetails = await getMatchDetails(matchID, userID);
-  showMatchResult(userID, matchDetails);
-}
-main();
 
 
 

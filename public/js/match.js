@@ -2,6 +2,8 @@ let socket;
 
 // verify signin first
 if (!localStorage.getItem("token")) {
+  const url = window.location.pathname;
+  localStorage.setItem('invited_url', url);
   window.location.pathname = "signin";
 }
 

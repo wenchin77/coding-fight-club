@@ -29,7 +29,7 @@ module.exports = {
       }
       console.log('inserting user...')
       let result = await userModel.queryInsertUser(userInfo);
-      let getUserInfo = await userModel.querySelectUser(data.email);
+      let getUserInfo = await userModel.querySelectUserByEmail(data.email);
       console.log(getUserInfo)
       return({
         id: getUserInfo[0].id,
@@ -49,7 +49,7 @@ module.exports = {
   updateUser: async (data) => {
     // check if token's not expired, if not send back the same token
     let now = Date.now();
-    let getUserInfo = await userModel.querySelectUser(data.email);
+    let getUserInfo = await userModel.querySelectUserByEmail(data.email);
     let accessExpired = getUserInfo[0].access_expired;
     if (now <= accessExpired) {
       return({
@@ -77,7 +77,7 @@ module.exports = {
         }
         console.log('updating user...')
         await userModel.queryUpdateUser(userInfo);
-        let getUserInfo = await userModel.querySelectUser(data.email);
+        let getUserInfo = await userModel.querySelectUserByEmail(data.email);
         return({
           id: getUserInfo[0].id,
           username: getUserInfo[0].user_name,
@@ -91,6 +91,15 @@ module.exports = {
       } catch (err) {
         console.log(err);
       }
+    }
+  },
+
+  querySelectUserByToken: async (token) => {
+    try {
+      let result = await userModel.querySelectUserByToken(token);
+      return(result);
+    } catch (err) {
+      console.log(err);
     }
   },
   
@@ -147,13 +156,19 @@ module.exports = {
     try {
       // check next level's min points
       let checkNextLevelMin = await userModel.querySelectNextLevelMin(user_id);
+      console.log('updateUserPointsLevel -- checkNextLevelMin --', checkNextLevelMin)
       let userLevel = checkNextLevelMin[0].level_id;
       let nextLevelMin = checkNextLevelMin[0].min_points;
+      console.log('userLevel ---', userLevel)
+      console.log('nextLevelMin ---', nextLevelMin)
+
 
       // if user points > next level's min points, update level id too
       if (points >= nextLevelMin) {
+        console.log('升級！！points >= nextLevelMin')
         let level = userLevel + 1;
-        await userModel.queryUpdateUserLevel(level, user_id);
+        let result = await userModel.queryUpdateUserLevel(level, user_id);
+        console.log(result)
       }
     } catch (err) {
       console.log(err)

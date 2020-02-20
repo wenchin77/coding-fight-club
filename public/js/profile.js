@@ -4,9 +4,21 @@ if (!localStorage.getItem("token")) {
 }
 
 const token = localStorage.getItem('token');
+let userID;
 
+main();
 
-const getUserInfo =  async (token) => {
+async function main() {
+  let userProfile = await showProfile(token);
+  userID = userProfile.id;
+  console.log('userID in main', userID)
+
+  let matchSummary = await getMatchSummary(userID);
+  console.log(matchSummary)
+  // showMatchResult(userID, matchSummary);
+}
+
+async function getUserInfo (token) {
   try {
     let response = await axios.post(`/api/v1/user/get_user_info?token=${token}`);
     return response.data[0].id;
@@ -16,7 +28,7 @@ const getUserInfo =  async (token) => {
 };
 
 // TO BE UPDATED +++++++++++++ print out in a table
-const getMatchSummary =  async (userID) => {
+async function getMatchSummary (userID) {
   try {
     const response = await axios.post(`/api/v1/match/result/summary?userid=${userID}`)
     console.log('match detail data===', response.data)
@@ -28,13 +40,13 @@ const getMatchSummary =  async (userID) => {
 
 
 
-const capitalize = (str) => {
+function capitalize (str) {
   if (typeof str !== 'string') return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 // TO BE UPDATED +++++++++++++ (要多拉對手資料)
-const showMatchResult = async (userID, result) => {
+async function showMatchResult (userID, result) {
   let myIndex = ((userID == result[0].user_id) ? 0 : 1);
   let opponentIndex = ((myIndex == 0) ? 1 : 0);
   
@@ -108,26 +120,21 @@ function addDataToTable(elementId, array) {
   generateTable(table, array);
 }
 
-function showProfile() {
-  document.getElementById('username').innerHTML = `Username: ${localStorage.getItem('username')}`
-  document.getElementById('email').innerHTML = `Email: ${localStorage.getItem('email')}`
-  document.getElementById('points').innerHTML = `Points: ${localStorage.getItem('points')}`
-  document.getElementById('level').innerHTML = `Level: ${localStorage.getItem('level')}`
-}
 
 
-async function main() {
-  let userID = await getUserInfo(token);
-  // let username = userInfo.user_name;
-  console.log('userid', userID);
-
-  showProfile();
-
-  let matchSummary = await getMatchSummary(userID);
-  console.log(matchSummary)
-  // showMatchResult(userID, matchSummary);
-}
-main();
+async function showProfile(token) {
+  try {
+    const response = await axios.post(`/api/v1/user/get_user_info?token=${token}`)
+    console.log('match detail data===', response.data);
+    document.getElementById('username').innerHTML = `Username: ${response.data[0].user_name}`
+    document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`
+    document.getElementById('points').innerHTML = `Points: ${response.data[0].points}`
+    document.getElementById('level').innerHTML = `Level: ${response.data[0].level_name}`;
+    return response.data[0];
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 
 
