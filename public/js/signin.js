@@ -113,7 +113,7 @@ document.forms['signup'].addEventListener('submit', (event) => {
 function GoogleSigninInit() {
 	gapi.load('auth2', () => {
 		gapi.auth2.init({
-			// client_id: "971378714869-2on8bpfjn13qfkof1elr2bs1vt3ksd8e" //必填，記得開發時期要開啟 Chrome開發人員工具 查看有沒有403錯誤(Javascript來源被禁止)
+			client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh" //必填，記得開發時期要開啟 Chrome開發人員工具 查看有沒有403錯誤(Javascript來源被禁止)
 		});
 	}); //end gapi.load
 }

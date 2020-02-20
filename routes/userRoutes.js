@@ -183,6 +183,21 @@ let getGoogleProfile = (accessToken) => {
 };
 
 
+
+router.post('/bug_report', async (req, res) => {
+  let reporter = req.query.reporter;
+  let bug = req.query.bug;
+  console.log(reporter)
+  console.log(bug)
+  try {
+    await userController.insertBugReport(reporter, bug);
+    res.status(200).send('Bug report filed!')
+  } catch (e) {
+    res.status(500).send(e)
+  }
+}) 
+
+
 let getStranger = (obj, myToken) => {
   let keys = Object.keys(obj);
   if (keys.length <= 1) {

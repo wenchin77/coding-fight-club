@@ -115,7 +115,15 @@ module.exports = {
     } catch (err) {
       console.log(err);
     }
-  }
+  },
+
+  insertBugReport: async (reporter, content) => {
+    try {
+      await userModel.queryInsertBugReport({reporter, content});
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
   
 

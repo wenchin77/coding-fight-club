@@ -10,5 +10,10 @@ block content
     input#bug
     br
     br
-    button(onclick="sendBug()") Submit (I don't work now...)
-  #printBugs
+    button(onclick="sendBug()") Submit
+  #myModal.modal
+    .modalContent
+      span.close &times;
+      p#modalText
+
+  script(src='../js/bug_report.js')

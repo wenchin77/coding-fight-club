@@ -28,6 +28,10 @@ module.exports = {
 
   querySelectUserInfoByToken: (token) => {
     return mysql.query('SELECT id, user_name FROM user_table WHERE token = ?', [token]);
+  },
+
+  queryInsertBugReport: (data) => {
+    return mysql.query('INSERT INTO bug_report SET ?', data);
   }
 
 }
