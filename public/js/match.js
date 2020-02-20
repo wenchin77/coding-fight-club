@@ -82,28 +82,21 @@ function socketInit() {
     }
   });
 
-  socket.once("startMatch", users => {
-    console.log(users)
+  socket.once("startMatch", startInfo => {
+    console.log(startInfo)
     // show opponent name
-    console.log('users.user1.user',users.user1.user);
+    console.log('users.user1.user',startInfo.user1.user);
     console.log('userID', userID);
-    opponent = (users.user1.user === userID) ? users.user2.username : users.user1.username;
+    opponent = (startInfo.user1.user === userID) ? startInfo.user2.username : startInfo.user1.username;
     console.log('opponent',opponent)
     // show start match message
-    showAlert(`The match against ${opponent} begins now!`, () => {
+    showAlert(`The match against ${opponent} is on!`, () => {
       document.getElementById("opponent").innerHTML = `Opponent: ${opponent}`;
       document.getElementById("runCodeOutput").innerHTML =
         '<p id="terminalMessage">Write the code and test cases to see result.</p>';
     });
-    // start the timer
-    let hoursLabel = document.getElementById("hours");
-    let minutesLabel = document.getElementById("minutes");
-    let secondsLabel = document.getElementById("seconds");
-    let totalSeconds = 0;
-    setInterval(
-      setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel),
-      1000
-    );
+    // get start time from db & start timer
+    setTimer(startInfo.startTime);
   });
 
   // 接收 codeResult 並顯示（每次都蓋掉上次的）
@@ -137,18 +130,31 @@ function socketInit() {
     showAlert("The match has ended! Let check out the result.", () => {
       // redirect to match_result page with match_key param
       window.location = `/match_result/${matchKey}`;
-      // ++++++++++++ stop timer
     });
   });
 };
 
 
-function setTime(totalSeconds, hoursLabel, minutesLabel, secondsLabel) {
+let timer;
+function setTimer(startTime) {
+  // start the timer
+  let hoursLabel = document.getElementById("hours");
+  let minutesLabel = document.getElementById("minutes");
+  let secondsLabel = document.getElementById("seconds");
+  let totalSeconds = 60 * 60; // +++++++++ 1h max (to be updated)
+  let secondsLeft = parseInt(startTime / 1000 + totalSeconds - Date.now() / 1000);
+  timer = setInterval(
+    setTime(secondsLeft, hoursLabel, minutesLabel, secondsLabel),
+    1000
+  );
+}
+
+function setTime(secondsLeft, hoursLabel, minutesLabel, secondsLabel) {
   return () => {
-    totalSeconds = totalSeconds + 1;
-    secondsLabel.innerHTML = pad(totalSeconds % 60);
-    minutesLabel.innerHTML = pad(parseInt((totalSeconds % 3600) / 60));
-    hoursLabel.innerHTML = pad(parseInt(totalSeconds / 3600));
+    secondsLeft = secondsLeft - 1;
+    secondsLabel.innerHTML = pad(secondsLeft % 60);
+    minutesLabel.innerHTML = pad(parseInt((secondsLeft % 3600) / 60));
+    hoursLabel.innerHTML = pad(parseInt(secondsLeft / 3600));
   };
 }
 
@@ -159,6 +165,10 @@ function pad(val) {
   } else {
     return valString;
   }
+}
+
+function stopTimer() {
+  clearInterval(timer);
 }
 
 function runCode() {
@@ -198,6 +208,8 @@ function submitCode() {
   }
   let text = "Are you sure? You can only submit once!";
   showAlertWithButtons(text, () => {
+    // stop timer
+    stopTimer();
     const buttons = document.getElementsByClassName("modalButtons")[0];
     buttons.style.display = "none";
     showAlert("Hold on! Our server is evaluating your code now...");
@@ -210,6 +222,7 @@ function submitCode() {
     };
     console.log('submit payload', payload)
     socket.emit("submit", payload);
+    localStorage.removeItem('invited_url');
   });
 }
 

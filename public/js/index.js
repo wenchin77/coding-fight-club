@@ -1,10 +1,11 @@
-// check if token's expired
-let expired = localStorage.getItem('access_expired');
-if (Date.now() >= expired) {
-  showAlert('Signin expired. Please sign in again!', () => {
-    logout();
-  })
-}
+// // check if token's expired +++++++++ moved to ping?
+// let expired = localStorage.getItem('access_expired');
+// if (Date.now() >= expired) {
+//   console.log('signin expired')
+//   showAlert('Signin expired. Please sign in again!', () => {
+//     logout();
+//   })
+// }
 
 function logout() {
   localStorage.removeItem('id');

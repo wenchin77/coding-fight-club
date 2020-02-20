@@ -26,21 +26,31 @@ socket.init = server => {
     socket.on("join", async (token) => {
       let result = await userController.selectUserInfoByToken(token);
       console.log('socket on join selectUserInfoByToken result', result)
-
-      // if can't find the user in db, ask to login again to prevent error
-      if (!result[0] || result === []) {
-        socket.emit('noUserFound', 'It seems like we cannot identify who you are... Please log in again.');
-        return;
-      }
       
       let user = result[0].id;
       let username = result[0].user_name;
+
+      // Add user to socketidMapping (socketid: userid)
+      if (!socketidMapping[socket.id]) {
+        socketidMapping[socket.id] = user;
+      };
+      console.log('==================')
+      console.log('socketidMapping on join', socketidMapping)
+      console.log('==================')
+
+      // Add user to userIdNameMapping (userid: username)
+      if (!userIdNameMapping[user]) {
+        userIdNameMapping[user] = username;
+      };
+      console.log('userIdNameMapping', userIdNameMapping)
+
 
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
         matchList[matchKey] = [];
       };
 
+      // +++++++++ watch mode?
       // Reject user if there are already 2 people in the room
       if (matchList[matchKey].length >= 2) {
         console.log('matchList for too many people ===', matchList)
@@ -59,22 +69,6 @@ socket.init = server => {
       // Add user to the room list
       matchList[matchKey].push(user);
       console.log('matchList', matchList);
-
-      // Add user to socketidMapping (socketid: userid)
-      if (!socketidMapping[socket.id]) {
-        socketidMapping[socket.id] = user;
-      };
-      console.log('==================')
-      console.log('socketidMapping on join', socketidMapping)
-      console.log('==================')
-
-
-      // Add user to userIdNameMapping (userid: username)
-      if (!userIdNameMapping[user]) {
-        userIdNameMapping[user] = username;
-      };
-      console.log('userIdNameMapping', userIdNameMapping)
-
       
       // Join room
       socket.join(matchKey, () => {
@@ -91,6 +85,7 @@ socket.init = server => {
         userid: user,
         username,
       }
+      console.log('userData >>>>>>>>>>>>>>> ', userData)
       socket.emit('userData', userData);
 
 
@@ -108,21 +103,28 @@ socket.init = server => {
       let userid1 = matchList[matchKey][0];
       let userid2 = matchList[matchKey][1];
 
-      let users = {
-        user1: {
-          user: userid1,
-          username: userIdNameMapping[userid1]
-        },
-        user2: {
-          user: userid2,
-          username: userIdNameMapping[userid2]
-        }
-      };
-      console.log('users', users)
-      io.to(matchKey).emit('startMatch', users);
 
-      // update match start time
-      let matchID = await matchController.updateMatch(matchKey, user);
+      // get or insert match start time (only insert once at the start)
+      if (await matchController.getMatchStartTime(matchKey)) {
+        let time = await matchController.getMatchStartTime(matchKey);
+        let startInfo = {
+          user1: {
+            user: userid1,
+            username: userIdNameMapping[userid1]
+          },
+          user2: {
+            user: userid2,
+            username: userIdNameMapping[userid2]
+          },
+          startTime: time
+        };
+        console.log('startInfo', startInfo)
+        io.to(matchKey).emit('startMatch', startInfo);
+        return;
+      }
+
+      let now = Date.now();
+      let matchID = await matchController.updateMatch(matchKey, now);
 
       // insert into match_detail (make sure there are no duplicated rows)
       await matchController.insertMatchDetail(matchID, matchList[matchKey][0]);
@@ -360,8 +362,9 @@ socket.init = server => {
       console.log('-------------------------')
       console.log('my socketid', socketid)
       console.log('socketidMapping', socketidMapping)
-      console.log('username --- ', username)
+      console.log('my userid', user)
       console.log('userIdNameMapping', userIdNameMapping)
+      console.log('my username --- ', username)
       console.log('-------------------------')
 
       let leaveMessage = {

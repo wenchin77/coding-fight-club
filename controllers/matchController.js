@@ -17,10 +17,10 @@ module.exports = {
     }
   },
 
-  updateMatch: async (key) => {
+  updateMatch: async (key, now) => {
     try {
       // can combine these two qeuries???
-      let result = await matchModel.queryUpdateMatch(key);
+      let result = await matchModel.queryUpdateMatch(key, now);
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
     } catch (err) {

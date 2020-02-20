@@ -9,8 +9,7 @@ module.exports = {
     return mysql.query('SELECT question_id from match_table WHERE match_key = ?', [key])
   },
 
-  queryUpdateMatch: (key) => {
-    let now = Date.now();
+  queryUpdateMatch: (key, now) => {
     return mysql.query('UPDATE match_table SET match_start_time = ? WHERE match_key = ? LIMIT 1', [now, key])
   },
 
