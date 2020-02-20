@@ -26,7 +26,13 @@ socket.init = server => {
     socket.on("join", async (token) => {
       console.log('token from frontend ===== ', token)
       let result = await userController.selectUserInfoByToken(token);
-      console.log('userController.selectUserInfoByToken(token) result', result)
+      console.log('userController.selectUserInfoByToken(token) result', result);
+
+      // if can't find the user in db, ask to login again to prevent error
+      if (!result || result === []) {
+        socket.emit('noUserFound', 'It seems like we cannot identify who you are. Please log in again.');
+        return;
+      }
       
       let user = result[0].id;
       let username = result[0].user_name;

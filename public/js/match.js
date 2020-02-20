@@ -34,6 +34,13 @@ function socketInit() {
   console.log('userID', userID);
   console.log('username', username);
 
+  // can't find user
+  socket.on("noUserFound", msg => {
+    showAlert(msg, () => {
+      window.location = "/signin";
+    });
+  });
+
   // too many people in a match: reject and redirect
   socket.on("rejectUser", msg => {
     showAlert(msg, () => {
