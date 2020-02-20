@@ -11,7 +11,7 @@ const getUserInfo =  async (token) => {
   }
 };
 
-
+// TO BE UPDATED +++++++++++++ print out in a table
 const getMatchSummary =  async (userID) => {
   try {
     const response = await axios.post(`/api/v1/match/result/summary?userid=${userID}`)
@@ -21,7 +21,6 @@ const getMatchSummary =  async (userID) => {
     console.log(error);
   }
 };
-
 
 
 
@@ -110,6 +109,17 @@ function showProfile() {
   document.getElementById('email').innerHTML = `Email: ${localStorage.getItem('email')}`
   document.getElementById('points').innerHTML = `Points: ${localStorage.getItem('points')}`
   document.getElementById('level').innerHTML = `Level: ${localStorage.getItem('level')}`
+}
+
+
+function logout() {
+  localStorage.removeItem('id');
+  localStorage.removeItem('username')
+  localStorage.removeItem('email');
+  localStorage.removeItem('provider');
+  localStorage.removeItem('token');
+  localStorage.removeItem('points');
+  localStorage.removeItem('level');
 }
 
 
