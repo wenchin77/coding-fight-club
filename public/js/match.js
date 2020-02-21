@@ -114,7 +114,6 @@ function socketInit() {
   });
 };
 
-
 function showQuestion(questionObject) {
   document.getElementById("matchQuestion").innerHTML = questionObject.question;
   document.getElementById("question").innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;

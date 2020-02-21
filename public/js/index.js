@@ -23,8 +23,9 @@ function logout() {
 
 function showAlert (text, callback) {
   const modal = document.getElementById("myModal");
-  const close = document.getElementsByClassName("close")[0];
+  // const close = document.getElementsByClassName("close")[0];
   const buttons = document.getElementsByClassName("modalButtons")[0];
+  const okay = document.getElementById('okButton');
   document.getElementById('modalText').innerHTML = text;
   buttons.style.display = "none";
 
@@ -32,7 +33,7 @@ function showAlert (text, callback) {
   modal.style.display = "block";
 
   // When the user clicks on (x), close the modal
-  close.onclick = () => {
+  okay.onclick = () => {
     modal.style.display = "none";
     callback();
   }
@@ -47,11 +48,13 @@ function showAlert (text, callback) {
 
 function showAlertWithButtons (text, callback) {
   const modal = document.getElementById("myModal");
-  const close = document.getElementsByClassName("close")[0];
+  // const close = document.getElementsByClassName("close")[0];
   const buttons = document.getElementsByClassName("modalButtons")[0];
+  const okay = document.getElementById('okButton');
   const no = document.getElementById("noButton");
   const yes = document.getElementById("yesButton");
-
+  
+  okay.style.display = "none";
   modal.style.display = "flex";
   buttons.style.display = "flex";
 
@@ -66,9 +69,9 @@ function showAlertWithButtons (text, callback) {
     callback();
   };
 
-  close.onclick = () => {
-    modal.style.display = "none";
-  };
+  // close.onclick = () => {
+  //   modal.style.display = "none";
+  // };
 
   window.onclick = event => {
     if (event.target == modal) {
