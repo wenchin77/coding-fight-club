@@ -1,20 +1,26 @@
-let socket;
-
 // verify signin first
-if (!localStorage.getItem("token")) {
+if (!localStorage.getItem("token") || !localStorage.getItem("id")) {
   const url = window.location.pathname;
   localStorage.setItem('invited_url', url);
   window.location.pathname = "signin";
 }
 
-let userID;
-let username;
+let token = localStorage.getItem("token");
+let userID = parseInt(localStorage.getItem('id'));
+// let username;
 let opponent;
 let sampleCaseExpected;
 let questionConst;
 let difficulty;
 
-socketInit();
+let socket;
+
+// only init socket when there's a token and userid
+// this is to prevent undefined usernames from being sent to server & showing here
+if (localStorage.getItem("token") && localStorage.getItem("id")){
+  console.log('socket initialized...')
+  socketInit();
+}
 
 // socket init
 function socketInit() {
@@ -23,24 +29,8 @@ function socketInit() {
 
   // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
   socket.on("connect", () => {
-    let token = localStorage.getItem("token");
-    console.log(token)
+    console.log('socket connected...');
     socket.emit("join", token);
-    // +++++++++ check if the match's on, if so get start time from server to set the timer
-  });
-
-  socket.on('userData', data => {
-    userID = data.userid;
-    username = data.username;
-  });
-  console.log('userID', userID);
-  console.log('username', username);
-
-  // can't find user
-  socket.on("noUserFound", msg => {
-    showAlert(msg, () => {
-      window.location = "/signin";
-    });
   });
 
   // too many people in a match: reject and redirect
@@ -55,17 +45,6 @@ function socketInit() {
     showAlert(
       "You already submitted your code in this match. Let's wait a bit for your opponent to submit too!"
     );
-  });
-
-  // 拿到 questionData 顯示在前端 (once: 只有第一次拿到做，之後不動作)
-  socket.once("questionData", questionObject => {
-    document.getElementById("matchQuestion").innerHTML = questionObject.question;
-    document.getElementById("question").innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;
-    document.getElementById("sampleTestCase").innerHTML = questionObject.sampleCase;
-    codemirrorEditor.setValue(questionObject.code);
-    sampleCaseExpected = questionObject.sampleExpected;
-    questionConst = questionObject.const;
-    difficulty = questionObject.difficulty;
   });
 
   socket.once("waitForOpponent", msg => {
@@ -88,7 +67,8 @@ function socketInit() {
     console.log('users.user1.user',startInfo.user1.user);
     console.log('userID', userID);
     opponent = (startInfo.user1.user === userID) ? startInfo.user2.username : startInfo.user1.username;
-    console.log('opponent',opponent)
+    console.log('opponent',opponent);
+    showQuestion(startInfo.question);
     // show start match message
     showAlert(`The match against ${opponent} is on!`, () => {
       document.getElementById("opponent").innerHTML = `Opponent: ${opponent}`;
@@ -134,6 +114,16 @@ function socketInit() {
   });
 };
 
+
+function showQuestion(questionObject) {
+  document.getElementById("matchQuestion").innerHTML = questionObject.question;
+  document.getElementById("question").innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;
+  document.getElementById("sampleTestCase").innerHTML = questionObject.sampleCase;
+  codemirrorEditor.setValue(questionObject.code);
+  sampleCaseExpected = questionObject.sampleExpected;
+  questionConst = questionObject.const;
+  difficulty = questionObject.difficulty;
+}
 
 let timer;
 function setTimer(startTime) {

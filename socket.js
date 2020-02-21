@@ -11,6 +11,8 @@ const socketio = require("socket.io");
 const socket = {};
 
 socket.init = server => {
+  console.log('socket server initialized...');
+
   const io = socketio.listen(server);
   const matchList = {}; // to save match key & user mapping info
   const socketidMapping = {}; // to save socketid & user mapping info
@@ -18,32 +20,33 @@ socket.init = server => {
   const userIdNameMapping = {}; // to display username in frontend
 
   io.on("connection", socket => {
-    console.log("Socket: a user connected!");
+    console.log("io on connection: a user connected!");
 
     let url = socket.request.headers.referer;
     let matchKey = getMatchKey(url);
+    console.log("io on connection: socketid: ", socket.id);
     
     socket.on("join", async (token) => {
+      console.log('==================')
+      console.log('socket on join, token received: ', token);
       let result = await userController.selectUserInfoByToken(token);
-      console.log('socket on join selectUserInfoByToken result', result)
-      
       let user = result[0].id;
       let username = result[0].user_name;
+      console.log('socket on join, user: ', user)
+      console.log('socket on join, username: ', username)
+      console.log('==================')
 
       // Add user to socketidMapping (socketid: userid)
       if (!socketidMapping[socket.id]) {
         socketidMapping[socket.id] = user;
       };
-      console.log('==================')
-      console.log('socketidMapping on join', socketidMapping)
-      console.log('==================')
+      console.log('socket on join, socketidMapping: ', socketidMapping)
 
       // Add user to userIdNameMapping (userid: username)
       if (!userIdNameMapping[user]) {
         userIdNameMapping[user] = username;
       };
-      console.log('userIdNameMapping', userIdNameMapping)
-
+      console.log('socket on join, userIdNameMapping', userIdNameMapping)
 
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
@@ -53,7 +56,7 @@ socket.init = server => {
       // +++++++++ watch mode?
       // Reject user if there are already 2 people in the room
       if (matchList[matchKey].length >= 2) {
-        console.log('matchList for too many people ===', matchList)
+        console.log('socket on join, matchList for too many people ===', matchList)
         socket.emit('rejectUser', 'Oops, there are already two people in this match!');
         return;
       }
@@ -68,7 +71,7 @@ socket.init = server => {
 
       // Add user to the room list
       matchList[matchKey].push(user);
-      console.log('matchList', matchList);
+      console.log('socket on join, matchList', matchList);
       
       // Join room
       socket.join(matchKey, () => {
@@ -80,15 +83,6 @@ socket.init = server => {
         io.to(matchKey).emit('joinLeaveMessage', joinMessage);
       });
 
-      // send back user data
-      let userData = {
-        userid: user,
-        username,
-      }
-      console.log('userData >>>>>>>>>>>>>>> ', userData)
-      socket.emit('userData', userData);
-
-
       // Wait for opponent if there's only 1 person in the room
       if (matchList[matchKey].length === 1) {
         socket.emit('waitForOpponent', 'Hey there, we are waiting for your opponent to join!');
@@ -97,7 +91,7 @@ socket.init = server => {
       
       // when there are 2 people in the room
       let questionObject = await getQuestionDetail(matchKey, false);
-      io.to(matchKey).emit("questionData", questionObject);
+      // io.to(matchKey).emit("questionData", questionObject);
 
       // send user info to display
       let userid1 = matchList[matchKey][0];
@@ -105,30 +99,34 @@ socket.init = server => {
 
 
       // get or insert match start time (only insert once at the start)
+      let matchStartTime;
       if (await matchController.getMatchStartTime(matchKey)) {
-        let time = await matchController.getMatchStartTime(matchKey);
-        let startInfo = {
-          user1: {
-            user: userid1,
-            username: userIdNameMapping[userid1]
-          },
-          user2: {
-            user: userid2,
-            username: userIdNameMapping[userid2]
-          },
-          startTime: time
-        };
-        console.log('startInfo', startInfo)
-        io.to(matchKey).emit('startMatch', startInfo);
-        return;
+        console.log('match start time already inserted...')
+        matchStartTime = await matchController.getMatchStartTime(matchKey);
+      } else {
+        console.log('inserting match start time....')
+        matchStartTime = Date.now();
+        let matchID = await matchController.updateMatch(matchKey, matchStartTime);
+        // insert into match_detail (make sure there are no duplicated rows)
+        await matchController.insertMatchDetail(matchID, matchList[matchKey][0]);
+        await matchController.insertMatchDetail(matchID, matchList[matchKey][1]);
       }
 
-      let now = Date.now();
-      let matchID = await matchController.updateMatch(matchKey, now);
-
-      // insert into match_detail (make sure there are no duplicated rows)
-      await matchController.insertMatchDetail(matchID, matchList[matchKey][0]);
-      await matchController.insertMatchDetail(matchID, matchList[matchKey][1]);
+      // send start info to display in frontend
+      let startInfo = {
+        user1: {
+          user: userid1,
+          username: userIdNameMapping[userid1]
+        },
+        user2: {
+          user: userid2,
+          username: userIdNameMapping[userid2]
+        },
+        startTime: matchStartTime,
+        question: questionObject
+      };
+      console.log('socket on join, startInfo', startInfo)
+      io.to(matchKey).emit('startMatch', startInfo);
     });
 
     socket.on("codeObject", async data => {
@@ -360,11 +358,11 @@ socket.init = server => {
       let user = socketidMapping[socketid];
       let username = userIdNameMapping[user];
       console.log('-------------------------')
-      console.log('my socketid', socketid)
-      console.log('socketidMapping', socketidMapping)
-      console.log('my userid', user)
-      console.log('userIdNameMapping', userIdNameMapping)
-      console.log('my username --- ', username)
+      console.log('socket on disconnect: my socketid', socketid)
+      console.log('socket on disconnect: socketidMapping', socketidMapping)
+      console.log('socket on disconnect: my userid', user)
+      console.log('socket on disconnect: userIdNameMapping', userIdNameMapping)
+      console.log('socket on disconnect: my username --- ', username)
       console.log('-------------------------')
 
       let leaveMessage = {
