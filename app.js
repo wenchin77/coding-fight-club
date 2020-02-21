@@ -45,8 +45,8 @@ app.get('/signin', (req, res) => {
   res.render('signin');
 });
 
-app.get('/profile', (req, res) => {
-  res.render('profile');
+app.get('/dashboard', (req, res) => {
+  res.render('dashboard');
 });
 
 // bug report

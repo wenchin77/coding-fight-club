@@ -52,8 +52,8 @@ document.forms['signin'].addEventListener('submit', (event) => {
         window.location.pathname = localStorage.getItem('invited_url');
         return;
       }
-      // redirect to profile page
-      window.location.pathname = 'profile';
+      // redirect to dashboard page
+      window.location.pathname = 'dashboard';
     })
   }).catch((error) => {
     // server error
@@ -69,6 +69,24 @@ document.forms['signin'].addEventListener('submit', (event) => {
 // signup via axios
 document.forms['signup'].addEventListener('submit', (event) => {
   event.preventDefault();
+  
+  // validate username, email and password
+  let username = document.getElementById('signupUsername').value;
+  if (!validateRegEx(username, /^[0-9a-zA-Z_]{4,10}$/)) {
+    showAlert('Please enter 4-10 letters, numbers or the underscore as your username.');
+    return;
+  };
+  let email = document.getElementById('signupEmail').value;
+  if (!validateRegEx(email, /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/)) {
+    showAlert('Wrong email format. Please double check.');
+    return;
+  };
+  let password = document.getElementById('signupPassword').value;
+  if (!validateRegEx(password, /^.{4,16}$/)) {
+    showAlert('Please enter 4-16 characters as your password.');
+    return;
+  };
+
   axios(event.target.action, {
     method: 'POST',
     data: new URLSearchParams(new FormData(event.target)) // event.target is the form
@@ -89,8 +107,8 @@ document.forms['signup'].addEventListener('submit', (event) => {
         window.location.pathname = localStorage.getItem('invited_url');
         return;
       }
-      // redirect to profile page
-      window.location.pathname = 'profile';
+      // redirect to dashboard page
+      window.location.pathname = 'dashboard';
     })
   }).catch((error) => {
     // server error
@@ -102,6 +120,11 @@ document.forms['signup'].addEventListener('submit', (event) => {
     showAlert(error.response.data.error);
   });
 });
+
+function validateRegEx(input, pattern) {
+  return pattern.test(input);
+};
+
 
 function googleSigninInit() {
 	gapi.load('auth2', () => {
@@ -129,7 +152,7 @@ function googleSignin() {
     let res = await axios.post("api/v1/user/signin", data);
     console.log(res);
     document.cookie = `token=${JSON.parse(res.response).data.token}`;
-    window.location = "/profile";
+    window.location.pathname = 'dashboard';
     showAlert(error.response.data.error);
 	})
 }

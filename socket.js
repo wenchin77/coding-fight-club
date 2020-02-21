@@ -179,6 +179,7 @@ socket.init = server => {
 
     socket.on('submit', async (data) => {
       let user = data.user;
+      let username = userIdNameMapping[user];
 
       // Check if the user submitted before
       let submitTime = 0;
@@ -186,7 +187,7 @@ socket.init = server => {
       if (winnerCheck[matchKey]) {
         console.log('winnerCheck[matchKey][0]', winnerCheck[matchKey][0])
 
-        for (i=0;i<winnerCheck[matchKey].length;i++) {
+        for (let i=0;i<winnerCheck[matchKey].length;i++) {
           if (winnerCheck[matchKey][i].user === user) {
             submitTime += 1;
             console.log('winnerCheck[matchKey][i].user --- ', winnerCheck[matchKey][i].user)
@@ -203,13 +204,12 @@ socket.init = server => {
       let questionObject = await getQuestionDetail(matchKey, true);
       let questionConst = questionObject.const;
       let smallTestCases = questionObject.smallSampleCases;
-      let largeTestCases = questionObject.largeSampleCases;
       let difficulty = questionObject.difficulty;
 
       // put together the code & run one test case at a time
       let smallTestCasesNumber = smallTestCases.length;
       let smallPassedCasesNumber = 0;
-      for (i=0;i<smallTestCases.length;i++) {
+      for (let i=0;i<smallTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, smallTestCases[i]);
 
         // 按不同 user 存到 ./sessions js files
@@ -236,11 +236,12 @@ socket.init = server => {
       };
 
       // 類似的扣：之後跟上面的整理 +++++++++++++++
+      let largeTestCases = questionObject.largeSampleCases;
       let largeTestCasesNumber = largeTestCases.length;
       let largePassedCasesNumber = 0;
       let largeTestExecTimeSum = 0;
       let largeExecTimeObj = []; // 這個跟小測資不同！
-      for (i=0;i<largeTestCases.length;i++) {
+      for (let i=0;i<largeTestCases.length;i++) {
         let testCaseFinalCode = putTogetherCodeOnSubmit(code, questionConst, largeTestCases[i]);
         // 按不同 user 存到 ./sessions js files
         setUserCodeFile(matchKey, user, testCaseFinalCode);
@@ -300,9 +301,7 @@ socket.init = server => {
       await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, largePassed, largeExecTime, performance, answerTime, points);
       
       // +++++++ 更新 user table: + points (and level table if needed)
-      await userController.updateUserPointsLevel(user, points);
-
-
+      let levelupCheck = await userController.updateUserPointsLevel(user);
 
       // update winnerCheck {} for performance points calculation
       if (!winnerCheck[matchKey]) {
@@ -330,7 +329,7 @@ socket.init = server => {
       if (submitNumber < 2) {
         let submitMessage = {
           user,
-          message: `${user} submitted the code! We're waiting for your submission.`
+          message: `${username} submitted the code! We're waiting for your submission.`
         }
         io.to(matchKey).emit('waitForMatchEnd', submitMessage);
         return;
@@ -554,7 +553,7 @@ const calculatePoints = async (matchKey, totalCorrectness, largeExecTimeObj) => 
   console.log('largeThreshold[i].threshold_ms', largeThreshold[0].threshold_ms)
   console.log('largeExecTimeObj', parseInt(largeExecTimeObj[0]))
 
-  for (i=0; i<largeThreshold.length; i++) {
+  for (let i=0; i<largeThreshold.length; i++) {
     if (parseInt(largeExecTimeObj[i]) <= largeThreshold[i].threshold_ms) {
       perfPoints += (100/(largeThreshold.length));
       largePassedNo += 1;

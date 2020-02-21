@@ -2,15 +2,15 @@ const questionController = require('../controllers/questionController');
 
 // create an array -----------------------------
 let array = [];
-for (i=0;i<500000;i++) {
+for (let i=0;i<500000;i++) {
   array.push(i);
 }
 array.push(10000000)
-for (i=500000;i<800000;i++) {
+for (let i=500000;i<800000;i++) {
   array.push(i);
 }
 array.push(1000001);
-for (i=800000;i<1000000;i++) {
+for (let i=800000;i<1000000;i++) {
   array.push(i);
 }
 

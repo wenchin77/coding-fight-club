@@ -52,7 +52,7 @@ router.post('/result/past_performance', async (req, res) => {
     return;
   }
   let timeAdded = 0;
-  for (i=0; i<result.length; i++) {
+  for (let i=0; i<result.length; i++) {
     timeAdded += parseInt(result[i].large_exec_time);
   }
   let avgTime = timeAdded / result.length;

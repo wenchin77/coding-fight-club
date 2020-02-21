@@ -152,23 +152,20 @@ module.exports = {
     }
   },
 
-  updateUserPointsLevel: async (user_id, points) => {
+  updateUserPointsLevel: async (user_id) => {
     try {
       // check next level's min points
       let checkNextLevelMin = await userModel.querySelectNextLevelMin(user_id);
       console.log('updateUserPointsLevel -- checkNextLevelMin --', checkNextLevelMin)
       let userLevel = checkNextLevelMin[0].level_id;
+      let userTotalPoionts = checkNextLevelMin[0].points;
       let nextLevelMin = checkNextLevelMin[0].min_points;
-      console.log('userLevel ---', userLevel)
-      console.log('nextLevelMin ---', nextLevelMin)
-
 
       // if user points > next level's min points, update level id too
-      if (points >= nextLevelMin) {
-        console.log('升級！！points >= nextLevelMin')
+      if (userTotalPoionts >= nextLevelMin) {
+        console.log('level up! userTotalPoionts >= nextLevelMin')
         let level = userLevel + 1;
         let result = await userModel.queryUpdateUserLevel(level, user_id);
-        console.log(result)
       }
     } catch (err) {
       console.log(err)
