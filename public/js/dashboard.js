@@ -9,13 +9,17 @@ let userID;
 main();
 
 async function main() {
-  let userProfile = await showProfile(token);
-  userID = userProfile.id;
-  console.log('userID in main', userID)
+  try {
+    let userProfile = await showProfile(token);
+    userID = userProfile.id;
 
-  let matchSummary = await getMatchSummary(userID);
-  console.log(matchSummary)
-  // showMatchResult(userID, matchSummary);
+    let matchSummary = await getMatchSummary(userID);
+    console.log('matchSummary', matchSummary)
+    showMatchResult(userID, matchSummary);
+  } catch (err) {
+    showAlert('Something went wrong. Refresh the page to see result.')
+    console.log(err)
+  }
 }
 
 async function getUserInfo (token) {
@@ -30,8 +34,8 @@ async function getUserInfo (token) {
 // TO BE UPDATED +++++++++++++ print out in a table
 async function getMatchSummary (userID) {
   try {
-    const response = await axios.post(`/api/v1/match/result/summary?userid=${userID}`)
-    console.log('match detail data===', response.data)
+    const response = await axios.get(`/api/v1/match/result/summary?userid=${userID}`)
+    console.log('getMatchSummary data', response.data)
     return response.data;
   } catch (error) {
     console.log(error);
@@ -45,46 +49,44 @@ function capitalize (str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-// TO BE UPDATED +++++++++++++ (要多拉對手資料)
 async function showMatchResult (userID, result) {
-  let myIndex = ((userID == result[0].user_id) ? 0 : 1);
-  let opponentIndex = ((myIndex == 0) ? 1 : 0);
-  
-  let question = result[0].question_name;
-  let difficulty = result[0].difficulty;
-  let category = result[0].category;
-  let winner = result[0].winner_user_id;
-  
-  let winLose;
+  let matchResultSummary = [];
+  let length = (result.length<=5) ? result.length : 5;
+  // show latest 5 matches
+  for (let i=0; i<length; i++) {
+    console.log(result[i])
+    let question = result[i].question_name;
+    let difficulty = result[i].difficulty;
+    let category = result[i].category;
+    let winnerId = result[i].winner_id;
+    let points = result[i].points
+    let opponent = (result[i].winner_id === userID) ? result[i].loser_name : result[i].winner_name;
+    
+    let winLose;
+    if (winnerId === 'tie') {
+      winLose = 'Tie'
+    } else if (userID == winnerId) {
+      winLose = 'Win';
+    } else {
+      winLose = 'Lose'
+    };
 
-  if (!winner) {
-    document.getElementById("winLose").innerHTML = 'You Tied!';
-    winLose = 'Tie'
-  } else if (userID == winner) {
-    document.getElementById("winLose").innerHTML = 'You Won!';
-    winLose = 'Win'
-  } else {
-    document.getElementById("winLose").innerHTML = 'You Lost!';
-    winLose = 'Lose'
+    let startTime = new Date(result[i].match_start_time)
+    let localStartTime = startTime.toLocaleString();
+
+    let matchResult = 
+      {
+        'Match Time': localStartTime, 
+        Opponent: opponent,
+        Result: winLose, 
+        Category: capitalize(category), 
+        Difficulty: capitalize(difficulty), 
+        Question: question,
+        Points: points
+      };
+    matchResultSummary.push(matchResult);
   }
-
-  let startTime = new Date(matchResult[0].match_start_time)
-  let localStartTime = startTime.toLocaleString()
-
-  let matchResultSummary = [
-    {
-      'Match Time': localStartTime, 
-      Opponent: matchResult[opponentIndex].user_name, 
-      Result: winLose, 
-      Topic: capitalize(question.category), 
-      Difficulty: capitalize(question.difficulty), 
-      Question: question.question_name,
-      Points: matchResult[myIndex].points
-    }
-  ]
-
-  console.log(matchResultSummary)
-
+  console.log(matchResultSummary);
   // add data to table
   addDataToTable('summaryTable', matchResultSummary);
 
@@ -125,7 +127,7 @@ function addDataToTable(elementId, array) {
 async function showProfile(token) {
   try {
     const response = await axios.post(`/api/v1/user/get_user_info?token=${token}`)
-    console.log('match detail data===', response.data);
+    console.log('showProfile data', response.data);
     document.getElementById('username').innerHTML = `Username: ${response.data[0].user_name}`
     document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`
     document.getElementById('points').innerHTML = `Points: ${response.data[0].points}`

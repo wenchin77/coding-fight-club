@@ -5,7 +5,6 @@ const questionController = require('../controllers/questionController');
 
 // 路徑是 /api/v1/match
 
-
 router.post('/get_key', (req, res) => {
   let key = matchController.getKey();
   res.send(key);
@@ -16,13 +15,13 @@ router.post('/insert_match', (req, res) => {
   res.send(result);
 });
 
-router.post('/get_matchid', async (req, res) => {
+router.get('/get_matchid', async (req, res) => {
   let key = req.query.matchkey;
   let matchid = await matchController.getMatchId(key);
   res.json(matchid); // had to turn it into a string or json otherwise this error would occur in terminal "express deprecated res.send(status): Use res.sendStatus(status) instead"
 });
 
-router.post('/result/details', async (req, res) => {
+router.get('/result/details', async (req, res) => {
   let matchID = req.query.matchid;
   let result = await matchController.getMatchDetails(matchID);
 
@@ -36,14 +35,14 @@ router.post('/result/details', async (req, res) => {
   res.send(final);
 });
 
-router.post('/result/summary', async (req, res) => {
+router.get('/result/summary', async (req, res) => {
   let userID = req.query.userid;
   console.log('userID', parseInt(userID))
   let result = await matchController.getMatchSummary(parseInt(userID));
   res.send(result);
 });
 
-router.post('/result/past_performance', async (req, res) => {
+router.get('/result/past_performance', async (req, res) => {
   let questionID = req.query.questionid;
   // performance 拉之前寫過這題的所有 execTime，看分布在哪 
   let result = await matchController.getMatchDetailPastExecTime(questionID);

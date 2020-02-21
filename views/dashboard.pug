@@ -20,12 +20,14 @@ block content
 
         br
         h3 Match History
-        .profileTableContainer
-          p.summaryTableContainer Match Summary Table Here (w/ link to match_result)
-          p No match result yet
-          table#summaryTable
+        //- .profileTableContainer
+        p.summaryTableContainer The most recent matches you participated in
+        //- p No match result yet
+        table#summaryTable
           
         .profileButtons
+          a(href='/match_history')
+            button#profileBtn View All Matches
           a(href='/match_setup')
             button#profileBtn Start a Match
           a(href='/')

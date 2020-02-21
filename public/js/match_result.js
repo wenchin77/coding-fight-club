@@ -7,9 +7,6 @@ const matchKey = url.substring(url.lastIndexOf('/') + 1);
 async function main() {
   try {
     let userID = await getUserInfo(token);
-    // let username = userInfo.user_name;
-    console.log('userid', userID)
-
     let matchID = await getMatchID(matchKey);
     let matchDetails = await getMatchDetails(matchID, userID);
     showMatchResult(userID, matchDetails);
@@ -34,7 +31,7 @@ async function getUserInfo(token) {
 
 async function getMatchID (matchKey) {
   try {
-    let response = await axios.post(`/api/v1/match/get_matchid?matchkey=${matchKey}`)
+    let response = await axios.get(`/api/v1/match/get_matchid?matchkey=${matchKey}`)
     let matchID = response.data;
     return matchID;
   } catch (error) {
@@ -44,7 +41,7 @@ async function getMatchID (matchKey) {
 
 async function getPastExecTime (questionID) {
   try {
-    const response = await axios.post(`/api/v1/match/result/past_performance?questionid=${questionID}`)
+    const response = await axios.get(`/api/v1/match/result/past_performance?questionid=${questionID}`)
     return `${parseInt(response.data)} ms`;
   } catch (error) {
     console.log(error);
@@ -54,7 +51,7 @@ async function getPastExecTime (questionID) {
 
 async function getMatchDetails (matchID) {
   try {
-    const response = await axios.post(`/api/v1/match/result/details?matchid=${matchID}`)
+    const response = await axios.get(`/api/v1/match/result/details?matchid=${matchID}`)
     console.log('match detail data===', response.data)
     return response.data;
   } catch (error) {
@@ -91,27 +88,35 @@ function convertAnswerTime (time) {
 async function showMatchResult (userID, result) {
   let matchResult = result.matchResult;
   let question = result.question;
+  let difficulty = capitalize(question.difficulty);
+  let category = capitalize(question.category);
   let winner = matchResult[0].winner_user_id;
   let myIndex = ((userID == matchResult[0].user_id) ? 0 : 1);
   let opponentIndex = ((myIndex == 0) ? 1 : 0);
   let winLose;
 
-  if (!winner) {
+  if (winner === 'tie') {
     document.getElementById("winLose").innerHTML = 'You Tied!';
     winLose = 'Tie'
-  } else if (userID == winner) {
+  } else if (winner === userID) {
     document.getElementById("winLose").innerHTML = 'You Won!';
     winLose = 'Win'
-  } else {
+  } else if (winner === matchResult[opponentIndex].user_id) {
     document.getElementById("winLose").innerHTML = 'You Lost!';
     winLose = 'Lose'
+  } else {
+    console.log('This user has no right to view this match');
+    showAlert('Wrong match information.', () => {
+      window.location.pathname = '/dashboard';
+    })
+    return;
   }
 
   let startTime = new Date(matchResult[0].match_start_time)
   let localStartTime = startTime.toLocaleString()
 
   let matchResultSummary = [
-    {'Match Time': localStartTime, Opponent: matchResult[opponentIndex].user_name, Result: winLose, Topic: capitalize(question.category), Difficulty: capitalize(question.difficulty), Question: question.question_name, Points: matchResult[myIndex].points}
+    {'Match Time': localStartTime, Opponent: matchResult[opponentIndex].user_name, Result: winLose, Category: category, Difficulty: difficulty, Question: question.question_name, Points: matchResult[myIndex].points}
   ]
 
   let pastExecTime = await getPastExecTime(question.id);

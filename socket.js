@@ -28,7 +28,6 @@ socket.init = server => {
     
     socket.on("join", async (token) => {
       console.log('==================')
-      console.log('socket on join, token received: ', token);
       let result = await userController.selectUserInfoByToken(token);
       let user = result[0].id;
       let username = result[0].user_name;
@@ -276,7 +275,6 @@ socket.init = server => {
       let largeCorrectness = `${largePassedCasesNumber}/${largeTestCasesNumber}`
       let correctness = 100 * parseFloat((smallPassedCasesNumber + largePassedCasesNumber)/(smallTestCasesNumber + largeTestCasesNumber))
 
-
       // calculate exec time (counting with passed tests only)
       let largeExecTime;
       if (largePassedCasesNumber === 0) {
@@ -289,19 +287,17 @@ socket.init = server => {
       let startTime = await matchController.getMatchStartTime(matchKey);
       let answerTime = (Date.now() - startTime)/1000; // in seconds
 
-
-
       let matchID = await matchController.getMatchId(matchKey);
       // rate correctness, performance
       let calculated = await calculatePoints(matchKey, correctness, largeExecTimeObj);
       let performance = calculated.perfPoints;
       let points = calculated.points;
       let largePassed = calculated.largePassed;
-      // 紀錄 code 跟項目評分在 match_detail
+      // update match_detail
       await matchController.updateMatchDetail(matchID, user, code, smallCorrectness, largeCorrectness, correctness, largePassed, largeExecTime, performance, answerTime, points);
       
-      // +++++++ 更新 user table: + points (and level table if needed)
-      let levelupCheck = await userController.updateUserPointsLevel(user);
+      // update user table: + points (and level table if needed)
+      await userController.updateUserPointsLevel(user);
 
       // update winnerCheck {} for performance points calculation
       if (!winnerCheck[matchKey]) {
@@ -335,17 +331,20 @@ socket.init = server => {
         return;
       }
             
-      // compare correctness, execTime, answerTime to get winner
       let winner = await getWinner(winnerCheck, matchKey);
+      let loser;
+      if (winnerCheck[matchKey][0].user === winner) {
+        loser = winnerCheck[matchKey][1].user
+      } else {
+        loser = winnerCheck[matchKey][0].user
+      }
 
       // update match_table: winner
-      await matchController.updateMatchWinner(matchKey, winner); 
+      await matchController.updateMatchWinner(matchKey, winner, loser); 
 
-      // for frontend to redirect
       io.to(matchKey).emit('endMatch', matchKey);
       console.log('winnerCheck after match', winnerCheck)
 
-      // +++++++++++ delete winnerCheck match info
       delete winnerCheck[matchKey]
     })
 
@@ -371,8 +370,9 @@ socket.init = server => {
       io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
 
       delete socketidMapping[socketid];
-      console.log('socketidMapping after deleting disconnected user', socketidMapping)
-
+      console.log('socketidMapping after deleting disconnected user', socketidMapping);
+      delete userIdNameMapping[user];
+      console.log('userIdNameMapping after deleting disconnected user', userIdNameMapping);
 
       if (matchList[matchKey]) {
         let index = matchList[matchKey].indexOf(user);
@@ -587,17 +587,23 @@ const getWinner = async (winnerCheck, matchKey) => {
 
   if (points_0 > points_1) {
     winner = user_0;
+    console.log('points_0 > points_1')
   } else if (points_0 < points_1) {
     winner = user_1;
+    console.log('points_0 < points_1')
   } else { // same points
     if (answerTime_0 < answerTime_1) {
       winner = user_0;
+      console.log('same points, answerTime_0 < answerTime_1')
     } else if (answerTime_0 > answerTime_1) {
       winner = user_1;
+      console.log('same points, answerTime_0 > answerTime_1')
     } else {
       winner = 'tie';
+      console.log('same points, answerTime_0 = answerTime_1')
     }
   }
+  console.log('winner', winner)
   return winner;
 }
 

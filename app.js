@@ -5,7 +5,7 @@ const AppError = require('./util/appError.js');
 const socket = require('./socket');
 const path = require('path');
 const bodyparser = require("body-parser");
-// const cst=require("./util/constants.js");
+const cst = require("./util/constants.js");
 
 const matchRoutes = require('./routes/matchRoutes');
 const questionRoutes = require('./routes/questionRoutes');
@@ -55,9 +55,9 @@ app.get('/bug_report', (req, res) => {
 });
 
 // api routes
-app.use('/api/v1/match', matchRoutes);
-app.use('/api/v1/question', questionRoutes);
-app.use('/api/v1/user', userRoutes);
+app.use(`/api/${cst.API_VERSION}/match`, matchRoutes);
+app.use(`/api/${cst.API_VERSION}/question`, questionRoutes);
+app.use(`/api/${cst.API_VERSION}/user`, userRoutes);
 
 
 // handle undefined routes

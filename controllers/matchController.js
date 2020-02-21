@@ -105,9 +105,9 @@ module.exports = {
     }
   },
 
-  updateMatchWinner: async (key, winner) => {
+  updateMatchWinner: async (key, winner, loser) => {
     try {
-      let result = await matchModel.queryUpdateMatchWinner(key, winner);
+      let result = await matchModel.queryUpdateMatchWinner(key, winner, loser);
     } catch (err) {
       console.log(err);
     }

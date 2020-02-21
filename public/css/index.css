@@ -698,25 +698,21 @@ button:hover {
   margin: 10% auto;
   background: rgba(0,0,0,0.65);
   padding: 25px;
-  overflow: hidden;
+  overflow: scroll;
 }
 
-.profileTableContainer {
-  overflow: auto;
-}
-
-/* .profileButtons {
+.profileButtons {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: center;
-} */
+  /* align-items: center; */
+  justify-content: space-around;
+}
 
 #profileBtn {
-  width: 30%;
+  width: 300px;
   padding: 10px 30px;
   cursor: pointer;
-  margin: 20px;
+  margin: 15px 0 ;
   background: #ccc;
   border: 0;
   outline: none;

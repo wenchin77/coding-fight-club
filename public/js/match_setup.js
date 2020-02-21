@@ -84,32 +84,6 @@ function setElementActive(parent, activeClassName) {
   });
 }
 
-
-// async function setUpAMatch() {
-  // if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
-  //   showAlert("Please select a category and a difficulty level.");
-  //   return;
-  // }
-  // const category = document.querySelector('.categoryActive').value;
-  // const difficulty = document.querySelector('.difficultyActive').value;
-
-  // // ajax 打 question list api
-  // let questionID = await getQuestion(category, difficulty);
-  // if (!questionID) {
-  //   return;
-  // }
-
-//   if(!matchKey || matchKey == '') {
-//     matchKey = await getKey();
-//   };
-
-//   // insert a match
-//   let match = await insertMatch(questionID, matchKey);
-
-//   // redirect to a room in match page with match key
-//   window.location = `match/${matchKey}`;
-// }
-
 async function getQuestion(category, difficulty) {
   try {
     const response = await axios.get(`/api/v1/question/${category}?difficulty=${difficulty}`)

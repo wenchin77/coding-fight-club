@@ -1,7 +1,6 @@
 // Constants
 module.exports = {
-	HOME: "/srv/www/stylish-backend",
 	PROTOCOL: "https://",
-	HOST_NAME: "api.appworks-school.tw",
-	API_VERSION: "1.0"
+	HOST: "coding-fight-club.thewenchin.com",
+	API_VERSION: "v1"
 };
