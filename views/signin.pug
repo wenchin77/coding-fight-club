@@ -1,10 +1,15 @@
 extends layout
 block scripts
     meta(name='google-signin-client_id' content='1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com')
+    //- for fb loging
+    //- script(src='../js/fb_init.js')
+
+    //- Load the Google Platform Library
+    script(src='https://apis.google.com/js/platform.js?onload=googleInit' async='' defer='')
+    //- script(src='https://apis.google.com/js/platform.js' async='' defer='')
 
 block content
-  //- for fb loging
-  //- script(src='../js/fb_init.js')
+  
 
   .backgroundImageWrapper
 
@@ -16,7 +21,7 @@ block content
 
       .socialIcons
         img(src='../img/github.png' alt='Github')
-        img(src='../img/google.png' alt='Google' onclick='googleSignin()')
+        img.googleSignin(src='../img/google.png' alt='Google' onclick='onGoogleSignIn()' data-onsuccess='onGoogleSignIn()')
         img(src='../img/facebook.png' alt='Facebook')
 
       form.inputGroup#signin(action='/api/v1/user/signin' method='post')
@@ -37,6 +42,5 @@ block content
 
           script(src='../js/signin.js')
 
-  //- Load the Google Platform Library
-  script(src='https://apis.google.com/js/platform.js' async='' defer='')
+  
 
