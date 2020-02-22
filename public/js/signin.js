@@ -126,7 +126,7 @@ function validateRegEx(input, pattern) {
 };
 
 
-function googleSignin() {
+async function googleSignin() {
   let auth2 = gapi.auth2.getAuthInstance();
   console.log('auth2', auth2)
 	auth2.signIn().then(async (GoogleUser) => {

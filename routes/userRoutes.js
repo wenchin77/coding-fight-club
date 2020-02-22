@@ -139,7 +139,7 @@ router.post('/signin', async (req, res)=> {
     };
     // Get profile from google
     getGoogleProfile(data.access_token)
-    .then((profile) => {
+    .then( async (profile) => {
       if (!profile.name || !profile.email) {
         res.status(400).send({error: "Permissions Error: name and email are required when you sign in with a Google account."});
         return;
