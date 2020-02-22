@@ -189,15 +189,10 @@ router.post('/signin', async (req, res)=> {
     return;
   };
 
-  // // github
-  // if (data.code) {
-  //   // do stuff
-  //   try {
-  //     let requestToken = data.code;
-  //     let profile = await getGithubProfile(requestToken);
-  //   }
+  // github
+  if (data.provider === 'github') {
     
-  // };
+  };
 
   if (data.provider === 'facebook') {
     // do stuff
@@ -205,20 +200,18 @@ router.post('/signin', async (req, res)=> {
 });
 
 // github
-router.get('/signin', async (req, res) => {
-  console.log('signin get req: ', req)
-  if (req.query.code) {
-    try{
-      const requestToken = req.query.code;
-      let profile = await getGithubProfile(requestToken);
-      let accessToken = profile.access_token;
-      res.redirect(`/singin?access_token=${accessToken}`)
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({error: 'Server error. Please try again later.'});
-    }
+router.get('/github_redirect', (req, res) => {
+  console.log('github_redirect req: ', req);
+  try{
+    const requestToken = req.query.code;
+    let profile = await getGithubProfile(requestToken);
+    let accessToken = profile.access_token;
+    res.redirect(`/singin?access_token=${accessToken}`)
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({error: 'Server error. Please try again later.'});
   }
-})
+});
 
 function getGoogleProfile (accessToken) {
 	return new Promise((resolve, reject) => {
