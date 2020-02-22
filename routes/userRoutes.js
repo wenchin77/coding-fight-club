@@ -223,7 +223,6 @@ router.get('/github_redirect', async (req, res) => {
         Authorization: 'token ' + accessToken
       }
     });
-    profile = JSON.parse(profile);
     res.status(200).send(profile);
 
 
