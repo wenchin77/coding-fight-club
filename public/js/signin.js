@@ -126,46 +126,8 @@ function validateRegEx(input, pattern) {
 };
 
 
-// function googleInit() {
-// 	gapi.load('auth2', () => {
-// 		gapi.auth2.init({
-// 			client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com"
-// 		});
-//   });
-// }
+function googleSignin() {
 
-// function googleInit(){
-//   gapi.load('auth2', function() {
-//     auth2 = gapi.auth2.init({
-//       client_id: '1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com',
-//       scope: 'profile'
-//     });
-
-//   auth2.attachClickHandler(element, {},
-//     (googleUser) => {
-//         console.log('Signed in: ' + googleUser.getBasicProfile().getName());
-//       }, (error) => {
-//         console.log('Sign-in error', error);
-//       }
-//     );
-//   });
-
-//   element = document.getElementById('googleSignin');
-// }
-
-
-
-
-function onGoogleSignIn() {
-  // gapi.load('auth2', () =>{
-  //   gapi.auth2.signIn().then((googleUser) =>{
-  //     console.log('user signed in')
-  //     console.log(googleUser)
-  //   }, (error) => {
-  //     console.log('user failed to sign in')
-  //     console.log(error)
-  //   })
-  // })
   let auth2 = gapi.auth2.getAuthInstance(); // 取得GoogleAuth物件
   console.log('auth2', auth2)
 	auth2.signIn().then(async (GoogleUser) => {

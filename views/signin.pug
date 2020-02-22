@@ -7,32 +7,13 @@ block scripts
     //- Load the Google Platform Library
     //- script(src='https://apis.google.com/js/api:client.js')
     script(src='https://apis.google.com/js/platform.js?onload=googleInit' async='' defer='')
-    //- script(src='https://apis.google.com/js/platform.js' async='' defer='')
     script.
-      let googleUser = {};
-      let googleInit = () => {
+      function googleInit() {
         gapi.load('auth2', () => {
-          // Retrieve the singleton for the GoogleAuth library and set up the client.
-          auth2 = gapi.auth2.init({
-            client_id: '1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com',
-            // cookiepolicy: 'single_host_origin',
-            // Request scopes in addition to 'profile' and 'email'
-            // scope: 'additional_scope'
+          gapi.auth2.init({
+            client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com"
           });
-          attachSignin(document.getElementById('googleSignin'));
-          alert('attachSignin!')
         });
-      };
-
-      function attachSignin(element) {
-        console.log(element.id);
-        auth2.attachClickHandler(element, {},
-            function(googleUser) {
-              document.getElementById('name').innerText = "Signed in: " +
-                  googleUser.getBasicProfile().getName();
-            }, function(error) {
-              alert(JSON.stringify(error, undefined, 2));
-            });
       }
 
 block content
@@ -48,7 +29,7 @@ block content
 
       .socialIcons
         img(src='../img/github.png' alt='Github')
-        img#googleSignin(src='../img/google.png' alt='Google')
+        img#googleSignin(src='../img/google.png' alt='Google' onclick='googleSignin()')
         img(src='../img/facebook.png' alt='Facebook')
 
       form.inputGroup#signin(action='/api/v1/user/signin' method='post')
