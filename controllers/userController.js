@@ -94,8 +94,91 @@ module.exports = {
     }
   },
 
+  insertGoogleUser: async (data) => {
+    let now = Date.now();
+    let hash = crypto.createHash("sha256");
+    hash.update(data.email + data.password + now);
+    let token = hash.digest("hex");
+
+    try  {
+      let userInfo = {
+        user_name: data.name,
+        email: data.email,
+        picture: data.picture,
+        provider: 'google',
+        access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
+        token,
+        points: 0,
+        level_id: 1 // beginner level id
+      }
+      console.log('inserting user...')
+      let result = await userModel.queryInsertUser(userInfo);
+      let getUserInfo = await userModel.querySelectUserByEmail(data.email);
+      console.log(getUserInfo)
+      return({
+        id: getUserInfo[0].id,
+        username: getUserInfo[0].user_name,
+        email: getUserInfo[0].email,
+        picture: getUserInfo[0].picture,
+        provider: getUserInfo[0].provider,
+        token: getUserInfo[0].token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level_name,
+        access_expired: getUserInfo[0].access_expired
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   updateGoogleUser: async (data) => {
-    // +++++++++++++++
+    // check if token's not expired, if not send back the same token
+    let now = Date.now();
+    let getUserInfo = await userModel.querySelectUserByEmail(data.email);
+    let accessExpired = getUserInfo[0].access_expired;
+    if (now <= accessExpired) {
+      let userInfo = {
+        id: getUserInfo[0].id,
+        username: getUserInfo[0].user_name,
+        email: getUserInfo[0].email,
+        picture: getUserInfo[0].picture,
+        provider: getUserInfo[0].provider,
+        token: getUserInfo[0].token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level_name,
+        access_expired: getUserInfo[0].access_expired
+      }
+      return(userInfo);
+    };
+
+    // token expired: set a new token and send back to frontend
+    let hash = crypto.createHash("sha256");
+    hash.update(data.email + data.password + now);
+    let token = hash.digest("hex");
+    
+    try  {
+      let userReq = {
+        access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
+        token
+      }
+      console.log('updating user...')
+      await userModel.queryUpdateUser(userReq);
+      let getUserInfo = await userModel.querySelectUserByEmail(data.email);
+      let userInfo = {
+        id: getUserInfo[0].id,
+        username: getUserInfo[0].user_name,
+        email: getUserInfo[0].email,
+        picture: getUserInfo[0].picture,
+        provider: getUserInfo[0].provider,
+        token: getUserInfo[0].token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level,
+        access_expired: getUserInfo[0].access_expired
+      }
+      return(userInfo);
+    } catch (err) {
+      console.log(err);
+    }
   },
 
 
@@ -162,7 +245,6 @@ module.exports = {
     try {
       // check next level's min points
       let checkNextLevelMin = await userModel.querySelectNextLevelMin(user_id);
-      console.log('updateUserPointsLevel -- checkNextLevelMin --', checkNextLevelMin)
       let userTotalPoionts = checkNextLevelMin[0].points;
       let nextLevelMin = checkNextLevelMin[0].next_points;
       let nextLevelId = checkNextLevelMin[0].next_id;

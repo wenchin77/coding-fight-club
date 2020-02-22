@@ -5,14 +5,13 @@ block scripts
     //- script(src='../js/fb_init.js')
 
     //- Load the Google Platform Library
-    //- script(src='https://apis.google.com/js/api:client.js')
     script(src='https://apis.google.com/js/platform.js?onload=googleInit' async='' defer='')
     script.
       function googleInit() {
         gapi.load('auth2', () => {
           gapi.auth2.init({
             client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com",
-            redirect_uri: 'postmessage'
+            redirect_uri: 'postmessage' // otherwise: redirect_uri_mismatch
           });
         });
       }

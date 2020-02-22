@@ -127,26 +127,52 @@ function validateRegEx(input, pattern) {
 
 
 function googleSignin() {
-
-  let auth2 = gapi.auth2.getAuthInstance(); // 取得GoogleAuth物件
+  let auth2 = gapi.auth2.getAuthInstance();
   console.log('auth2', auth2)
 	auth2.signIn().then(async (GoogleUser) => {
-		console.log("Google登入成功"); 
+		console.log("Google sign in"); 
 		console.log('ID: ' + GoogleUser.getId()); // Do not send to your backend! Use an ID token instead
-		let id_token = GoogleUser.getAuthResponse().id_token;
+    let id_token = GoogleUser.getAuthResponse().id_token;
+    console.log('GoogleUser.getAuthResponse()', GoogleUser.getAuthResponse())
 		console.log("ID Token: " + id_token);
 		const data = {
 			provider: "google",
 			access_token: id_token
 		};
-		console.log(data);
-
-		// 把登入資料拿去打後端 signin api 再轉址顯示用戶資料
-    let res = await axios.post("api/v1/user/signin", data);
-    console.log(res);
-    document.cookie = `token=${JSON.parse(res.response).data.token}`;
-    window.location.pathname = 'dashboard';
-    showAlert(error.response.data.error);
+    console.log(data);
+    
+    try {
+      let res = await axios.post("api/v1/user/signin", data);
+      console.log(res);
+      // add userinfo to localStorage
+      localStorage.setItem('id', res.data.id);
+      localStorage.setItem('username', res.data.username)
+      localStorage.setItem('email', res.data.email);
+      localStorage.setItem('picture', res.data.picture);
+      localStorage.setItem('provider', res.data.provider);
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('points', res.data.points);
+      localStorage.setItem('level', res.data.level);
+      localStorage.setItem('access_expired', res.data.access_expired);
+  
+      showAlert('Welcome to the Coding Fight Club!', () => {
+        // if user was invited in a match before signing in, redirect to match page
+        if (localStorage.getItem('invited_url')) {
+          window.location.pathname = localStorage.getItem('invited_url');
+          return;
+        }
+        // redirect to dashboard page
+        window.location.pathname = 'dashboard';
+      })
+    } catch (error) {
+      // server error
+      if (!error.response) {
+        showAlert('Sorry, some error occurred on our server. Please try again later.');
+        return;
+      };
+      // client error
+      showAlert(error.response.data.error);    
+    }
 	})
 }
 

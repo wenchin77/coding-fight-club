@@ -128,7 +128,6 @@ router.post('/signin', async (req, res)=> {
     // check if token's not expired, if not send back the same token, if so set a new token
     let result = await userController.updateUser(data);
     res.status(200).send(result);
-    return;
   }
 
   // google
@@ -142,22 +141,24 @@ router.post('/signin', async (req, res)=> {
     getGoogleProfile(data.access_token)
     .then((profile) => {
       if (!profile.name || !profile.email) {
-        res.status(400).send({
-          error: "Permissions Error: name, email are required."
-        });
+        res.status(400).send({error: "Permissions Error: name and email are required when you sign in with a Google account."});
         return;
       }
-      console.log('profile', profile)
-      // insert / update user in controller +++++++++++++++
+      console.log('profile', profile);
 
+      // check in db if email exists
+      let userNumByEmail = await userController.countUsersByEmail(profile.email);
+      if (userNumByEmail === 0) {
+        console.log('google user not found, inserting...')
+        // if not insert user
+        let result = await userController.insertGoogleUser(data);
+        res.status(200).send(result);
+        return;
+      };
 
-      res.send({
-        user: {
-          name: profile.name,
-          email: profile.email,
-          picture: profile.picture
-        }
-      });
+      // check if token's not expired, if not send back the same token, if so set a new token
+      let result = await userController.updateUser(data);
+      res.status(200).send(result);
     })
     .catch((error) => {
       res.status(500).send({ error });
