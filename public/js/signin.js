@@ -188,7 +188,7 @@ async function getGithubProfile(token) {
         Authorization: 'token ' + token
       }
     });
-    let emails = await axios.get('https://api.github.com/emails', {
+    let emails = await axios.get('https://api.github.com/user/emails', {
       headers: {
         // Include the token in the Authorization header
         Authorization: 'token ' + token
