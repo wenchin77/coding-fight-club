@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
+// request: to get google profile
 const request = require("request");
 const userController = require('../controllers/userController');
-const onlineUsers = {};
+// for github clientid & client secret
+require('dotenv').config();
+
 
 // 路徑是 /api/v1/user
 
 // // 暫時暫停 ping --------------------------
+// const onlineUsers = {};
 // router.post('/get_stranger', async (req, res) => {
 //   let token = req.query.token;
 //   let category = req.query.category;
@@ -65,7 +69,29 @@ const onlineUsers = {};
 //   // console.log('onlineUsers in setInterval === ',onlineUsers);
 // }, 1000*20); // 之後調整成長一點
 
-
+// let getStranger = (obj, myToken) => {
+//   let keys = Object.keys(obj);
+//   if (keys.length <= 1) {
+//     console.log('only 1 user online now...')
+//     return false;
+//   }
+//   let index = keys.length * Math.random() << 0;
+//   console.log('index', index)
+//   let strangerToken = keys[index];
+//   console.log('strangerToken',strangerToken)
+//   console.log('myToken', myToken)
+//   if (strangerToken === myToken) {
+//     console.log('token belongs to me, find the next person')
+//     // if token belongs to me, find the next person 
+//     let newIndex = index%keys.length +1
+//     let newResult = obj[keys[newIndex]];
+//     let newStrangerToken = keys[newIndex];
+//     return {result: newResult, strangerToken: newStrangerToken};
+//   } else {
+//     let result = obj[strangerToken];
+//     return {result, strangerToken};
+//   }
+// };
 
 router.post('/signup', async (req, res)=> {
   let data = req.body;
@@ -102,7 +128,6 @@ router.post('/get_user_info', async (req, res) => {
   res.json(result);
 });
 
-
 router.post('/signin', async (req, res)=> {
   let data = req.body;
   console.log(data)
@@ -129,11 +154,12 @@ router.post('/signin', async (req, res)=> {
     // check if token's not expired, if not send back the same token, if so set a new token
     let result = await userController.updateUser(data);
     res.status(200).send(result);
+    return;
   }
 
-  // google
+  // google 
   if (data.provider === 'google') {
-    console.log('getting ajax for google signin...', data)
+    console.log('getting ajax for google signin...')
     // Get profile from google
     try {
       let profile = await getGoogleProfile(data.access_token);
@@ -144,7 +170,6 @@ router.post('/signin', async (req, res)=> {
 
       // check in db if email exists
       let userNumByEmail = await userController.countUsersByEmail(profile.email);
-      console.log('userNumByEmail: ',userNumByEmail)
       if (userNumByEmail === 0) {
         console.log('google user not found, inserting...')
         // if not insert user
@@ -159,15 +184,43 @@ router.post('/signin', async (req, res)=> {
       res.status(200).send(result);
     } catch (error) {
       console.log(error)
-      res.status(500).send({ error });
+      res.status(500).send({error: 'Server error. Please try again later.'});
     };
-  }
-  
+    return;
+  };
 
+  // // github
+  // if (data.code) {
+  //   // do stuff
+  //   try {
+  //     let requestToken = data.code;
+  //     let profile = await getGithubProfile(requestToken);
+  //   }
+    
+  // };
+
+  if (data.provider === 'facebook') {
+    // do stuff
+  };
 });
 
+// github
+router.get('/signin', (req, res) => {
+  console.log('signin get req: ', req)
+  if (req.query.code) {
+    try{
+      const requestToken = req.query.code;
+      let profile = await getGithubProfile(requestToken);
+      let accessToken = profile.access_token;
+      res.redirect(`/singin?access_token=${accessToken}`)
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({error: 'Server error. Please try again later.'});
+    }
+  }
+})
 
-let getGoogleProfile = (accessToken) => {
+function getGoogleProfile (accessToken) {
 	return new Promise((resolve, reject) => {
 		if(!accessToken){
 			resolve(null);
@@ -189,6 +242,20 @@ let getGoogleProfile = (accessToken) => {
 	})
 };
 
+async function getGithubProfile (token) {
+  let clientID = process.env.GITHUB_CLIENTID;
+  let clientSecret = process.env.GITHUB_CLIENTSECRET;
+  let profile = await axios({
+    method: 'post',
+    url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${token}`,
+    // Set the content type header, so that we get the response in JSON
+    headers: {
+      accept: 'application/json'
+    }
+  });
+  console.log(profile.data);
+  return(profile.data);
+}
 
 
 router.post('/bug_report', async (req, res) => {
@@ -203,31 +270,6 @@ router.post('/bug_report', async (req, res) => {
     res.status(500).send(e)
   }
 }) 
-
-
-let getStranger = (obj, myToken) => {
-  let keys = Object.keys(obj);
-  if (keys.length <= 1) {
-    console.log('only 1 user online now...')
-    return false;
-  }
-  let index = keys.length * Math.random() << 0;
-  console.log('index', index)
-  let strangerToken = keys[index];
-  console.log('strangerToken',strangerToken)
-  console.log('myToken', myToken)
-  if (strangerToken === myToken) {
-    console.log('token belongs to me, find the next person')
-    // if token belongs to me, find the next person 
-    let newIndex = index%keys.length +1
-    let newResult = obj[keys[newIndex]];
-    let newStrangerToken = keys[newIndex];
-    return {result: newResult, strangerToken: newStrangerToken};
-  } else {
-    let result = obj[strangerToken];
-    return {result, strangerToken};
-  }
-};
 
 
 

@@ -28,7 +28,8 @@ block content
         button(type='button' class='toggleBtn' onclick='switchToSignup()') SIGN UP
 
       .socialIcons
-        img(src='../img/github.png' alt='Github')
+        a(href='https://github.com/login/oauth/authorize?client_id=8d64abb54295cfe2d88a')
+          img(src='../img/github.png' alt='Github' onclick='githubSignin()')
         img#googleSignin(src='../img/google.png' alt='Google' onclick='googleSignin()')
         img(src='../img/facebook.png' alt='Facebook')
 

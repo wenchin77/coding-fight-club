@@ -29,7 +29,7 @@ const useTestUser = () => {
   password.value = '';
 }
 
-// signin via axios
+// native signin
 document.forms['signin'].addEventListener('submit', (event) => {
   event.preventDefault();
   axios(event.target.action, {
@@ -58,7 +58,7 @@ document.forms['signin'].addEventListener('submit', (event) => {
   }).catch((error) => {
     // server error
     if (!error.response) {
-      showAlert('Sorry, some error occurred on our server. Please try again later.');
+      showAlert('Server error. Please try again later.');
       return;
     };
     // client error
@@ -66,7 +66,7 @@ document.forms['signin'].addEventListener('submit', (event) => {
   });
 });
 
-// signup via axios
+// native signup
 document.forms['signup'].addEventListener('submit', (event) => {
   event.preventDefault();
   
@@ -113,18 +113,13 @@ document.forms['signup'].addEventListener('submit', (event) => {
   }).catch((error) => {
     // server error
     if (!error.response) {
-      showAlert('Sorry, some error occurred on our server. Please try again later.');
+      showAlert('Server error. Please try again later.');
       return;
     };
     // client error
     showAlert(error.response.data.error);
   });
 });
-
-function validateRegEx(input, pattern) {
-  return pattern.test(input);
-};
-
 
 async function googleSignin() {
   let auth2 = gapi.auth2.getAuthInstance();
@@ -167,7 +162,7 @@ async function googleSignin() {
     } catch (error) {
       // server error
       if (!error.response) {
-        showAlert('Sorry, some error occurred on our server. Please try again later.');
+        showAlert('Server error. Please try again later.');
         return;
       };
       // client error
@@ -176,8 +171,41 @@ async function googleSignin() {
 	})
 }
 
+if (window.location.search.substring(1).includes('access_token')) {
+  githubSignin()
+};
 
-const showTestUserHelp = () => {
+function githubSignin() {
+  try {
+    const query = window.location.search.substring(1)
+    const token = query.split('access_token=')[1]
+
+    // Call the user info API using the fetch browser library
+    let profile = axios.post('https://api.github.com/user', {
+      headers: {
+        // Include the token in the Authorization header
+        Authorization: 'token ' + token
+      }
+    });
+    profile = JSON.parse(profile);
+    // Once we get the response (which has many fields)
+    console.log(profile);
+  } catch (error) {
+    // server error
+    if (!error.response) {
+      showAlert('Server error. Please try again later.');
+      return;
+    };
+    // client error
+    showAlert(error.response.data.error);    
+  }
+}
+
+function validateRegEx(input, pattern) {
+  return pattern.test(input);
+};
+
+function showTestUserHelp() {
   showAlert(`Check this box to sign in as a test user to try out Coding Fight Club without using your own email. Feel free to also use 'test1@codingfightclub.com' and '123456' to sign in as another user if you want to experience the matches!`)
 }
 
