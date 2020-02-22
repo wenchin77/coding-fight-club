@@ -200,7 +200,7 @@ router.post('/signin', async (req, res)=> {
 });
 
 // github
-router.get('/github_redirect', (req, res) => {
+router.get('/github_redirect', async (req, res) => {
   console.log('github_redirect req: ', req);
   try{
     const requestToken = req.query.code;
