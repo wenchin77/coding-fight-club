@@ -59,8 +59,8 @@ module.exports = {
       (SELECT u.user_name AS winner_name, t1.*
         FROM
         (SELECT m.id AS matchid, 
-        m.winner_user_id AS winner_id, m.loser_user_id AS loser_id,
-        m.match_start_time AS match_start_time, m.match_key,
+            m.winner_user_id AS winner_id, m.loser_user_id AS loser_id,
+            m.match_start_time AS match_start_time, m.match_key AS match_key,
             md.user_id AS user_id, md.points AS points, u.user_name AS user_name,
             q.question_name AS question_name, q.difficulty AS difficulty, q.category AS category
         FROM match_table m
@@ -71,7 +71,29 @@ module.exports = {
             ) as t1
       INNER JOIN user_table u ON t1.winner_id = u.id) as t2
     INNER JOIN user_table u ON t2.loser_id = u.id
-    ORDER BY  match_start_time DESC`, [user_id])
+    ORDER BY match_start_time DESC
+    LIMIT 5`, [user_id])
+  },
+
+  queryGetMatchHistory: (user_id) => {
+    return mysql.query(`SELECT u.user_name AS loser_name, t2.*
+    FROM
+      (SELECT u.user_name AS winner_name, t1.*
+        FROM
+        (SELECT m.id AS matchid, 
+            m.winner_user_id AS winner_id, m.loser_user_id AS loser_id,
+            m.match_start_time AS match_start_time, m.match_key AS match_key,
+            md.user_id AS user_id, md.points AS points, u.user_name AS user_name,
+            q.question_name AS question_name, q.difficulty AS difficulty, q.category AS category
+        FROM match_table m
+            INNER JOIN match_detail md ON m.id = md.match_id 
+            INNER JOIN user_table u ON md.user_id = u.id
+            INNER JOIN question q ON m.question_id = q.id
+            WHERE u.id = ? AND m.winner_user_id IS NOT NULL
+            ) as t1
+      INNER JOIN user_table u ON t1.winner_id = u.id) as t2
+    INNER JOIN user_table u ON t2.loser_id = u.id
+    ORDER BY match_start_time DESC`, [user_id])
   },
 
 }

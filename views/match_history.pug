@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(src='../js/match_history.js')
+
 block content
   .matchResultWrapper
     .resultTitle
@@ -17,4 +20,3 @@ block content
         a(href='/match_setup')
           button#resultBtn Start a Match
 
-  script(src='../js/match_history.js')

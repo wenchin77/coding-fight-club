@@ -1,4 +1,9 @@
 extends layout
+block scripts
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
+  script(src='/socket.io/socket.io.js')
+  script(src='../js/match.js')
 
 block content
   #myModal.modal
@@ -52,8 +57,6 @@ block content
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
-  script(src='../js/match.js')
-
   script.
     // codemirror (syntax highlight & auto indent)
     const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('codearea'), {

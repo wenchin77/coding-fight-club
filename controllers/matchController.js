@@ -129,7 +129,16 @@ module.exports = {
     } catch (err) {
       console.log(err);
     }
-  }
+  },
+
+  getMatchHistory: async (user_id) => {
+    try {
+      let result = await matchModel.queryGetMatchHistory(user_id);
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
 
 }

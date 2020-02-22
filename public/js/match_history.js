@@ -34,7 +34,7 @@ async function getUserInfo (token) {
 
 async function getMatchSummary (userID) {
   try {
-    const response = await axios.get(`/api/v1/match/result/summary?userid=${userID}`)
+    const response = await axios.get(`/api/v1/match/result/all?userid=${userID}`)
     return response.data;
   } catch (error) {
     console.log(error);
@@ -68,7 +68,7 @@ async function showMatchResult (userID, result) {
     let opponent = (result[i].winner_id === userID) ? result[i].loser_name : result[i].winner_name;
     let matchKey = result[i].match_key;
     let url = `https://coding-fight-club.thewenchin.com/match_result/${matchKey}`
-    
+    console.log('url',url)
     let winLose;
     if (winnerId === 'tie') {
       winLose = 'Tie'
@@ -91,7 +91,6 @@ async function showMatchResult (userID, result) {
         Question: question,
         Points: points,
         url
-        // 'Match Details': `<a href='${url}'>View</a>`
       };
     matchResultSummary.push(matchResult);
   }

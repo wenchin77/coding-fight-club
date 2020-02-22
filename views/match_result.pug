@@ -1,5 +1,12 @@
 extends layout
 
+block scripts
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
+  script(src='../js/match_result.js')
+
 block content
   .matchResultWrapper
     .resultTitle
@@ -27,9 +34,7 @@ block content
         a(href='/match_setup')
           button#resultBtn Start Another Match
 
-  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
-  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
-  script(src='../js/match_result.js')
+  
 
   script.
     // codemirror (syntax highlight & auto indent): read only

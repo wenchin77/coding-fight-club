@@ -42,6 +42,13 @@ router.get('/result/summary', async (req, res) => {
   res.send(result);
 });
 
+router.get('/result/all', async (req, res) => {
+  let userID = req.query.userid;
+  console.log('userID', parseInt(userID))
+  let result = await matchController.getMatchHistory(parseInt(userID));
+  res.send(result);
+});
+
 router.get('/result/past_performance', async (req, res) => {
   let questionID = req.query.questionid;
   // performance 拉之前寫過這題的所有 execTime，看分布在哪 
