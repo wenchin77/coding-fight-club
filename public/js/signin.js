@@ -188,7 +188,14 @@ async function getGithubProfile(token) {
         Authorization: 'token ' + token
       }
     });
+    let emails = await axios.get('https://api.github.com/emails', {
+      headers: {
+        // Include the token in the Authorization header
+        Authorization: 'token ' + token
+      }
+    });
     console.log(profile);
+    console.log(emails);
     // Once we get the response, send ajax to signin
     // const data = {
 		// 	provider: "github",
