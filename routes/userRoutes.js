@@ -97,7 +97,7 @@ router.post('/signup', async (req, res)=> {
 
 router.post('/get_user_info', async (req, res) => {
   let token = req.query.token;
-  let result = await userController.querySelectUserByToken(token);
+  let result = await userController.selectUserByToken(token);
   res.json(result);
 });
 
@@ -148,7 +148,7 @@ router.post('/signin', async (req, res)=> {
         return;
       }
       console.log('profile', profile)
-      // insert / update user in controller
+      // insert / update user in controller +++++++++++++++
 
 
       res.send({

@@ -320,7 +320,7 @@ footer a:link {
   text-decoration: none;
 }
 
-tr:hover {background-color: #444444;}
+tr:hover {background-color: #272727;}
 
 textarea:focus {outline: 0;}
 
@@ -536,7 +536,7 @@ button:hover {
 }
 
 
-/* Match result page ------------------- */
+/* Match result & match history page ------------------- */
 .matchResultWrapper {
   margin: 15px;
 }
@@ -548,12 +548,14 @@ button:hover {
 }
 
 .summaryTableContainer,
-.resultTableContainer {
+.resultTableContainer,
+.allMatchesTableContainer {
   overflow-x: auto;
   width: 80%;
 }
 
-#summaryTable {
+#summaryTable,
+#allMatchesTable {
   table-layout: fixed;
 }
 
@@ -569,6 +571,10 @@ button:hover {
 #resultBtn {
   margin-right: 30px;
   width: 35%;
+}
+
+#allMatchesTable td {
+  cursor: pointer;
 }
 
 /* Signin page -------------------- */
@@ -690,7 +696,7 @@ button:hover {
 }
 
 
-/* Profile page -------------------- */
+/* Dashboard page -------------------- */
 .profileWrapper {
   width: 1000px;
   height: 500px;
@@ -716,6 +722,10 @@ button:hover {
   background: #ccc;
   border: 0;
   outline: none;
+}
+
+.profileContent td {
+  cursor: pointer;
 }
 
 /* home page --------------------*/

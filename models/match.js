@@ -60,7 +60,7 @@ module.exports = {
         FROM
         (SELECT m.id AS matchid, 
         m.winner_user_id AS winner_id, m.loser_user_id AS loser_id,
-        m.match_start_time AS match_start_time,
+        m.match_start_time AS match_start_time, m.match_key,
             md.user_id AS user_id, md.points AS points, u.user_name AS user_name,
             q.question_name AS question_name, q.difficulty AS difficulty, q.category AS category
         FROM match_table m

@@ -39,6 +39,10 @@ app.get('/match_result/:matchKey', (req, res) => {
   res.render('match_result');
 });
 
+app.get('/match_history', (req, res) => {
+  res.render('match_history');
+});
+
 
 // user pages
 app.get('/signin', (req, res) => {

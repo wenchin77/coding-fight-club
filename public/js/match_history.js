@@ -11,6 +11,7 @@ main();
 async function main() {
   try {
     let userProfile = await showProfile(token);
+    console.log('userProfile', userProfile)
     userID = userProfile.id;
 
     let matchSummary = await getMatchSummary(userID);
@@ -34,7 +35,6 @@ async function getUserInfo (token) {
 async function getMatchSummary (userID) {
   try {
     const response = await axios.get(`/api/v1/match/result/summary?userid=${userID}`)
-    console.log('getMatchSummary data', response.data)
     return response.data;
   } catch (error) {
     console.log(error);
@@ -48,15 +48,17 @@ function capitalize (str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+// ++++++++++++ add paging
 async function showMatchResult (userID, result) {
   if (result.length === 0) {
+    console.log('no matches found')
     document.getElementById('noMatches').innerHTML = 'No match result yet...'
     return;
   }
   let matchResultSummary = [];
-  let length = (result.length<=5) ? result.length : 5;
+  // let length = (result.length<=5) ? result.length : 5;
   // show latest 5 matches
-  for (let i=0; i<length; i++) {
+  for (let i=0; i<result.length; i++) {
     console.log(result[i])
     let question = result[i].question_name;
     let difficulty = result[i].difficulty;
@@ -95,7 +97,7 @@ async function showMatchResult (userID, result) {
   }
   console.log(matchResultSummary);
   // add data to table
-  addDataToTable('summaryTable', matchResultSummary);
+  addDataToTable('allMatchesTable', matchResultSummary);
 
 }
 
@@ -141,11 +143,11 @@ function generateTable(table, data) {
 async function showProfile(token) {
   try {
     const response = await axios.post(`/api/v1/user/get_user_info?token=${token}`)
-    console.log('showProfile data', response.data);
-    document.getElementById('username').innerHTML = `Username: ${response.data[0].user_name}`
-    document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`
-    document.getElementById('points').innerHTML = `Points: ${response.data[0].points}`
-    document.getElementById('level').innerHTML = `Level: ${response.data[0].level_name}`;
+    // console.log('showProfile data', response.data);
+    // document.getElementById('username').innerHTML = `Username: ${response.data[0].user_name}`
+    // document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`
+    // document.getElementById('points').innerHTML = `Points: ${response.data[0].points}`
+    // document.getElementById('level').innerHTML = `Level: ${response.data[0].level_name}`;
     return response.data[0];
   } catch (error) {
     console.log(error);

@@ -39,7 +39,11 @@ module.exports = {
   },
 
   querySelectNextLevelMin: (user_id) => {
-    return mysql.query('SELECT level_table.*, user_table.level_id, user_table.points FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.id = ?', [user_id])
+    return mysql.query(`SELECT l.level_name AS next_name, l.id AS next_id, l.min_points AS next_points, 
+    u.level_id, u.points 
+    FROM user_table u
+    INNER JOIN level_table l ON u.level_id + 1 = l.id 
+    WHERE u.id = ?`, [user_id])
   },
 
   queryUpdateUserLevel: (level_id, user_id) => {

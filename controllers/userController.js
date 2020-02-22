@@ -52,7 +52,7 @@ module.exports = {
     let getUserInfo = await userModel.querySelectUserByEmail(data.email);
     let accessExpired = getUserInfo[0].access_expired;
     if (now <= accessExpired) {
-      return({
+      let userInfo = {
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
         email: getUserInfo[0].email,
@@ -61,7 +61,8 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      });
+      }
+      return(userInfo);
     };
 
     // token expired: set a new token and send back to frontend
@@ -69,32 +70,37 @@ module.exports = {
     hash.update(data.email + data.password + now);
     let token = hash.digest("hex");
     
-    if (data.provider === 'native') {
-      try  {
-        let userInfo = {
-          access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
-          token
-        }
-        console.log('updating user...')
-        await userModel.queryUpdateUser(userInfo);
-        let getUserInfo = await userModel.querySelectUserByEmail(data.email);
-        return({
-          id: getUserInfo[0].id,
-          username: getUserInfo[0].user_name,
-          email: getUserInfo[0].email,
-          provider: getUserInfo[0].provider,
-          token: getUserInfo[0].token,
-          points: getUserInfo[0].points,
-          level: getUserInfo[0].level,
-          access_expired: getUserInfo[0].access_expired
-        });
-      } catch (err) {
-        console.log(err);
+    try  {
+      let userReq = {
+        access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
+        token
       }
+      console.log('updating user...')
+      await userModel.queryUpdateUser(userReq);
+      let getUserInfo = await userModel.querySelectUserByEmail(data.email);
+      let userInfo = {
+        id: getUserInfo[0].id,
+        username: getUserInfo[0].user_name,
+        email: getUserInfo[0].email,
+        provider: getUserInfo[0].provider,
+        token: getUserInfo[0].token,
+        points: getUserInfo[0].points,
+        level: getUserInfo[0].level,
+        access_expired: getUserInfo[0].access_expired
+      }
+      return(userInfo);
+    } catch (err) {
+      console.log(err);
     }
   },
 
-  querySelectUserByToken: async (token) => {
+  updateGoogleUser: async (data) => {
+    // +++++++++++++++
+  },
+
+
+
+  selectUserByToken: async (token) => {
     try {
       let result = await userModel.querySelectUserByToken(token);
       return(result);
@@ -157,14 +163,14 @@ module.exports = {
       // check next level's min points
       let checkNextLevelMin = await userModel.querySelectNextLevelMin(user_id);
       console.log('updateUserPointsLevel -- checkNextLevelMin --', checkNextLevelMin)
-      let userLevel = checkNextLevelMin[0].level_id;
       let userTotalPoionts = checkNextLevelMin[0].points;
-      let nextLevelMin = checkNextLevelMin[0].min_points;
+      let nextLevelMin = checkNextLevelMin[0].next_points;
+      let nextLevelId = checkNextLevelMin[0].next_id;
 
       // if user points > next level's min points, update level id too
       if (userTotalPoionts >= nextLevelMin) {
         console.log('level up! userTotalPoionts >= nextLevelMin')
-        let level = userLevel + 1;
+        let level = nextLevelId;
         let result = await userModel.queryUpdateUserLevel(level, user_id);
       }
     } catch (err) {
