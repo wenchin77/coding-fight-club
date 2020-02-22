@@ -95,6 +95,7 @@ module.exports = {
   },
 
   insertGoogleUser: async (data) => {
+    console.log(data)
     let now = Date.now();
     let hash = crypto.createHash("sha256");
     hash.update(data.email + data.password + now);

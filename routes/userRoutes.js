@@ -148,14 +148,14 @@ router.post('/signin', async (req, res)=> {
       if (userNumByEmail === 0) {
         console.log('google user not found, inserting...')
         // if not insert user
-        let result = await userController.insertGoogleUser(data);
+        let result = await userController.insertGoogleUser(profile);
         res.status(200).send(result);
         return;
       };
 
       // check if token's not expired, if not send back the same token, if so set a new token
       console.log('google user found, updating...')
-      let result = await userController.updateUser(data);
+      let result = await userController.updateGoogleUser(profile);
       res.status(200).send(result);
     } catch (error) {
       console.log(error)
