@@ -207,7 +207,7 @@ router.get('/github_redirect', async (req, res) => {
     const requestToken = req.query.code;
     let clientID = process.env.GITHUB_CLIENTID;
     let clientSecret = process.env.GITHUB_CLIENTSECRET;
-    let profile = await axios({
+    let getTokenResult = await axios({
       method: 'post',
       url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${requestToken}`,
       // Set the content type header, so that we get the response in JSON
@@ -215,9 +215,19 @@ router.get('/github_redirect', async (req, res) => {
         accept: 'application/json'
       }
     });
-    console.log(profile.data)
-    let accessToken = profile.data.access_token;
-    res.redirect(`/signin?access_token=${accessToken}`)
+    console.log(getTokenResult.data)
+    let accessToken = getTokenResult.data.access_token;
+    let profile = axios.get('https://api.github.com/user', {
+      headers: {
+        // Include the token in the Authorization header
+        Authorization: 'token ' + accessToken
+      }
+    });
+    profile = JSON.parse(profile);
+    res.status(200).send(profile);
+
+
+    // res.redirect(`/signin?access_token=${accessToken}`)
   } catch (error) {
     console.log(error);
     res.status(500).send({error: 'Server error. Please try again later.'});

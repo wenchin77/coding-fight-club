@@ -178,17 +178,17 @@ if (window.location.search.substring(1).includes('access_token')) {
 
 function githubSignin() {
   try {
-    const query = window.location.search.substring(1)
-    const token = query.split('access_token=')[1]
+    // const query = window.location.search.substring(1)
+    // const token = query.split('access_token=')[1]
 
-    // Call the user info API using the fetch browser library
-    let profile = axios.get('https://api.github.com/user', {
-      headers: {
-        // Include the token in the Authorization header
-        Authorization: 'token ' + token
-      }
-    });
-    profile = JSON.parse(profile);
+    // // Call the user info API using the fetch browser library
+    // let profile = axios.get('https://api.github.com/user', {
+    //   headers: {
+    //     // Include the token in the Authorization header
+    //     Authorization: 'token ' + token
+    //   }
+    // });
+    // profile = JSON.parse(profile);
 
 
     // Once we get the response, send ajax to signin
@@ -227,7 +227,7 @@ function githubSignin() {
       return;
     };
     // client error
-    showAlert(error.response.data.error);    
+    showAlert(error.response.data.error); 
   }
 }
 
