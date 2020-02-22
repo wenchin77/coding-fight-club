@@ -184,7 +184,6 @@ if (window.location.search.substring(1).includes('access_token')) {
         Authorization: 'token ' + token
       }
     });
-    profile = JSON.parse(profile);
     // Once we get the response, send ajax to signin
     console.log(profile);
     // const data = {
@@ -218,10 +217,10 @@ if (window.location.search.substring(1).includes('access_token')) {
     // server error
     if (!error.response) {
       showAlert('Server error. Please try again later.');
-      return;
-    };
+    } else {
     // client error
     showAlert(error.response.data.error); 
+    }
   }
 }
 
