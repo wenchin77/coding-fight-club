@@ -174,11 +174,22 @@ async function googleSignin() {
 if (window.location.search.substring(1).includes('access_token')) {
   console.log(`window.location.search.substring(1).includes('access_token')`);
   const query = window.location.search.substring(1)
-  const token = query.split('access_token=')[1]
-  try {
-    let profile = await getGithubProfile(token);
-    // Once we get the response, send ajax to signin
+  const token = query.split('access_token=')[1];
+  getGithubProfile(token);
+
+}
+
+async function getGithubProfile(token) {
+  try{
+    // Call the user info API using the fetch browser library
+    let profile = await axios.get('https://api.github.com/user', {
+      headers: {
+        // Include the token in the Authorization header
+        Authorization: 'token ' + token
+      }
+    });
     console.log(profile);
+    // Once we get the response, send ajax to signin
     // const data = {
 		// 	provider: "github",
 		// 	profile: token
@@ -205,28 +216,6 @@ if (window.location.search.substring(1).includes('access_token')) {
     //   // redirect to dashboard page
     //   window.location.pathname = 'dashboard';
     // })
-    
-  } catch (error) {
-    // server error
-    if (!error.response) {
-      showAlert('Server error. Please try again later.');
-    } else {
-    // client error
-    showAlert(error.response.data.error); 
-    }
-  }
-}
-
-async function getGithubProfile(token) {
-  try{
-    // Call the user info API using the fetch browser library
-    let profile = await axios.get('https://api.github.com/user', {
-      headers: {
-        // Include the token in the Authorization header
-        Authorization: 'token ' + token
-      }
-    });
-    return(profile);
   } catch (error) {
     return(error);
   }
