@@ -205,7 +205,7 @@ router.post('/signin', async (req, res)=> {
 });
 
 // github
-router.get('/signin', (req, res) => {
+router.get('/signin', async (req, res) => {
   console.log('signin get req: ', req)
   if (req.query.code) {
     try{
