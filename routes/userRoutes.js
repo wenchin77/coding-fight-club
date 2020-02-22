@@ -133,10 +133,6 @@ router.post('/signin', async (req, res)=> {
   // google
   if (data.provider === 'google') {
     console.log('getting ajax for google signin...', data)
-    if (!data.access_token) {
-      res.status(400).send({ error: "Request Error: can't find Google access token." });
-      return;
-    };
     // Get profile from google
     getGoogleProfile(data.access_token)
     .then( async (profile) => {
@@ -144,10 +140,10 @@ router.post('/signin', async (req, res)=> {
         res.status(400).send({error: "Permissions Error: name and email are required when you sign in with a Google account."});
         return;
       }
-      console.log('profile', profile);
 
       // check in db if email exists
       let userNumByEmail = await userController.countUsersByEmail(profile.email);
+      console.log('userNumByEmail: ',userNumByEmail)
       if (userNumByEmail === 0) {
         console.log('google user not found, inserting...')
         // if not insert user
@@ -157,10 +153,12 @@ router.post('/signin', async (req, res)=> {
       };
 
       // check if token's not expired, if not send back the same token, if so set a new token
+      console.log('google user found, updating...')
       let result = await userController.updateUser(data);
       res.status(200).send(result);
     })
     .catch((error) => {
+      console.log(error)
       res.status(500).send({ error });
     });
   }
