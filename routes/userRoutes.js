@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const request = require("request");
 const userController = require('../controllers/userController');
 const onlineUsers = {};
 
@@ -134,8 +135,8 @@ router.post('/signin', async (req, res)=> {
   if (data.provider === 'google') {
     console.log('getting ajax for google signin...', data)
     // Get profile from google
-    getGoogleProfile(data.access_token)
-    .then( async (profile) => {
+    try {
+      let profile = await getGoogleProfile(data.access_token);
       if (!profile.name || !profile.email) {
         res.status(400).send({error: "Permissions Error: name and email are required when you sign in with a Google account."});
         return;
@@ -156,11 +157,10 @@ router.post('/signin', async (req, res)=> {
       console.log('google user found, updating...')
       let result = await userController.updateUser(data);
       res.status(200).send(result);
-    })
-    .catch((error) => {
+    } catch (error) {
       console.log(error)
       res.status(500).send({ error });
-    });
+    };
   }
   
 
@@ -175,18 +175,17 @@ let getGoogleProfile = (accessToken) => {
     };
     let url = `https://oauth2.googleapis.com/tokeninfo?id_token=${accessToken}`
 		request(url, (error, res, body) => {
-				if (error) {
-					console.log(error)
-				}
-				console.log(body);
-				body = JSON.parse(body);
-				if(body.error) {
-					reject(body.error);
-				} else {
-					resolve(body);
-				}
-			}
-		)
+      if (error) {
+        console.log(error)
+      }
+      console.log(body);
+      body = JSON.parse(body);
+      if(body.error) {
+        reject(body.error);
+      } else {
+        resolve(body);
+      }
+    })
 	})
 };
 
