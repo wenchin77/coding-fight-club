@@ -209,7 +209,7 @@ router.get('/github_redirect', async (req, res) => {
     let clientSecret = process.env.GITHUB_CLIENTSECRET;
     let profile = await axios({
       method: 'post',
-      url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${token}`,
+      url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${requestToken}`,
       // Set the content type header, so that we get the response in JSON
       headers: {
         accept: 'application/json'
