@@ -172,7 +172,8 @@ async function googleSignin() {
 }
 
 if (window.location.search.substring(1).includes('access_token')) {
-  githubSignin()
+  console.log(`window.location.search.substring(1).includes('access_token')`)
+  githubSignin();
 };
 
 function githubSignin() {

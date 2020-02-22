@@ -217,7 +217,7 @@ router.get('/github_redirect', async (req, res) => {
     });
     console.log(profile.data)
     let accessToken = profile.data.access_token;
-    res.redirect(`/singin?access_token=${accessToken}`)
+    res.redirect(`/signin?access_token=${accessToken}`)
   } catch (error) {
     console.log(error);
     res.status(500).send({error: 'Server error. Please try again later.'});
