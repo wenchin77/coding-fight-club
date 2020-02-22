@@ -217,13 +217,13 @@ router.get('/github_redirect', async (req, res) => {
     });
     console.log(getTokenResult.data)
     let accessToken = getTokenResult.data.access_token;
-    let profile = axios.get('https://api.github.com/user', {
+    let profile = await axios.get('https://api.github.com/user', {
       headers: {
         // Include the token in the Authorization header
         Authorization: 'token ' + accessToken
       }
     });
-    res.status(200).send(profile);
+    res.status(200).send(profile).redirect(`/signin?access_token=${accessToken}`);
 
 
     // res.redirect(`/signin?access_token=${accessToken}`)
