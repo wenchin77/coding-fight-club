@@ -11,7 +11,8 @@ block scripts
       function googleInit() {
         gapi.load('auth2', () => {
           gapi.auth2.init({
-            client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com"
+            client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com",
+            redirect_uri: 'postmessage'
           });
         });
       }
