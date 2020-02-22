@@ -178,7 +178,7 @@ if (window.location.search.substring(1).includes('access_token')) {
     const token = query.split('access_token=')[1]
 
     // Call the user info API using the fetch browser library
-    let profile = axios.get('https://api.github.com/user', {
+    let profile = await axios.get('https://api.github.com/user', {
       headers: {
         // Include the token in the Authorization header
         Authorization: 'token ' + token
