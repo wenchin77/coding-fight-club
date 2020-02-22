@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 // request: to get google profile
 const request = require("request");
+const axios = require('axios');
 const userController = require('../controllers/userController');
 // for github clientid & client secret
 require('dotenv').config();
@@ -201,11 +202,21 @@ router.post('/signin', async (req, res)=> {
 
 // github
 router.get('/github_redirect', async (req, res) => {
-  console.log('github_redirect req: ', req);
+  console.log('github_redirect req.query.code: ', req.query.code);
   try{
     const requestToken = req.query.code;
-    let profile = await getGithubProfile(requestToken);
-    let accessToken = profile.access_token;
+    let clientID = process.env.GITHUB_CLIENTID;
+    let clientSecret = process.env.GITHUB_CLIENTSECRET;
+    let profile = await axios({
+      method: 'post',
+      url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${token}`,
+      // Set the content type header, so that we get the response in JSON
+      headers: {
+        accept: 'application/json'
+      }
+    });
+    console.log(profile.data)
+    let accessToken = profile.data.access_token;
     res.redirect(`/singin?access_token=${accessToken}`)
   } catch (error) {
     console.log(error);
@@ -235,20 +246,7 @@ function getGoogleProfile (accessToken) {
 	})
 };
 
-async function getGithubProfile (token) {
-  let clientID = process.env.GITHUB_CLIENTID;
-  let clientSecret = process.env.GITHUB_CLIENTSECRET;
-  let profile = await axios({
-    method: 'post',
-    url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${token}`,
-    // Set the content type header, so that we get the response in JSON
-    headers: {
-      accept: 'application/json'
-    }
-  });
-  console.log(profile.data);
-  return(profile.data);
-}
+
 
 
 router.post('/bug_report', async (req, res) => {
