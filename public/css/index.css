@@ -728,6 +728,10 @@ button:hover {
   cursor: pointer;
 }
 
+#github a {
+  text-decoration: underline;
+}
+
 /* home page --------------------*/
 .homeContent {
   width: 500px;
