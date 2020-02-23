@@ -192,7 +192,7 @@ router.post('/signin', async (req, res)=> {
 
   // github
   if (data.provider === 'github') {
-    console.log('getting ajax for github signin...');
+    console.log('getting ajax for github signin... data:', data);
     try {
       if (!data.name || !data.email) {
         res.status(400).send({error: "Permissions Error: name and email are required when you sign in with a Github account."});

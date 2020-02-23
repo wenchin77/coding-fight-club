@@ -211,6 +211,8 @@ async function getGithubProfile(token) {
       picture: user.data.avatar_url,
       github_url: user.data.html_url
     };
+    console.log('data', data);
+    
     let res = await axios.post("api/v1/user/signin", data);
     console.log(res);
     // add userinfo to localStorage
