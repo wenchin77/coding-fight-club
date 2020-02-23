@@ -233,10 +233,12 @@ async function getGithubProfile(token) {
     showAlert('Welcome to the Coding Fight Club!', () => {
       // if user was invited in a match before signing in, redirect to match page
       if (localStorage.getItem('invited_url')) {
+        window.location.href = window.location.origin + window.location.pathname;
         window.location.pathname = localStorage.getItem('invited_url');
         return;
       }
       // redirect to dashboard page
+      window.location.href = window.location.origin + window.location.pathname;
       window.location.pathname = 'dashboard';
     })
   } catch (error) {
@@ -251,5 +253,3 @@ function validateRegEx(input, pattern) {
 function showTestUserHelp() {
   showAlert(`Check this box to sign in as a test user to try out Coding Fight Club without using your own email. Feel free to also use 'test1@codingfightclub.com' and '123456' to sign in as another user if you want to experience the matches!`)
 }
-
-
