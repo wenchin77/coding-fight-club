@@ -197,9 +197,9 @@ async function getGithubProfile(token) {
     // get primary email 
     let primaryEmail;
     for (let i=0;i<emails.length;i++) {
-      if (emails[i].primary === true) {
-        console.log(email[i].primary);
-        primaryEmail = email[i].email;
+      if (emails[i].primary) {
+        console.log(emails[i].primary);
+        primaryEmail = emails[i].email;
         break;
       }
     }
