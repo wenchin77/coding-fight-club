@@ -197,11 +197,14 @@ async function getGithubProfile(token) {
     // get primary email 
     let primaryEmail;
     for (let i=0;i<emails.length;i++) {
-      if (emails[i].primary) {
+      if (emails[i].primary === true) {
+        console.log(email[i].primary);
         primaryEmail = email[i].email;
         break;
       }
     }
+    console.log(primaryEmail);
+
 
     // Once we get the response, send ajax to signin
     const data = {
@@ -212,7 +215,7 @@ async function getGithubProfile(token) {
       github_url: user.data.html_url
     };
     console.log('data', data);
-    
+
     let res = await axios.post("api/v1/user/signin", data);
     console.log(res);
     // add userinfo to localStorage
