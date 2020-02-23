@@ -14,7 +14,6 @@ async function main() {
     userID = userProfile.id;
 
     let matchSummary = await getMatchSummary(userID);
-    console.log('matchSummary', matchSummary)
     showMatchResult(userID, matchSummary);
   } catch (err) {
     showAlert('Something went wrong. Refresh the page to view member dashboard.')
@@ -34,7 +33,6 @@ async function getUserInfo (token) {
 async function getMatchSummary (userID) {
   try {
     const response = await axios.get(`/api/v1/match/result/summary?userid=${userID}`)
-    console.log('getMatchSummary data', response.data)
     return response.data;
   } catch (error) {
     console.log(error);
@@ -57,7 +55,6 @@ async function showMatchResult (userID, result) {
   let length = (result.length<=5) ? result.length : 5;
   // show latest 5 matches
   for (let i=0; i<length; i++) {
-    console.log(result[i])
     let question = result[i].question_name;
     let difficulty = result[i].difficulty;
     let category = result[i].category;
@@ -66,7 +63,6 @@ async function showMatchResult (userID, result) {
     let opponent = (result[i].winner_id === userID) ? result[i].loser_name : result[i].winner_name;
     let matchKey = result[i].match_key;
     let url = `https://coding-fight-club.thewenchin.com/match_result/${matchKey}`
-    console.log('url',url)
     let winLose;
     if (winnerId === 'tie') {
       winLose = 'Tie'

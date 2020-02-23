@@ -10,42 +10,81 @@ const { spawn } = require("child_process");
 const socketio = require("socket.io");
 const socket = {};
 
+// online user check data
+const onlineUsers = {};
+
 socket.init = server => {
   console.log('socket server initialized...');
 
   const io = socketio.listen(server);
+  
+  // match data
   const matchList = {}; // to save match key & user mapping info
   const socketidMapping = {}; // to save socketid & user mapping info
   const winnerCheck = {}; // on submit: to assign performance points
   const userIdNameMapping = {}; // to display username in frontend
-
+  
   io.on("connection", socket => {
-    console.log("io on connection: a user connected!");
-
     let url = socket.request.headers.referer;
-    let matchKey = getMatchKey(url);
-    console.log("io on connection: socketid: ", socket.id);
-    
-    socket.on("join", async (token) => {
-      console.log('==================')
-      let result = await userController.selectUserInfoByToken(token);
-      let user = result[0].id;
-      let username = result[0].user_name;
-      console.log('socket on join, user: ', user)
-      console.log('socket on join, username: ', username)
-      console.log('==================')
+    console.log('socket on connect ----------------');
+    console.log('user connected at', url);
+    console.log('user socketid', socket.id);
 
-      // Add user to socketidMapping (socketid: userid)
-      if (!socketidMapping[socket.id]) {
-        socketidMapping[socket.id] = user;
-      };
-      console.log('socket on join, socketidMapping: ', socketidMapping)
+    socket.on('online', async (token) => {
+      let user;
+      let username;
+      // get userid & username in db if it's not in memory
+      if (!onlineUsers[token]) {
+        console.log('!onlineUsers[token], 進去 db 找');
+        let result = await userController.selectUserInfoByToken(token);
+        user = result[0].id;
+        username = result[0].user_name;
+        onlineUsers[token] = {
+          id: result[0].id,
+          username, 
+          time: Date.now(),
+          in_a_match: 0, // turn this to 1 in match page
+          invited: null
+        };
+      } else {
+        user = onlineUsers[token].id;
+        username = onlineUsers[token].username;
+      }
+
+      // update active time
+      onlineUsers[token].time = Date.now();
+      console.log('socket on online, onlineUsers', onlineUsers);
+
+      // if there's an invitation notify the user
+      // +++++++++++++ can be invited by many
+      if (onlineUsers[token].invited) {
+        let result = await userController.selectUserInfoByToken(onlineUsers[token].invited.inviter);
+        let inviter = result[0].user_name;
+        let invitation =  onlineUsers[token].invited
+        console.log('emitting invited...')
+        socket.emit('invited', {inviter, category: invitation.category, difficulty: invitation.difficulty});
+      }
+
 
       // Add user to userIdNameMapping (userid: username)
       if (!userIdNameMapping[user]) {
         userIdNameMapping[user] = username;
       };
-      console.log('socket on join, userIdNameMapping', userIdNameMapping)
+      console.log('socket on online, userIdNameMapping', userIdNameMapping);
+
+      // Add user to socketidMapping (socketid: userid)
+      if (!socketidMapping[socket.id]) {
+        socketidMapping[socket.id] = user;
+      };
+      console.log('socket on online, socketidMapping: ', socketidMapping)
+
+    })
+
+    socket.on('joinMatch', async (token) => {
+      let matchKey = getMatchKey(socket.request.headers.referer);
+      let result = await userController.selectUserInfoByToken(token);
+      let user = result[0].id;
+      let username = result[0].user_name;
 
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
@@ -55,7 +94,6 @@ socket.init = server => {
       // +++++++++ watch mode?
       // Reject user if there are already 2 people in the room
       if (matchList[matchKey].length >= 2) {
-        console.log('socket on join, matchList for too many people ===', matchList)
         socket.emit('rejectUser', 'Oops, there are already two people in this match!');
         return;
       }
@@ -128,7 +166,8 @@ socket.init = server => {
       io.to(matchKey).emit('startMatch', startInfo);
     });
 
-    socket.on("codeObject", async data => {
+    socket.on('runCode', async data => {
+      let matchKey = getMatchKey(socket.request.headers.referer);
       let code = data.code;
       let user = data.user;
       let testAll = data.test;
@@ -177,6 +216,7 @@ socket.init = server => {
     });
 
     socket.on('submit', async (data) => {
+      let matchKey = getMatchKey(socket.request.headers.referer);
       let user = data.user;
       let username = userIdNameMapping[user];
 
@@ -348,46 +388,126 @@ socket.init = server => {
       delete winnerCheck[matchKey]
     })
 
-    socket.on(('disconnect' || 'exit'), () => {
-      console.log("Socket: a user disconnected");
+    socket.on('getStranger', async data => {
+      let category = data.category;
+      let difficulty = data.difficulty;
+      let stranger = await getStranger(onlineUsers, data.token);
+      if (!stranger) {
+        socket.emit('stranger','We cannot find users online now... Try again later or invite a friend instead?')
+      }
+      console.log('stranger', stranger);
+      // add to invitations 
+      onlineUsers[stranger.strangerToken].invited = {
+        inviter: data.token,
+        category,
+        difficulty
+      }
+      console.log('socket on getStranger, onlineUsers',onlineUsers)
+      socket.emit('stranger','We found someone but we still need the user to confirm!')
+    })
 
-      // 用 socketidMapping (socketid: user) 找出退出的 user
+    socket.on(('disconnect' || 'exit'), () => {
+      let url = socket.request.headers.referer;
       let socketid = socket.id;
       let user = socketidMapping[socketid];
       let username = userIdNameMapping[user];
-      console.log('-------------------------')
-      console.log('socket on disconnect: my socketid', socketid)
-      console.log('socket on disconnect: socketidMapping', socketidMapping)
-      console.log('socket on disconnect: my userid', user)
-      console.log('socket on disconnect: userIdNameMapping', userIdNameMapping)
-      console.log('socket on disconnect: my username --- ', username)
-      console.log('-------------------------')
 
-      let leaveMessage = {
-        user: user,
-        message: `${username} left the match for now and might join again. You will still get your points if you submit your solution.`
-      }
-      io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
+      // match page
+      if (url.includes('/match/')){
+        let matchKey = getMatchKey(url);
 
-      delete socketidMapping[socketid];
-      console.log('socketidMapping after deleting disconnected user', socketidMapping);
+        // 用 socketidMapping (socketid: user) 找出退出的 user
+        console.log('-------------------------')
+        console.log('socket on disconnect: my socketid', socketid)
+        console.log('socket on disconnect: my userid', user)
+        console.log('socket on disconnect: my username', username)
+        console.log('socket on disconnect: socketidMapping', socketidMapping)
+        console.log('socket on disconnect: userIdNameMapping', userIdNameMapping)
+        console.log('-------------------------')
+
+
+        // ++++++++++++++ 不要傳送第三者離開的訊息？？
+        // let match = matchList[matchKey];
+        // let matchUser1 = match[0];
+        // let matchUser2 = match[1];
+        // if ((matchUser1 !== user) && (matchUser2 !== user)) {
+        //   console.log('someone not in the match left...')
+        //   return;
+        // }
+  
+        let leaveMessage = {
+          user: user,
+          message: `${username} left the match and might join again. You will still get your points if you submit your solution.`
+        }
+        io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
+  
+        if (matchList[matchKey]) {
+          let index = matchList[matchKey].indexOf(user);
+          if (index !== -1) {
+            matchList[matchKey].splice(index, 1);
+            if (matchList[matchKey].length === 0) {
+              delete matchList[matchKey];
+            }
+          }
+          socket.leave(matchKey); // leave socket room
+          console.log(`Socket: ${user} left ${matchKey} (socket.id ${socket.id})`);
+        }  
+      };
+
+      // other pages
+      console.log('socket on disconnect ----------------')
+      console.log('user disconnected at', url);
+      console.log('user socketid', socket.id);
+      // +++++++++++ leave onlineUsers
+
+      // client 會自動斷線，所以 mapping 不能亂刪??????c
       delete userIdNameMapping[user];
       console.log('userIdNameMapping after deleting disconnected user', userIdNameMapping);
 
-      if (matchList[matchKey]) {
-        let index = matchList[matchKey].indexOf(user);
-        if (index !== -1) {
-          matchList[matchKey].splice(index, 1);
-          if (matchList[matchKey].length === 0) {
-            delete matchList[matchKey];
-          }
-        }
-        socket.leave(matchKey); // leave socket room
-        console.log(`Socket: ${user} left ${matchKey} (socket.id ${socket.id})`);
-      }
-
+      delete socketidMapping[socketid];
+      console.log('socketidMapping after deleting disconnected user', socketidMapping);
     });
   });
+};
+
+
+// remove timeout users (2 min with no ping) in onlineUserList
+// check every 60 sec
+setInterval(() => {
+  console.log('in setInterval')
+  for (let prop in onlineUsers) {
+    if((Date.now() - onlineUsers[prop].time) > 1000*60*2) {
+      delete onlineUsers[prop];
+      console.log('deleting user in onlineUsers...')
+    }
+  }
+  console.log('onlineUsers in setInterval === ',onlineUsers);
+}, 1000*60); // 之後調整成長一點
+
+let getStranger = (obj, myToken) => {
+  let keys = Object.keys(obj);
+  if (keys.length <= 1) {
+    console.log('only 1 user online now...')
+    return false;
+  }
+  let index = keys.length * Math.random() << 0;
+  console.log('index', index)
+  let strangerToken = keys[index];
+  console.log('strangerToken',strangerToken)
+  console.log('myToken', myToken)
+  if (strangerToken === myToken) {
+    console.log('token belongs to me, find the next person')
+    // if token belongs to me, find the next person 
+    let newIndex = index%keys.length +1
+    let newResult = obj[keys[newIndex]];
+    let newStrangerToken = keys[newIndex];
+    console.log({result: newResult, strangerToken: newStrangerToken})
+    return ({result: newResult, strangerToken: newStrangerToken});
+  } else {
+    let result = obj[strangerToken];
+    console.log({result, strangerToken})
+    return ({result, strangerToken});
+  }
 };
 
 

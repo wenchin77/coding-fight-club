@@ -179,7 +179,10 @@ section {
   overflow: hidden;
 }
 
-/* ALERT RELATED CLASS (START) */
+/* popup alert layout --------------------*/
+.popupNotification {
+  z-index: 110;
+}
 
 .alert-area {
   max-height: 100%;

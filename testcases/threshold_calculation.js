@@ -6,18 +6,35 @@ const arrayBufferToStr = buf => {
   return String.fromCharCode.apply(null, new Uint16Array(buf));
 }
 
-
-const path = './testcases/21/6.json'
-const code = `const twoSum = function(nums, target) {
-  const comp = {};
-  for(let i=0; i<nums.length; i++){
-      if(comp[nums[i] ]>=0){
-          return [ comp[nums[i] ] , i]
+// ADD DATA HERE!!!!!!!!!
+const path = './testcases/35/11.json'
+const code = `const searchInsert = function(nums, target) {
+  for (let i = 0; i < nums.length; i++){
+      if (nums[i] >= target){
+          return i;
       }
-      comp[target-nums[i]] = i
   }
+  return nums.length;
 };`
-const codeConst = 'twoSum'
+
+const code = `const searchInsert = function(nums, target) {
+  const toBeInserted = () => {
+      const rightIndex = nums.length -1;
+      for (let i = rightIndex; i >= 0; i--) {
+          if(target > nums[i]) {
+           return i + 1;
+          }
+      }
+      return 0;
+  }
+  const includes = nums.includes(target);
+  return includes 
+      ?  nums.indexOf(target)
+      :  toBeInserted();
+};`
+
+
+const codeConst = 'searchInsert'
 const test = (fs.readFileSync(path))
 
 const putTogetherCodeOnRun = (code, codeConst, test) => {
@@ -43,6 +60,7 @@ fs.closeSync(file);
 
 const runCodeInChildProcess = () => {
   return new Promise((resolve, reject) => {
+    console.log('entered child_process')
     let ls = spawn('node', [`./testcases/threshold_test.js`]);
     let result = '';
     ls.stdout.on('data', (data) => {

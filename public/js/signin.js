@@ -1,3 +1,8 @@
+// if logged in, redirect to dashboard page
+if (localStorage.getItem('username') && localStorage.getItem("token")) {
+  window.location.pathname = '/dashboard';
+}
+
 const switchToSignup = () => {
   let signup = document.getElementById('signup');
   let signin = document.getElementById('signin');

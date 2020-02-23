@@ -7,31 +7,22 @@ if (!localStorage.getItem("token") || !localStorage.getItem("id")) {
 
 let token = localStorage.getItem("token");
 let userID = parseInt(localStorage.getItem('id'));
-// let username;
 let opponent;
 let sampleCaseExpected;
 let questionConst;
 let difficulty;
 
-let socket;
-
-// only init socket when there's a token and userid
+// only init socket in match when there's a token and userid
 // this is to prevent undefined usernames from being sent to server & showing here
-if (localStorage.getItem("token") && localStorage.getItem("id")){
-  console.log('socket initialized...')
-  socketInit();
+if (localStorage.getItem('token') && localStorage.getItem('id')){
+  console.log('socket in match init...')
+  socketInMatchInit();
 }
 
-// socket init
-function socketInit() {
-
-  socket = io();
-
-  // 連上以後傳 join 訊息給後端，在後端把用戶加入房間
-  socket.on("connect", () => {
-    console.log('socket connected...');
-    socket.emit("join", token);
-  });
+function socketInMatchInit() {
+  // socket already initialized at socket.js
+  // so we're not using socket.on('connect') here
+  socket.emit("joinMatch", token);
 
   // too many people in a match: reject and redirect
   socket.on("rejectUser", msg => {
@@ -187,7 +178,7 @@ function runCode() {
     questionConst,
     sampleCaseExpected
   };
-  socket.emit("codeObject", payload);
+  socket.emit("runCode", payload);
 }
 
 function submitCode() {

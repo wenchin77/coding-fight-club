@@ -16,7 +16,7 @@ module.exports = {
     }
   },
   
-  insertTest: async (question_id, data, test_result) => {
+  insertTest: async (question_id, data, test_result, is_large_case) => {
     const dir = `./testcases/${question_id}`;
 
     // fs create new dir with question_id
@@ -38,10 +38,7 @@ module.exports = {
     }
 
     let testCaseFileNo = await countFileNo(dir);
-    console.log('testCaseFileNo', testCaseFileNo)
-
     let testcaseID = checkFile ? testCaseFileNo : 0;
-    console.log('testcaseID', testcaseID);
 
     let file = fs.openSync(`${dir}/${testcaseID}.json`, "w");
     fs.writeSync(file, data, (encoding = "utf-8"));
@@ -51,11 +48,11 @@ module.exports = {
     let test =  {
       question_id,
       test_case_path: `${dir}/${testcaseID}.json`,
-      test_result
+      test_result,
+      is_large_case
     }
     try {
       let result = await questionModel.queryInsertTest(test);
-      console.log(result);
       return(`Test data inserted: ${JSON.stringify(test)}`);
     } catch (err) {
       console.log(err);

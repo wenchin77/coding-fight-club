@@ -21,7 +21,8 @@ router.post('/insert_test', async (req, res)=> {
   let questionID = req.body.question_id;
   let data = req.body.test_data;
   let testResult = req.body.test_result;
-  let result = await questionController.insertTest(questionID, data, testResult);
+  let large = req.body.is_large_case;
+  let result = await questionController.insertTest(questionID, data, testResult, large);
   res.send(result);
 });
 

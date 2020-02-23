@@ -48,10 +48,17 @@ async function getAStranger() {
     return;
   }
 
+  let data = {
+    token: localStorage.getItem('token'),
+    category,
+    difficulty
+  }
+
   // find a random user online 
-  try {
-    let result = await axios.post(`/api/v1/user/get_stranger?token=${localStorage.getItem('token')}&category=${category}&difficulty=${difficulty}`);
-    showAlert("We found someone but we still need the user to confirm!");
+  socket.emit('getStranger', data);
+  socket.on('stranger', msg => {
+    showAlert(msg)
+  })
     // showAlertWithButtons(`Are you ready to start the match with ${result.data} now?`, async () => {
     //   let matchKey = await getKey();
   
@@ -61,15 +68,18 @@ async function getAStranger() {
     //   // redirect to a room in match page with match key
     //   window.location = `match/${matchKey}`;
     // })  
-  } catch (error) {
-    if (error.response.status === 403) {
-      // can't find another online user
-      showAlert(error.response.data);
-      return;
-    }
-    showAlert('Server error. Please try again later.')
-    console.log(error.response);
-  }
+
+
+
+  // } catch (error) {
+  //   if (error.response.status === 403) {
+  //     // can't find another online user
+  //     showAlert(error.response.data);
+  //     return;
+  //   }
+  //   showAlert('Server error. Please try again later.')
+  //   console.log(error.response);
+  // }
 };
 
 // addEventListener to buttons

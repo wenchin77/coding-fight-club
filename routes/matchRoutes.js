@@ -37,14 +37,12 @@ router.get('/result/details', async (req, res) => {
 
 router.get('/result/summary', async (req, res) => {
   let userID = req.query.userid;
-  console.log('userID', parseInt(userID))
   let result = await matchController.getMatchSummary(parseInt(userID));
   res.send(result);
 });
 
 router.get('/result/all', async (req, res) => {
   let userID = req.query.userid;
-  console.log('userID', parseInt(userID))
   let result = await matchController.getMatchHistory(parseInt(userID));
   res.send(result);
 });

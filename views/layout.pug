@@ -5,11 +5,13 @@ html
     meta(name='viewport' content='width=device-width, initial-scale=1')
     meta(name='description' content='A live competition app for engineers to sharpen their programming skills')
     title Coding Fight Club
+    link(rel='icon' href='../img/fight.png')
     link(rel='stylesheet' type='text/css' href='../css/index.css' media='all')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
+    script(src='/socket.io/socket.io.js')
+    script(src='../js/socket.js')
     script(src='../js/index.js')
-    //- script(src='../js/ping.js')
     script(src="https://unpkg.com/axios/dist/axios.min.js")
     block scripts
 
@@ -58,7 +60,7 @@ html
 
       script.
         // after signed in:
-        if (localStorage.getItem('username')) {
+        if (localStorage.getItem('username') && localStorage.getItem("token")) {
           let username = localStorage.getItem('username');
           document.getElementById('membername').innerHTML = username;
           document.getElementById('member').href = '/dashboard';
