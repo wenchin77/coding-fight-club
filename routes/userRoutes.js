@@ -192,6 +192,32 @@ router.post('/signin', async (req, res)=> {
 
   // github
   if (data.provider === 'github') {
+    console.log('getting ajax for github signin...');
+    try {
+      if (!data.name || !data.email) {
+        res.status(400).send({error: "Permissions Error: name and email are required when you sign in with a Github account."});
+        return;
+      }
+
+      // check in db if email exists
+      let userNumByEmail = await userController.countUsersByEmail(data.email);
+      if (userNumByEmail === 0) {
+        console.log('github user not found, inserting...')
+        // if not insert user
+        let result = await userController.insertGithubUser(data);
+        res.status(200).send(result);
+        return;
+      };
+
+      // check if token's not expired, if not send back the same token, if so set a new token
+      console.log('github user found, updating...')
+      let result = await userController.updateGithubUser(data);
+      res.status(200).send(result);
+    } catch (error) {
+      console.log(error)
+      res.status(500).send({error: 'Server error. Please try again later.'});
+    };
+    return;
     
   };
 

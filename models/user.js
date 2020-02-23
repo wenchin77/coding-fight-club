@@ -27,7 +27,7 @@ module.exports = {
   },
 
   querySelectUserByToken: (token) => {
-    return mysql.query('SELECT user_table.id, user_table.email, user_table.user_name, user_table.points, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.token = ?', [token]);
+    return mysql.query('SELECT user_table.id, user_table.email, user_table.user_name, user_table.points, user_table.github_url, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.token = ?', [token]);
   },
 
   querySelectUserInfoByToken: (token) => {

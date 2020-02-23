@@ -176,53 +176,64 @@ if (window.location.search.substring(1).includes('access_token')) {
   const query = window.location.search.substring(1)
   const token = query.split('access_token=')[1];
   getGithubProfile(token);
-
 }
 
 async function getGithubProfile(token) {
   try{
-    // Call the user info API using the fetch browser library
-    let profile = await axios.get('https://api.github.com/user', {
+    // Call the user info API using the fetch user profile (scope user:email defined in signin.pug)
+    let user = await axios.get('https://api.github.com/user', {
       headers: {
-        // Include the token in the Authorization header
         Authorization: 'token ' + token
       }
     });
-    let emails = await axios.get('https://api.github.com/user/public_emails', {
+    let emails = await axios.get('https://api.github.com/user/emails', {
       headers: {
-        // Include the token in the Authorization header
         Authorization: 'token ' + token
       }
     });
-    console.log(profile);
+    console.log(user);
     console.log(emails);
-    // Once we get the response, send ajax to signin
-    // const data = {
-		// 	provider: "github",
-		// 	profile: token
-    // };
-    // let res = await axios.post("api/v1/user/signin", data);
-    // console.log(res);
-    // // add userinfo to localStorage
-    // localStorage.setItem('id', res.data.id);
-    // localStorage.setItem('username', res.data.username)
-    // localStorage.setItem('email', res.data.email);
-    // localStorage.setItem('picture', res.data.picture);
-    // localStorage.setItem('provider', res.data.provider);
-    // localStorage.setItem('token', res.data.token);
-    // localStorage.setItem('points', res.data.points);
-    // localStorage.setItem('level', res.data.level);
-    // localStorage.setItem('access_expired', res.data.access_expired);
+    
+    // get primary email 
+    let primaryEmail;
+    for (let i=0;i<emails.length;i++) {
+      if (emails[i].primary) {
+        primaryEmail = email[i].email;
+        break;
+      }
+    }
 
-    // showAlert('Welcome to the Coding Fight Club!', () => {
-    //   // if user was invited in a match before signing in, redirect to match page
-    //   if (localStorage.getItem('invited_url')) {
-    //     window.location.pathname = localStorage.getItem('invited_url');
-    //     return;
-    //   }
-    //   // redirect to dashboard page
-    //   window.location.pathname = 'dashboard';
-    // })
+    // Once we get the response, send ajax to signin
+    const data = {
+      provider: "github",
+      name: user.data.login,
+      email: primaryEmail,
+      picture: user.data.avatar_url,
+      github_url: user.data.html_url
+    };
+    let res = await axios.post("api/v1/user/signin", data);
+    console.log(res);
+    // add userinfo to localStorage
+    localStorage.setItem('id', res.data.id);
+    localStorage.setItem('username', res.data.username)
+    localStorage.setItem('email', res.data.email);
+    localStorage.setItem('picture', res.data.picture);
+    localStorage.setItem('provider', res.data.provider);
+    localStorage.setItem('github_url', res.data.github_url);
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('points', res.data.points);
+    localStorage.setItem('level', res.data.level);
+    localStorage.setItem('access_expired', res.data.access_expired);
+
+    showAlert('Welcome to the Coding Fight Club!', () => {
+      // if user was invited in a match before signing in, redirect to match page
+      if (localStorage.getItem('invited_url')) {
+        window.location.pathname = localStorage.getItem('invited_url');
+        return;
+      }
+      // redirect to dashboard page
+      window.location.pathname = 'dashboard';
+    })
   } catch (error) {
     return(error);
   }

@@ -146,6 +146,9 @@ async function showProfile(token) {
     document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`
     document.getElementById('points').innerHTML = `Points: ${response.data[0].points}`
     document.getElementById('level').innerHTML = `Level: ${response.data[0].level_name}`;
+    if (response.data[0].github_url) {
+      document.getElementById('github').innerHTML = `Points: ${response.data[0].github_url}`;
+    }
     return response.data[0];
   } catch (error) {
     console.log(error);
