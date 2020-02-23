@@ -237,7 +237,7 @@ async function getGithubProfile(token) {
         return;
       }
       // redirect to dashboard page
-      window.location.href = window.location.origin + 'dashboard';
+      window.location.href = window.location.origin + '/dashboard';
     })
   } catch (error) {
     return(error);
