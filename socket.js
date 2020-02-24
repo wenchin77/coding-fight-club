@@ -28,11 +28,7 @@ socket.init = server => {
     let url = socket.request.headers.referer;
     console.group('---------> io on connection', socket.id);
     console.log('user connected at', url);
-    // Add user to socketidMapping (socketid: userid)
-    if (!socketidMapping[socket.id]) {
-      socketidMapping[socket.id] = user;
-    };
-    console.log('socket on online, socketidMapping: ', socketidMapping);
+    console.log('io on connetion, socketidMapping: ', socketidMapping);
     console.groupEnd();
 
 
@@ -61,6 +57,12 @@ socket.init = server => {
         username = onlineUsers[user].username;
         console.log('有用戶資料，onlineUsers',onlineUsers)
       }
+
+      // Add user to socketidMapping (socketid: userid)
+      if (!socketidMapping[socket.id]) {
+        socketidMapping[socket.id] = user;
+      };
+      console.log('socket on online, socketidMapping: ', socketidMapping);
 
       // update active time
       onlineUsers[user].time = Date.now();
