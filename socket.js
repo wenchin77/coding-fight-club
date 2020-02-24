@@ -34,9 +34,6 @@ socket.init = server => {
 
     socket.on('online', async (token) => {
       console.group('---------> online', socket.id);
-      if (!socketidMapping[socket.id]) {
-        console.log('幽靈 socket.id !!!!!', socket.id)
-      }
       let user;
       let username;
 
@@ -66,7 +63,10 @@ socket.init = server => {
         socketidMapping[socket.id] = user;
       };
       console.log('socket on online, socketidMapping: ', socketidMapping);
-
+      if (!socketidMapping[socket.id]) {
+        console.log('幽靈 socket.id !!!!!', socket.id)
+      }
+      
       // update active time
       onlineUsers[user].time = Date.now();
       // console.log('socket on online, onlineUsers', onlineUsers);
