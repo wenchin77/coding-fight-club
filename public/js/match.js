@@ -5,7 +5,7 @@ if (!localStorage.getItem("token") || !localStorage.getItem("id")) {
   window.location.pathname = "signin";
 }
 
-if (localStorage.getItem('invited_url')){
+if (localStorage.getItem("token") && localStorage.getItem('invited_url')){
   // remove item to prevent wrong redirecting later
   localStorage.removeItem('invited_url');
   console.log('invited_url removed...')
