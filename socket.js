@@ -62,8 +62,9 @@ socket.init = server => {
       // console.log('socket on online, onlineUsers', onlineUsers);
 
       // if the invitation's accepted notify the inviter
-      if (onlineUsers[user].invitation_accepted === 1) {
-        socket.emit('startStrangerModeMatch', url)
+      if (onlineUsers[user].invitation_accepted !== 0) {
+        console.log('invitation_accepted === 1, emitting startStrangerModeMatch...')
+        socket.emit('startStrangerModeMatch', onlineUsers[user].invitation_accepted);
       }
 
       // if there's an invitation notify the invited
@@ -430,7 +431,7 @@ socket.init = server => {
     socket.on('strangerAccepted', (data) => {
       let id = data.inviterId;
       console.log('data ==============', data)
-      onlineUsers[id].invitation_accepted = 1;
+      onlineUsers[id].invitation_accepted = data.url;
     })
 
     socket.on(('disconnect' || 'exit'), () => {
