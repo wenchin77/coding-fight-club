@@ -26,9 +26,12 @@ socket.init = server => {
   
   io.on("connection", socket => {
     let url = socket.request.headers.referer;
-    console.group('---------> io on connection', socket.id);
+    console.group('---------> io on connection');
     console.log('user connected at', url);
     console.log('io on connetion, socketidMapping: ', socketidMapping);
+    if (!socketidMapping[socket.id]) {
+      console.log('幽靈 socket.id:', socket.id)
+    }
     console.groupEnd();
 
 

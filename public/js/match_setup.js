@@ -79,7 +79,6 @@ function countdown(startTime) {
     let secondsLeft = parseInt(startTime / 1000 + totalSeconds - Date.now() / 1000);
     if (secondsLeft === 0) {
       clearInterval(timer);
-      document.getElementById("myModal").style.display = 'none';
       showAlert('Oh no this user has not confirmed within time. Try it again later or invite a friend!')
       return;
     }
