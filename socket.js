@@ -476,7 +476,7 @@ socket.init = server => {
       let token = data.token;
       let user = tokenIdMapping[token];
       let inviterId = data.inviterId;
-      for (let i=0; i<onlineUsers[token].invited.length; i++) {
+      for (let i=0; i<onlineUsers[user].invited.length; i++) {
         if (onlineUsers[user].invited[i].inviter == id) {
           array.splice(i, 1);
           break;

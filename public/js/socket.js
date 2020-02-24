@@ -117,8 +117,6 @@ let AlertBox = function(id, option) {
       let alertTimeout = setTimeout(() => {
         alertClass.hide(alertBox);
         clearTimeout(alertTimeout);
-        let rejectData = {token, inviterId};
-        socket.emit('strangerRejected', rejectData);
       }, option.closeTime);
     }
   };
