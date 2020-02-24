@@ -29,14 +29,14 @@ socket.init = server => {
     console.group('---------> io on connection');
     console.log('user connected at', url);
     console.log('io on connetion, socketidMapping: ', socketidMapping);
-    if (!socketidMapping[socket.id]) {
-      console.log('幽靈 socket.id:', socket.id)
-    }
     console.groupEnd();
 
 
     socket.on('online', async (token) => {
       console.group('---------> online', socket.id);
+      if (!socketidMapping[socket.id]) {
+        console.log('幽靈 socket.id !!!!!', socket.id)
+      }
       let user;
       let username;
 
@@ -493,6 +493,9 @@ socket.init = server => {
 
     socket.on(('disconnect' || 'exit'), () => {
       console.log('---------> disconnect', socket.id)
+      if (!socketidMapping[socket.id]) {
+        console.log('幽靈 socket.id !!!!!', socket.id)
+      }
       let url = socket.request.headers.referer;
       let socketid = socket.id;
       let user = socketidMapping[socketid];
