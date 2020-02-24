@@ -91,7 +91,7 @@ function countdown(startTime) {
       document.getElementById("myModal").style.display = 'none';
     }
     // can't exit alert box
-    // document.getElementById('okButton').style.display = 'none';
+    document.getElementById('okButton').style.display = 'none';
     showAlert(`We found someone. Let's wait for the user to confirm! Here's the countdown: ${secondsLeft} seconds.`, () =>{
       document.getElementById("myModal").style.display = 'block';
     });

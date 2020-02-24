@@ -23,11 +23,11 @@ function socketInit() {
 
   });
 
-  // setInterval every 30 sec at every page except match page
+  // setInterval every 20 sec at every page except match page
   if (!url.includes('match/')) {
     setInterval(() => {
       socket.emit('online', token);
-    }, 1000*30);
+    }, 1000*20);
   };
 
   socket.on('invited', async (data) => {
@@ -46,7 +46,7 @@ function socketInit() {
       invitations[inviterId] = {inviterName, category, difficulty, inviteTime};
       console.log('invitations', invitations);
       
-      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}! Accept the invititation within 30 seconds!`,questionID, inviterId);
+      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}! Accept the invititation?`,questionID, inviterId);
     }
     
   });
@@ -87,7 +87,7 @@ let AlertBox = function(id, option) {
       alertClose.classList.add('alert-close');
       alertClose.setAttribute('href', '#');
       alertYes.classList.add('alert-yes');
-      alertYes.innerText = 'Yes';
+      alertYes.innerText = 'YES';
 
       alertBox.classList.add('alert-box');
       alertBox.appendChild(alertContent);
@@ -112,10 +112,14 @@ let AlertBox = function(id, option) {
       alertClose.addEventListener('click', (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
+        let rejectData = {token, inviterId};
+        socket.emit('strangerRejected', rejectData);
       });
       let alertTimeout = setTimeout(() => {
         alertClass.hide(alertBox);
         clearTimeout(alertTimeout);
+        let rejectData = {token, inviterId};
+        socket.emit('strangerRejected', rejectData);
       }, option.closeTime);
     }
   };
@@ -129,10 +133,10 @@ let AlertBox = function(id, option) {
   };
 };
 
-// show for 5 sec
+// show for 20 sec
 function showAlertBox(msg, questionID, inviterId) {
   let alertbox = new AlertBox('#alert-area', {
-    closeTime: 1000 * 30,
+    closeTime: 1000 * 20,
   });
   alertbox.show(msg, questionID, inviterId);
 }

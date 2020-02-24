@@ -26,18 +26,20 @@ socket.init = server => {
   
   io.on("connection", socket => {
     let url = socket.request.headers.referer;
-    console.log('socket on connect ----------------');
+    console.group('---------> io on connection', socket.id);
     console.log('user connected at', url);
     console.log('user socketid', socket.id);
     console.log('socket on connection, onlineUsers', onlineUsers);
+    console.groupEnd();
 
     socket.on('online', async (token) => {
+      console.group('---------> online', socket.id);
       let user;
       let username;
 
       // get userid & username in db if it's not in memory
       if (!tokenIdMapping[token]) {
-        console.log('!onlineUsers[token], 進去 db 找');
+        console.log('沒有這個用戶資料在 onlineUsers, 進去 db 找');
         let result = await userController.selectUserInfoByToken(token);
         user = result[0].id;
         username = result[0].user_name;
@@ -45,16 +47,15 @@ socket.init = server => {
         onlineUsers[user] = {
           username,
           time: Date.now(),
-          in_a_match: 0, // turn this to 1 in match page
           inviting: 0, // if it's 1 user can't invite again
           invitation_accepted: 0,
           invited: []
         };
       } else {
         user = tokenIdMapping[token];
-        console.log('user', user)
+        // ++++++++++++++++ to be debugged: username undefined sometimes?
         username = onlineUsers[user].username;
-        console.log('username', username)
+        console.log('有用戶資料，onlineUsers',onlineUsers)
       }
 
       // update active time
@@ -84,14 +85,38 @@ socket.init = server => {
         socketidMapping[socket.id] = user;
       };
       console.log('socket on online, socketidMapping: ', socketidMapping)
+      console.groupEnd();
 
     })
 
     socket.on('joinMatch', async (token) => {
+      console.group('---------> joinMatch')
       let matchKey = getMatchKey(socket.request.headers.referer);
-      let result = await userController.selectUserInfoByToken(token);
-      let user = result[0].id;
-      let username = result[0].user_name;
+      let user;
+      let username;
+
+      // get userid & username in db if it's not in memory
+      if (!tokenIdMapping[token]) {
+        console.log('!onlineUsers[token], 進去 db 找');
+        let result = await userController.selectUserInfoByToken(token);
+        user = result[0].id;
+        username = result[0].user_name;
+        tokenIdMapping[token] = user;
+        onlineUsers[user] = {
+          username,
+          time: Date.now(),
+          inviting: 0, // if it's 1 user can't invite again
+          invitation_accepted: 0,
+          invited: []
+        };
+      } else {
+        user = tokenIdMapping[token];
+        console.log('user', user)
+        // ++++++++++++++++ to be debugged: username undefined sometimes?
+        console.log('onlineUsers',onlineUsers)
+        username = onlineUsers[user].username;
+        console.log('username', username)
+      }
 
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
@@ -101,6 +126,7 @@ socket.init = server => {
       // +++++++++ watch mode?
       // Reject user if there are already 2 people in the room
       if (matchList[matchKey].length >= 2) {
+        console.log('---------> rejectUser')
         socket.emit('rejectUser', 'Oops, there are already two people in this match!');
         return;
       }
@@ -171,9 +197,11 @@ socket.init = server => {
       };
       console.log('socket on join, startInfo', startInfo)
       io.to(matchKey).emit('startMatch', startInfo);
+      console.groupEnd();
     });
 
     socket.on('runCode', async (data) => {
+      console.group('---------> runCode')
       let matchKey = getMatchKey(socket.request.headers.referer);
       let code = data.code;
       let user = data.user;
@@ -220,12 +248,14 @@ socket.init = server => {
       }
       // send an event to everyone in the room including the sender
       io.to(matchKey).emit("codeResult", codeResult);
+      console.groupEnd();
     });
 
     socket.on('submit', async (data) => {
+      console.group('---------> submit')
       let matchKey = getMatchKey(socket.request.headers.referer);
       let user = data.user;
-      let username = onlineUsers[user];
+      let username = onlineUsers[user].username;
 
       // Check if the user submitted before
       let submitTime = 0;
@@ -393,9 +423,12 @@ socket.init = server => {
       console.log('winnerCheck after match', winnerCheck)
 
       delete winnerCheck[matchKey]
+      console.groupEnd();
+
     })
 
     socket.on('getStranger', async (data) => { // data: {token, category, difficulty}
+      console.group('---------> getStranger')
       let token = data.token;
       let inviterId = tokenIdMapping[token];
       let inviterName = onlineUsers[inviterId].username;
@@ -425,33 +458,55 @@ socket.init = server => {
       onlineUsers[inviterId].inviting = Date.now();
       
       console.log('socket on getStranger, onlineUsers',onlineUsers)
-      socket.emit('stranger', invitation)
+      socket.emit('stranger', invitation);
+      console.groupEnd();
     });
 
     socket.on('strangerAccepted', (data) => {
+      console.group('---------> strangerAccepted')
       let id = data.inviterId;
-      console.log('data ==============', data)
+      console.log('data', data)
       onlineUsers[id].invitation_accepted = data.url;
+      console.log('onlineUsers[id]', onlineUsers[id])
+      console.groupEnd();
+    });
+
+    socket.on('strangerRejected', (data) => {
+      console.group('---------> strangerRejected')
+      let token = data.token;
+      let user = tokenIdMapping[token];
+      let inviterId = data.inviterId;
+      for (let i=0; i<onlineUsers[token].invited.length; i++) {
+        if (onlineUsers[user].invited[i].inviter == id) {
+          array.splice(i, 1);
+          break;
+        }
+      }
+      onlineUsers[inviterId].invited = 0;
+      console.log('onlineUsers after strangerRejected ---- ', onlineUsers)
+      console.groupEnd();
     })
 
     socket.on(('disconnect' || 'exit'), () => {
+      console.log('---------> disconnect', socket.id)
       let url = socket.request.headers.referer;
       let socketid = socket.id;
       let user = socketidMapping[socketid];
-      let username = onlineUsers[user];
+      console.log('disconnect user',user)
+      console.log('disconnect onlineUsers', onlineUsers)
+      console.log('disconnect socketidMapping', socketidMapping)
+      let username = onlineUsers[user].username;
 
       // match page
       if (url.includes('/match/')){
         let matchKey = getMatchKey(url);
 
         // 用 socketidMapping (socketid: user) 找出退出的 user
-        console.log('-------------------------')
-        console.log('socket on disconnect: my socketid', socketid)
-        console.log('socket on disconnect: my userid', user)
-        console.log('socket on disconnect: my username', username)
-        console.log('socket on disconnect: socketidMapping', socketidMapping)
-        console.log('socket on disconnect: onlineUsers', onlineUsers)
-        console.log('-------------------------')
+        console.log('match page socket on disconnect: my socketid', socketid)
+        console.log('match page socket on disconnect: my userid', user)
+        console.log('match page socket on disconnect: my username', username)
+        console.log('match page socket on disconnect: socketidMapping', socketidMapping)
+        console.log('match page socket on disconnect: onlineUsers', onlineUsers)
 
 
         // ++++++++++++++ 不要傳送第三者離開的訊息？？
@@ -483,9 +538,7 @@ socket.init = server => {
       };
 
       // other pages
-      console.log('socket on disconnect ----------------')
       console.log('user disconnected at', url);
-      console.log('user socketid', socket.id);
       // +++++++++++ leave onlineUsers
 
       // // client 會自動斷線，所以 mapping 不能亂刪??????c
@@ -494,6 +547,7 @@ socket.init = server => {
 
       delete socketidMapping[socketid];
       console.log('socketidMapping after deleting disconnected user', socketidMapping);
+      console.groupEnd();
     });
   });
 };
