@@ -51,9 +51,6 @@ function socketInit() {
     
   });
 
-  socket.on('startStrangerModeMatch', url => {
-    window.location = url;
-  });
 }
 
 async function getQuestion(category, difficulty) {

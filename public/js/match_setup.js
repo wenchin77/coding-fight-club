@@ -127,6 +127,12 @@ async function getQuestion(category, difficulty) {
   }
 };
 
+socket.on('startStrangerModeMatch', url => {
+  console.log('get startStrangerModeMatch...')
+  window.location = url;
+});
+
+
 // async function insertMatch(questionID, matchKey) {
 //   try {
 //     const response = await axios.post('/api/v1/match/insert_match', {
