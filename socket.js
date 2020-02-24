@@ -28,9 +28,13 @@ socket.init = server => {
     let url = socket.request.headers.referer;
     console.group('---------> io on connection', socket.id);
     console.log('user connected at', url);
-    console.log('user socketid', socket.id);
-    console.log('socket on connection, onlineUsers', onlineUsers);
+    // Add user to socketidMapping (socketid: userid)
+    if (!socketidMapping[socket.id]) {
+      socketidMapping[socket.id] = user;
+    };
+    console.log('socket on online, socketidMapping: ', socketidMapping);
     console.groupEnd();
+
 
     socket.on('online', async (token) => {
       console.group('---------> online', socket.id);
@@ -79,12 +83,6 @@ socket.init = server => {
           socket.emit('invited', invitations[i]);
         }
       }
-
-      // Add user to socketidMapping (socketid: userid)
-      if (!socketidMapping[socket.id]) {
-        socketidMapping[socket.id] = user;
-      };
-      console.log('socket on online, socketidMapping: ', socketidMapping)
       console.groupEnd();
 
     })
@@ -483,7 +481,8 @@ socket.init = server => {
         }
       }
       onlineUsers[inviterId].invited = 0;
-      console.log('onlineUsers after strangerRejected ---- ', onlineUsers)
+      console.log('onlineUsers after strangerRejected ---- ', onlineUsers);
+
       console.groupEnd();
     })
 

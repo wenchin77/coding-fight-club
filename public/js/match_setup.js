@@ -61,16 +61,7 @@ async function getAStranger() {
       let time = invitation.time;
       localStorage.setItem('inviteTime', time);
       countdown(time);
-    })
-      // showAlertWithButtons(`Are you ready to start the match with ${result.data} now?`, async () => {
-      //   let matchKey = await getKey();
-    
-      //   // insert a match
-      //   let match = await insertMatch(questionID, matchKey);
-      
-      //   // redirect to a room in match page with match key
-      //   window.location = `match/${matchKey}`;
-      // })
+    });
   })
 };
 
@@ -89,10 +80,12 @@ function countdown(startTime) {
     if (secondsLeft === 0) {
       clearInterval(timer);
       document.getElementById("myModal").style.display = 'none';
+      showAlert('Oh no this user has not confirmed within time. Try it again later or invite a friend!')
+      return;
     }
     // can't exit alert box
     document.getElementById('okButton').style.display = 'none';
-    showAlert(`We found someone. Let's wait for the user to confirm! Here's the countdown: ${secondsLeft} seconds.`, () =>{
+    showAlert(`We found someone! Let's wait for the user to confirm. Here's the countdown: ${secondsLeft} seconds.`, () =>{
       document.getElementById("myModal").style.display = 'block';
     });
   }, 1000

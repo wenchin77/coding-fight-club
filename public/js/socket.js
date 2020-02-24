@@ -20,7 +20,6 @@ function socketInit() {
   socket.on('connect', () => {
     console.log('socket on connect')
     socket.emit('online', token);
-
   });
 
   // setInterval every 20 sec at every page except match page
@@ -42,7 +41,7 @@ function socketInit() {
 
     // if it wasn't in invitations{}, add it & show alert
     if (!invitations[inviterId]) {
-      console.log('not in invitation before')
+      console.log('not in invitation before... show alert box');
       invitations[inviterId] = {inviterName, category, difficulty, inviteTime};
       console.log('invitations', invitations);
       
