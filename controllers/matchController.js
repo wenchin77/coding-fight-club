@@ -36,7 +36,7 @@ module.exports = {
       console.log(err);
     }
   },
-
+  
   getKey: () => {
     let key = cryptoRandomString({length: 10, type: 'numeric'});
     return key;

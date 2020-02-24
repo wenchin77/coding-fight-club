@@ -1,7 +1,7 @@
 const token = localStorage.getItem('token');
 
 // get matchID
-const url = window.location.pathname;
+// const url = window.location.pathname;
 const matchKey = url.substring(url.lastIndexOf('/') + 1);
 
 async function main() {
@@ -9,6 +9,7 @@ async function main() {
     let userID = await getUserInfo(token);
     let matchID = await getMatchID(matchKey);
     let matchDetails = await getMatchDetails(matchID, userID);
+    console.log('matchDetails', matchDetails)
     showMatchResult(userID, matchDetails);
   } catch (err) {
     showAlert('Something went wrong. Refresh the page to see result.')
@@ -63,7 +64,10 @@ async function getMatchDetails (matchID) {
 
 
 function capitalize (str) {
-  if (typeof str !== 'string') return ''
+  if (typeof str !== 'string') return '';
+  if (str.includes('_')) {
+    return `${str.split('_')[0].charAt(0).toUpperCase()}${str.split('_')[0].slice(1)} ${str.split('_')[1].charAt(0).toUpperCase()}${str.split('_')[1].slice(1)}`
+  }
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
@@ -87,6 +91,7 @@ function convertAnswerTime (time) {
 
 async function showMatchResult (userID, result) {
   let matchResult = result.matchResult;
+  console.log('matchResult',matchResult)
   let question = result.question;
   let difficulty = capitalize(question.difficulty);
   let category = capitalize(question.category);

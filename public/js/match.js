@@ -52,6 +52,8 @@ function socketInMatchInit() {
     }
   });
 
+
+
   socket.once("startMatch", startInfo => {
     console.log(startInfo)
     // show opponent name

@@ -12,6 +12,7 @@ const socket = {};
 
 // online user check data
 const onlineUsers = {};
+const tokenIdMapping = {};
 
 socket.init = server => {
   console.log('socket server initialized...');
@@ -22,55 +23,65 @@ socket.init = server => {
   const matchList = {}; // to save match key & user mapping info
   const socketidMapping = {}; // to save socketid & user mapping info
   const winnerCheck = {}; // on submit: to assign performance points
-  const userIdNameMapping = {}; // to display username in frontend
   
   io.on("connection", socket => {
     let url = socket.request.headers.referer;
     console.log('socket on connect ----------------');
     console.log('user connected at', url);
     console.log('user socketid', socket.id);
+    console.log('socket on connection, onlineUsers', onlineUsers);
 
     socket.on('online', async (token) => {
       let user;
       let username;
+
       // get userid & username in db if it's not in memory
-      if (!onlineUsers[token]) {
+      if (!tokenIdMapping[token]) {
         console.log('!onlineUsers[token], 進去 db 找');
         let result = await userController.selectUserInfoByToken(token);
+        console.log(result);
         user = result[0].id;
         username = result[0].user_name;
-        onlineUsers[token] = {
-          id: result[0].id,
-          username, 
+        tokenIdMapping[token] = user;
+        onlineUsers[user] = {
+          username,
           time: Date.now(),
           in_a_match: 0, // turn this to 1 in match page
-          invited: null
+          inviting: 0, // if it's 1 user can't invite again
+          invited: []
         };
       } else {
-        user = onlineUsers[token].id;
-        username = onlineUsers[token].username;
+        user = tokenIdMapping[token];
+        username = onlineUsers[user].username;
       }
 
       // update active time
-      onlineUsers[token].time = Date.now();
-      console.log('socket on online, onlineUsers', onlineUsers);
+      onlineUsers[user].time = Date.now();
+      // console.log('socket on online, onlineUsers', onlineUsers);
 
-      // if there's an invitation notify the user
-      // +++++++++++++ can be invited by many
-      if (onlineUsers[token].invited) {
-        let result = await userController.selectUserInfoByToken(onlineUsers[token].invited.inviter);
-        let inviter = result[0].user_name;
-        let invitation =  onlineUsers[token].invited
-        console.log('emitting invited...')
-        socket.emit('invited', {inviter, category: invitation.category, difficulty: invitation.difficulty});
+      // if there's an invitation notify the invited
+      let onlineUserDetail = onlineUsers[user];
+      if (onlineUserDetail.invited.length > 0) {
+        console.log('onlineUserDetail ====',onlineUserDetail);
+        let invitations =  onlineUserDetail.invited;
+        for (let i=0; i<invitations.length; i++) {
+          console.log(invitations[i])
+          console.log('emitting invited...')
+          socket.emit('invited', invitations[i]);
+        }
       }
 
+      // if the invitation's accepted notify the inviter
+      // if ('?????') {
+      //   socket.emit('startStrangerModeMatch', url)
+      // }
 
-      // Add user to userIdNameMapping (userid: username)
-      if (!userIdNameMapping[user]) {
-        userIdNameMapping[user] = username;
-      };
-      console.log('socket on online, userIdNameMapping', userIdNameMapping);
+
+      // // Add user to userIdNameMapping (userid: username)
+      // if (!userIdNameMapping[user]) {
+      //   userIdNameMapping[user] = username;
+      // };
+      // console.log('socket on online, userIdNameMapping', userIdNameMapping);
 
       // Add user to socketidMapping (socketid: userid)
       if (!socketidMapping[socket.id]) {
@@ -153,11 +164,11 @@ socket.init = server => {
       let startInfo = {
         user1: {
           user: userid1,
-          username: userIdNameMapping[userid1]
+          username: onlineUsers[userid1].username
         },
         user2: {
           user: userid2,
-          username: userIdNameMapping[userid2]
+          username: onlineUsers[userid2].username
         },
         startTime: matchStartTime,
         question: questionObject
@@ -166,7 +177,7 @@ socket.init = server => {
       io.to(matchKey).emit('startMatch', startInfo);
     });
 
-    socket.on('runCode', async data => {
+    socket.on('runCode', async (data) => {
       let matchKey = getMatchKey(socket.request.headers.referer);
       let code = data.code;
       let user = data.user;
@@ -218,7 +229,7 @@ socket.init = server => {
     socket.on('submit', async (data) => {
       let matchKey = getMatchKey(socket.request.headers.referer);
       let user = data.user;
-      let username = userIdNameMapping[user];
+      let username = onlineUsers[user];
 
       // Check if the user submitted before
       let submitTime = 0;
@@ -388,29 +399,48 @@ socket.init = server => {
       delete winnerCheck[matchKey]
     })
 
-    socket.on('getStranger', async data => {
-      let category = data.category;
-      let difficulty = data.difficulty;
-      let stranger = await getStranger(onlineUsers, data.token);
-      if (!stranger) {
-        socket.emit('stranger','We cannot find users online now... Try again later or invite a friend instead?')
+    socket.on('getStranger', async (data) => { // data: {token, category, difficulty}
+      let token = data.token;
+      let inviterId = tokenIdMapping[token];
+      let inviterName = onlineUsers[inviterId].username;
+      if ((Date.now() - onlineUsers[inviterId].inviting) < 60 * 1000) {
+        socket.emit('noStranger','You cannot send more than one invitation within a minute!')
+        return;
       }
-      console.log('stranger', stranger);
+
+      let result = await getStranger(onlineUsers, inviterId);
+      if (!result) {
+        socket.emit('noStranger','Ugh everyone seems to be busy playing in matches right now. Try again later or invite a friend instead?')
+        return;
+      }
+      console.log('stranger result', result);
       // add to invitations 
-      onlineUsers[stranger.strangerToken].invited = {
-        inviter: data.token,
-        category,
-        difficulty
+      let invitation = {
+        inviter: result.strangerId,
+        inviterName,
+        category: data.category,
+        difficulty: data.difficulty,
+        time: Date.now()
       }
+      console.log('invitation', invitation)
+      onlineUsers[result.strangerId].invited.push(invitation);
+
+      // update inviter's data
+      onlineUsers[inviterId].inviting = Date.now();
+      
       console.log('socket on getStranger, onlineUsers',onlineUsers)
-      socket.emit('stranger','We found someone but we still need the user to confirm!')
+      socket.emit('stranger', invitation)
+    });
+
+    socket.on('strangerAccepted', (data) => {
+      let inviter = onlineUsers[data.token].invited
     })
 
     socket.on(('disconnect' || 'exit'), () => {
       let url = socket.request.headers.referer;
       let socketid = socket.id;
       let user = socketidMapping[socketid];
-      let username = userIdNameMapping[user];
+      let username = onlineUsers[user];
 
       // match page
       if (url.includes('/match/')){
@@ -422,7 +452,7 @@ socket.init = server => {
         console.log('socket on disconnect: my userid', user)
         console.log('socket on disconnect: my username', username)
         console.log('socket on disconnect: socketidMapping', socketidMapping)
-        console.log('socket on disconnect: userIdNameMapping', userIdNameMapping)
+        console.log('socket on disconnect: onlineUsers', onlineUsers)
         console.log('-------------------------')
 
 
@@ -460,9 +490,9 @@ socket.init = server => {
       console.log('user socketid', socket.id);
       // +++++++++++ leave onlineUsers
 
-      // client 會自動斷線，所以 mapping 不能亂刪??????c
-      delete userIdNameMapping[user];
-      console.log('userIdNameMapping after deleting disconnected user', userIdNameMapping);
+      // // client 會自動斷線，所以 mapping 不能亂刪??????c
+      // delete onlineUsers[user];
+      // console.log('onlineUsers after deleting disconnected user', onlineUsers);
 
       delete socketidMapping[socketid];
       console.log('socketidMapping after deleting disconnected user', socketidMapping);
@@ -484,7 +514,7 @@ setInterval(() => {
   console.log('onlineUsers in setInterval === ',onlineUsers);
 }, 1000*60); // 之後調整成長一點
 
-let getStranger = (obj, myToken) => {
+let getStranger = (obj, inviterId) => {
   let keys = Object.keys(obj);
   if (keys.length <= 1) {
     console.log('only 1 user online now...')
@@ -492,21 +522,22 @@ let getStranger = (obj, myToken) => {
   }
   let index = keys.length * Math.random() << 0;
   console.log('index', index)
-  let strangerToken = keys[index];
-  console.log('strangerToken',strangerToken)
-  console.log('myToken', myToken)
-  if (strangerToken === myToken) {
+  let strangerId = keys[index];
+  console.log('strangerId',strangerId)
+  console.log('inviterId (my id)', inviterId)
+  if (strangerId === inviterId) {
     console.log('token belongs to me, find the next person')
     // if token belongs to me, find the next person 
-    let newIndex = index%keys.length +1
+    let newIndex = (index+1)%keys.length
+    console.log('newIndex', newIndex)
     let newResult = obj[keys[newIndex]];
-    let newStrangerToken = keys[newIndex];
-    console.log({result: newResult, strangerToken: newStrangerToken})
-    return ({result: newResult, strangerToken: newStrangerToken});
+    let newStrangerId = keys[newIndex];
+    console.log({result: newResult, strangerId: newStrangerId})
+    return ({result: newResult, strangerId: newStrangerId});
   } else {
-    let result = obj[strangerToken];
-    console.log({result, strangerToken})
-    return ({result, strangerToken});
+    let result = obj[strangerId];
+    console.log({result, strangerId})
+    return ({result, strangerId});
   }
 };
 

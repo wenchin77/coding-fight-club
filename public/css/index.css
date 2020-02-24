@@ -221,6 +221,15 @@ section {
   right: 11px;
 }
 
+.alert-yes {
+  background: transparent;
+  width: 10px;
+  height: 10px;
+  position: relative;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .alert-close:before,
 .alert-close:after {
   content: '';

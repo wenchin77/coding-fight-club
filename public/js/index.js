@@ -23,7 +23,7 @@ function showAlert (text, callback) {
   // show modal
   modal.style.display = "block";
 
-  // When the user clicks on (x), close the modal
+  // When the user clicks on okay, close the modal
   okay.onclick = () => {
     modal.style.display = "none";
     callback();

@@ -1,5 +1,6 @@
 let socket; // for other pages to use
 
+const url = window.location.pathname;
 // use socket to keep track of online users
 if (localStorage.getItem('token') && localStorage.getItem('id')){
   console.log('socket init...')
@@ -7,77 +8,73 @@ if (localStorage.getItem('token') && localStorage.getItem('id')){
   socketInit();
 }
 
-const invitations = {};
-// let unreadNotifications = {};
-let notificationNumber = 0; // if refresh show number before refresh
-if (localStorage.getItem('notificationNumber') > 0) {
-  document.getElementById('notificationNo').style.display = 'block';
-  document.getElementById('notificationNo').innerHTML = notificationNumber;
-}
-console.log('notificationNumber', notificationNumber);
 
+
+const invitations = {};
 
 function socketInit() {
   socket = io();
-  let token = localStorage.getItem('token');
   // whenever it connects pass the token
   // this is because socketio reconnects itself sometimes and data is lost if we don't pass it when connecting
+  let token = localStorage.getItem('token');
   socket.on('connect', () => {
     console.log('socket on connect')
-    // setInterval 每幾秒發一次? ++++++++++++++++++++
+    socket.emit('online', token);
+
+  });
+
+  // setInterval every 30 sec --- stop when user's in a match
+  if (!url.includes('match/')) {
     setInterval(() => {
       socket.emit('online', token);
     }, 1000*30);
-  })
+  };
 
-  socket.on('invited', (data) => {
+  socket.on('invited', async (data) => {
     console.log('invited data', data);
 
-    let inviter = data.inviter;
+    let inviter = data.inviterName;
+    let inviterId = data.inviterId;
     let category = data.category;
     let difficulty = data.difficulty;
-    
-    // if it wasn't in invitations{}, add it and add notificationNumber
+    let inviteTime = data.time;
+    let questionID = await getQuestion(category, difficulty);
+
+    // if it wasn't in invitations{}, add it & show alert
     if (!invitations[inviter]) {
       console.log('not in invitation before')
-      invitations[inviter] = {category, difficulty};
+      invitations[inviter] = {category, difficulty, inviteTime};
       console.log('invitations', invitations);
-      document.getElementById('notificationNo').style.display = 'block';
       
-      notificationNumber ++;
-      localStorage.setItem('notificationNumber', notificationNumber);
-      document.getElementById('notificationNo').innerHTML = notificationNumber;
-  
-      console.log('notificationNumber', notificationNumber)
-      showAlertBox(`${inviter} challenged you!`);
+      showAlertBox(`${inviter} challenged you to a match of ${difficulty} ${category}! Accept the invititation?`,questionID, inviterId);
     }
     
-  })
-
-
-  
-}
-
-
-// if someone clicks on the bell, set no back to 0 & display notifications
-function clearNotifications() {
-  document.getElementById('notificationNo').style.display = 'none';
-  localStorage.setItem('notificationNumber', 0);
-  // display notifications
-  // ++++++++++++
-}
-
-// show for 5 sec
-function showAlertBox(msg) {
-  let alertbox = new AlertBox('#alert-area', {
-    closeTime: 5000,
   });
-  alertbox.show(msg);
+
+  socket.on('startStrangerModeMatch', url => {
+    window.location = url;
+  });
 }
+
+async function getQuestion(category, difficulty) {
+  try {
+    const response = await axios.get(`/api/v1/question/${category}?difficulty=${difficulty}`)
+    let questionID = response.data.question.id;
+    return questionID;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+async function getKey() {
+  let keyObject = await axios.post('/api/v1/match/get_key');
+  return keyObject.data;
+};
+
 
 // Responsive alert box adjusted from https://codepen.io/takaneichinose/pen/eZoZxv
 let AlertBox = function(id, option) {
-  this.show = function(msg) {
+  this.show = function(msg, questionID, inviterId) {
     if (msg === ''  || typeof msg === 'undefined' || msg === null) {
       throw '"msg parameter is empty"';
     }
@@ -86,15 +83,34 @@ let AlertBox = function(id, option) {
       let alertBox = document.createElement('DIV');
       let alertContent = document.createElement('DIV');
       let alertClose = document.createElement('A');
+      let alertYes = document.createElement('DIV');
       let alertClass = this;
       alertContent.classList.add('alert-content');
       alertContent.innerText = msg;
       alertClose.classList.add('alert-close');
       alertClose.setAttribute('href', '#');
+      alertYes.classList.add('alert-yes');
+      alertYes.innerText = 'Yes';
+
       alertBox.classList.add('alert-box');
       alertBox.appendChild(alertContent);
       alertBox.appendChild(alertClose);
+      alertBox.appendChild(alertYes);
       alertArea.appendChild(alertBox);
+      alertYes.addEventListener('click', async (event) => {
+        event.preventDefault();
+        alertClass.hide(alertBox);
+        // create a match
+        let matchKey = await getKey();
+        let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
+        let token = localStorage.getItem('token');
+        let acceptedData = {url, token, inviterId};
+        socket.emit('strangerAccepted', acceptedData);
+        // insert a match
+        await insertMatch(questionID, matchKey);
+        // redirect to a room in match page with match key
+        window.location = url;
+      });
       alertClose.addEventListener('click', (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
@@ -115,4 +131,25 @@ let AlertBox = function(id, option) {
   };
 };
 
+// show for 5 sec
+function showAlertBox(msg, questionID, inviterId) {
+  let alertbox = new AlertBox('#alert-area', {
+    closeTime: 1000 * 30,
+  });
+  alertbox.show(msg, questionID, inviterId);
+}
+
+
+
+async function insertMatch(questionID, matchKey) {
+  try {
+    const response = await axios.post('/api/v1/match/insert_match', {
+      questionID,
+      matchKey
+    })
+    return response;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
