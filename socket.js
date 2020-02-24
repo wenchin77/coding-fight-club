@@ -39,7 +39,6 @@ socket.init = server => {
       if (!tokenIdMapping[token]) {
         console.log('!onlineUsers[token], 進去 db 找');
         let result = await userController.selectUserInfoByToken(token);
-        console.log(result);
         user = result[0].id;
         username = result[0].user_name;
         tokenIdMapping[token] = user;
@@ -48,16 +47,24 @@ socket.init = server => {
           time: Date.now(),
           in_a_match: 0, // turn this to 1 in match page
           inviting: 0, // if it's 1 user can't invite again
+          invitation_accepted: 0,
           invited: []
         };
       } else {
         user = tokenIdMapping[token];
+        console.log('user', user)
         username = onlineUsers[user].username;
+        console.log('username', username)
       }
 
       // update active time
       onlineUsers[user].time = Date.now();
       // console.log('socket on online, onlineUsers', onlineUsers);
+
+      // if the invitation's accepted notify the inviter
+      if (onlineUsers[user].invitation_accepted === 1) {
+        socket.emit('startStrangerModeMatch', url)
+      }
 
       // if there's an invitation notify the invited
       let onlineUserDetail = onlineUsers[user];
@@ -70,18 +77,6 @@ socket.init = server => {
           socket.emit('invited', invitations[i]);
         }
       }
-
-      // if the invitation's accepted notify the inviter
-      // if ('?????') {
-      //   socket.emit('startStrangerModeMatch', url)
-      // }
-
-
-      // // Add user to userIdNameMapping (userid: username)
-      // if (!userIdNameMapping[user]) {
-      //   userIdNameMapping[user] = username;
-      // };
-      // console.log('socket on online, userIdNameMapping', userIdNameMapping);
 
       // Add user to socketidMapping (socketid: userid)
       if (!socketidMapping[socket.id]) {
@@ -416,7 +411,7 @@ socket.init = server => {
       console.log('stranger result', result);
       // add to invitations 
       let invitation = {
-        inviter: result.strangerId,
+        inviter: inviterId,
         inviterName,
         category: data.category,
         difficulty: data.difficulty,
@@ -433,7 +428,9 @@ socket.init = server => {
     });
 
     socket.on('strangerAccepted', (data) => {
-      let inviter = onlineUsers[data.token].invited
+      let id = data.inviterId;
+      console.log('data ==============', data)
+      onlineUsers[id].invitation_accepted = 1;
     })
 
     socket.on(('disconnect' || 'exit'), () => {
@@ -501,12 +498,12 @@ socket.init = server => {
 };
 
 
-// remove timeout users (2 min with no ping) in onlineUserList
+// remove timeout users (1 min with no ping) in onlineUserList
 // check every 60 sec
 setInterval(() => {
   console.log('in setInterval')
   for (let prop in onlineUsers) {
-    if((Date.now() - onlineUsers[prop].time) > 1000*60*2) {
+    if((Date.now() - onlineUsers[prop].time) > 1000*60) {
       delete onlineUsers[prop];
       console.log('deleting user in onlineUsers...')
     }
@@ -522,7 +519,7 @@ let getStranger = (obj, inviterId) => {
   }
   let index = keys.length * Math.random() << 0;
   console.log('index', index)
-  let strangerId = keys[index];
+  let strangerId = parseInt(keys[index]);
   console.log('strangerId',strangerId)
   console.log('inviterId (my id)', inviterId)
   if (strangerId === inviterId) {

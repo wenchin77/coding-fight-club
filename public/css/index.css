@@ -798,11 +798,13 @@ button:hover {
   justify-content: center;
 }
 
+
 #okButton {
   width: 50%;
   text-align: center;
   background-color: #cccccc;
   color: #444444;
+  margin: auto;
 }
 
 #noButton,

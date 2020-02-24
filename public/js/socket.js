@@ -23,7 +23,7 @@ function socketInit() {
 
   });
 
-  // setInterval every 30 sec --- stop when user's in a match
+  // setInterval every 30 sec at every page except match page
   if (!url.includes('match/')) {
     setInterval(() => {
       socket.emit('online', token);
@@ -33,20 +33,20 @@ function socketInit() {
   socket.on('invited', async (data) => {
     console.log('invited data', data);
 
-    let inviter = data.inviterName;
-    let inviterId = data.inviterId;
+    let inviterName = data.inviterName;
+    let inviterId = data.inviter;
     let category = data.category;
     let difficulty = data.difficulty;
     let inviteTime = data.time;
     let questionID = await getQuestion(category, difficulty);
 
     // if it wasn't in invitations{}, add it & show alert
-    if (!invitations[inviter]) {
+    if (!invitations[inviterId]) {
       console.log('not in invitation before')
-      invitations[inviter] = {category, difficulty, inviteTime};
+      invitations[inviterId] = {inviterName, category, difficulty, inviteTime};
       console.log('invitations', invitations);
       
-      showAlertBox(`${inviter} challenged you to a match of ${difficulty} ${category}! Accept the invititation?`,questionID, inviterId);
+      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}! Accept the invititation within 30 seconds!`,questionID, inviterId);
     }
     
   });
@@ -105,6 +105,7 @@ let AlertBox = function(id, option) {
         let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
         let token = localStorage.getItem('token');
         let acceptedData = {url, token, inviterId};
+        console.log('acceptedData', acceptedData);
         socket.emit('strangerAccepted', acceptedData);
         // insert a match
         await insertMatch(questionID, matchKey);

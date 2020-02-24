@@ -41,11 +41,6 @@ async function getMatchSummary (userID) {
 
 
 
-function capitalize (str) {
-  if (typeof str !== 'string') return ''
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
-
 async function showMatchResult (userID, result) {
   if (result.length === 0) {
     document.getElementById('noMatches').innerHTML = 'No match result yet...'

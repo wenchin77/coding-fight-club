@@ -63,13 +63,6 @@ async function getMatchDetails (matchID) {
 
 
 
-function capitalize (str) {
-  if (typeof str !== 'string') return '';
-  if (str.includes('_')) {
-    return `${str.split('_')[0].charAt(0).toUpperCase()}${str.split('_')[0].slice(1)} ${str.split('_')[1].charAt(0).toUpperCase()}${str.split('_')[1].slice(1)}`
-  }
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
 
 function convertAnswerTime (time) {   
   // Hours, minutes and seconds

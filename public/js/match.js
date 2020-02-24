@@ -192,8 +192,6 @@ function submitCode() {
   showAlertWithButtons(text, () => {
     // stop timer
     stopTimer();
-    const buttons = document.getElementsByClassName("modalButtons")[0];
-    buttons.style.display = "none";
     showAlert("Hold on! Our server is evaluating your code now...");
     // send code to server (get test cases in server)
     let codeareaValue = codemirrorEditor.getValue();
