@@ -40,6 +40,10 @@ function socketInit() {
     let inviteTime = data.time;
     let questionID = await getQuestion(category, difficulty);
 
+    if (!url.includes('match/')) {
+      console.log('at match page, do not show invitations!')
+      return;
+    }
     // if it wasn't in invitations{}, add it & show alert
     if (!invitations[inviterId]) {
       console.log('not in invitation before... show alert box');
@@ -105,6 +109,7 @@ let AlertBox = function(id, option) {
         let acceptedData = {url, token, inviterId};
         console.log('acceptedData', acceptedData);
         socket.emit('strangerAccepted', acceptedData);
+        
         // insert a match
         await insertMatch(questionID, matchKey);
         // redirect to a room in match page with match key
