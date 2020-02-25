@@ -12,9 +12,51 @@ const socket = {};
 
 // online user check data
 const socketidMapping = new Map(); // { socketid: userid }
-const onlineUsers = {}; // { userid: { username, time, inviting, invitation_accepted, invited} }
+const onlineUsers = new Map(); // { userid: { username, time, inviting, invitation_accepted, invited} }
 const availableUsers = new Set(); // ([userid, userid, userid])
-const tokenIdMapping = {}; // { token: userid }
+const tokenIdMapping = new Map(); // { token: userid }
+
+async function getUserInfo(token) {
+  let user;
+  let username;
+  let userObj;
+  if (!tokenIdMapping.has(token)) {
+    try {
+      console.log('Cannot find user at tokenIdMapping or onlineUsers, selecting from db...');
+      let result = await userController.selectUserInfoByToken(token);
+      console.log('result[0]', result[0])
+      user = result[0].id;
+      username = result[0].user_name;
+      userObj = {
+        username,
+        time: Date.now(),
+        inviting: 0,
+        invitation_accepted: 0,
+        invited: []
+      };
+      console.log('userObj', userObj)
+      console.log('inserting tokenIdMapping...')
+      tokenIdMapping.set(token, user);
+      console.log('inserting onlineUsers...')
+      onlineUsers.set(user, userObj);
+      console.log('onlineUsers', onlineUsers);
+      console.log('onlineUsers size', onlineUsers.size);
+      return {user, username};
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  // if (!onlineUsers.has(user)) {
+  //   onlineUsers.set(user, userObj);
+  //   return {user, username}
+  // };
+  console.log('Found user at tokenIdMapping and onlineUsers');
+  user = tokenIdMapping.get(token);
+  console.log('onlineUsers.has(user) =========', onlineUsers.has(user));
+  username = onlineUsers.get(user).username;
+  return {user, username};
+};
+
 
 socket.init = server => {
   const io = socketio.listen(server);
@@ -24,72 +66,59 @@ socket.init = server => {
   const matchList = {}; // { matchKey: [userid, userid] }
   const winnerCheck = {}; // on submit: 換位子？？？ { matchKey: [{ user, smallCorrectness, largeCorrectness, largePassed, largeExecTime, performance, answerTime, points }] }
   
-  io.on("connection", socket => {
+  io.on("connection", async (socket) => {
     let token = socket.handshake.query.token;
-    console.log('token ============', token)
+    // when server restarts -> token undefined (can't get query), why +++++++++++++++
+    if (token === undefined) {
+      console.log('我他媽拿不到 token')
+      return;
+    }
+
     let url = socket.request.headers.referer;
     console.group('---------> io on connection');
     console.log('user connected at', url);
 
-    // add 
-    console.log('io on connetion, socketidMapping: ', socketidMapping);
+
+    // tokenIdMapping & onlineUsers add
+    let userInfo = await getUserInfo(token);
+    console.log('userInfo', userInfo);
+    
+
+    // socketidMapping add
+    if (!socketidMapping.has(socket.id)) {
+      console.log('setting socketidMapping')
+      socketidMapping.set(socket.id, userInfo.user);
+    };
+    console.log('socket on online, socketidMapping: ', socketidMapping);
     console.groupEnd();
 
 
     socket.on('online', async (token) => {
       console.group('---------> online', socket.id);
-      let user;
-      let username;
+      let userInfo = await getUserInfo(token);
+      console.log('userInfo', userInfo)
+      let user = userInfo.user;
 
-      // get userid & username in db if it's not in memory
-      if (!tokenIdMapping[token]) {
-        console.log('沒有這個用戶資料在 onlineUsers, 進去 db 找');
-        let result = await userController.selectUserInfoByToken(token);
-        user = result[0].id;
-        username = result[0].user_name;
-        tokenIdMapping[token] = user;
-        onlineUsers[user] = {
-          username,
-          time: Date.now(),
-          inviting: 0, // if it's 1 user can't invite again
-          invitation_accepted: 0,
-          invited: []
-        };
-      } else {
-        user = tokenIdMapping[token];
-        // ++++++++++++++++ to be debugged: username undefined sometimes?
-        username = onlineUsers[user].username;
-        console.log('有用戶資料，onlineUsers',onlineUsers)
-      }
-
-      // Add user to socketidMapping (socketid: userid)
-      if (!socketidMapping.has(socket.id)) {
-        console.log('setting socketidMapping')
-        socketidMapping.set(socket.id, user);
-      };
-      console.log('socket on online, socketidMapping: ', socketidMapping);
-      console.log('socketidMapping size', socketidMapping.size);
-
-      // update active time
-      onlineUsers[user].time = Date.now();
-      // console.log('socket on online, onlineUsers', onlineUsers);
+      // update active time +++++++++++++++ how to set object inside value??
+      onlineUsers.get(user).time = Date.now();
+      console.log('socket on online, onlineUsers', onlineUsers);
 
       // if the invitation's accepted notify the inviter
-      if (onlineUsers[user].invitation_accepted !== 0) {
+      if (onlineUsers.get(user).invitation_accepted !== 0) {
         console.log('invitation_accepted === 1, emitting startStrangerModeMatch...')
         socket.emit('startStrangerModeMatch', onlineUsers[user].invitation_accepted);
       }
 
       // if rejected by stranger notify the inviter
-      if ((onlineUsers[user].inviting) === -1) {
+      if ((onlineUsers.get(user).inviting) === -1) {
         socket.emit('rejected')
-        // change back to 0
-        onlineUsers[user].inviting = 0;
+        // change back to 0 +++++++++++++++ how to set object inside value??
+        onlineUsers.get(user).inviting = 0;
         console.log('rejected by stranger, onlineUsers', onlineUsers)
       }
 
       // if there's an invitation notify the invited
-      let onlineUserDetail = onlineUsers[user];
+      let onlineUserDetail = onlineUsers.get(user);
       if (onlineUserDetail.invited.length > 0) {
         console.log('onlineUserDetail ====',onlineUserDetail);
         let invitations =  onlineUserDetail.invited;
