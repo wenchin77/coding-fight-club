@@ -122,11 +122,6 @@ socket.init = server => {
         console.log('username', username)
       }
 
-      // ++++++++ remove from onlineUsers to prevent invalid invitations
-      delete onlineUsers[user];
-      console.log('remove user from onlineUsers to prevent invalid invitations')
-      
-
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
         matchList[matchKey] = [];
@@ -206,6 +201,11 @@ socket.init = server => {
       };
       console.log('socket on join, startInfo', startInfo)
       io.to(matchKey).emit('startMatch', startInfo);
+      
+      // ++++++++ remove from onlineUsers to prevent invalid invitations
+      delete onlineUsers[user];
+      console.log('remove user from onlineUsers to prevent invalid invitations')
+      
       console.groupEnd();
     });
 
