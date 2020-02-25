@@ -53,43 +53,64 @@ async function getAStranger() {
   
     // find a random user online 
     socket.emit('getStranger', data);
-    socket.on('noStranger', msg => {
-      showAlert(msg)
-    })
-
-    socket.on('stranger', invitation => {
-      let time = invitation.time;
-      localStorage.setItem('inviteTime', time);
-      countdown(time);
-    });
   })
 };
+
+
+let inviteTimer;
+
+socket.on('noStranger', msg => {
+  showAlert(msg)
+})
+
+socket.on('stranger', invitation => {
+  let time = invitation.time;
+  localStorage.setItem('inviteTime', time);
+  // start counting down
+  countdown(time);
+});
+
+socket.on('rejected', msg => {
+  console.log('stranger rejected...');
+  // turn off countdown timer alert
+  localStorage.removeItem('inviteTime');
+  // clearInterval(inviteTimer);
+  // showAlert(msg);
+})
+
+
 
 // countdown with inviteTime after refresh
 if (localStorage.getItem('inviteTime')) {
   let inviteTime = localStorage.getItem('inviteTime');
-  if (parseInt(inviteTime / 1000 + 60 - Date.now() / 1000) > 0) {
+  let secondsLeft = parseInt(inviteTime / 1000 + 60 - Date.now() / 1000);
+  if (secondsLeft > 0) {
     countdown(inviteTime);
   }
 }
 
-function countdown(startTime) {
-  let totalSeconds = 60;
-  let timer = setInterval( () => {
-    let secondsLeft = parseInt(startTime / 1000 + totalSeconds - Date.now() / 1000);
+function countdown(inviteTime) {
+  let inviteTimer = setInterval(() => {
+    let secondsLeft = parseInt(inviteTime / 1000 + 60 - Date.now() / 1000);
+    if (!localStorage.getItem('inviteTime')) {
+      clearInterval(inviteTimer);
+      document.getElementById('myModal').style.display = 'none';
+      showAlert('The user rejected to join :( Try again or invite a friend!');
+      return;
+    }
     if (secondsLeft === 0) {
-      clearInterval(timer);
+      console.log('countdown finished');
+      clearInterval(inviteTimer);
+      localStorage.removeItem('inviteTime');
       showAlert('Oh no this user has not confirmed within time. Try it again later or invite a friend!')
       return;
     }
     // can't exit alert box
-    document.getElementById('okButton').style.display = 'none';
-    showAlert(`We found someone! Let's wait for the user to confirm. Here's the countdown: ${secondsLeft} seconds.`, () =>{
-      document.getElementById("myModal").style.display = 'block';
-    });
+    showAlertNoButtons(`We found someone! Let's wait for the user to confirm. Here's the countdown: ${secondsLeft} seconds.`);
   }, 1000
   );
 }
+
 
 
 

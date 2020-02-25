@@ -38,6 +38,24 @@ function showAlert (text, callback) {
   }
 };
 
+function showAlertNoButtons (text) {
+  const modal = document.getElementById("myModal");
+  const buttons = document.getElementsByClassName("modalButtons")[0];
+  const okay = document.getElementById('okButton');
+  document.getElementById('modalText').innerHTML = text;
+
+  // show modal
+  modal.style.display = "block";
+  okay.style.display = "none";
+  buttons.style.display = "none";
+
+  window.onclick = event => {
+    if (event.target == modal) {
+      modal.style.display = "block";
+    }
+  };
+};
+
 function showAlertWithButtons (text, callback) {
   const modal = document.getElementById("myModal");
   // const close = document.getElementsByClassName("close")[0];

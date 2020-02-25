@@ -30,7 +30,7 @@ function socketInit() {
   };
 
   socket.on('invited', async (data) => {
-    console.log('invited data', data);
+    console.log('invited!', data);
 
     let inviterName = data.inviterName;
     let inviterId = data.inviter;
@@ -43,9 +43,8 @@ function socketInit() {
     if (!invitations[inviterId]) {
       console.log('not in invitation before... show alert box');
       invitations[inviterId] = {inviterName, category, difficulty, inviteTime};
+      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId);
       console.log('invitations', invitations);
-      
-      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}! Accept the invititation?`,questionID, inviterId);
     }
     
   });
@@ -86,20 +85,19 @@ let AlertBox = function(id, option) {
       alertClose.classList.add('alert-close');
       alertClose.setAttribute('href', '#');
       alertYes.classList.add('alert-yes');
-      alertYes.innerText = 'YES';
-
+      alertYes.innerText = 'ACCEPT';
       alertBox.classList.add('alert-box');
       alertBox.appendChild(alertContent);
       alertBox.appendChild(alertClose);
       alertBox.appendChild(alertYes);
       alertArea.appendChild(alertBox);
+      let token = localStorage.getItem('token');
       alertYes.addEventListener('click', async (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
         // create a match
         let matchKey = await getKey();
         let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
-        let token = localStorage.getItem('token');
         let acceptedData = {url, token, inviterId};
         console.log('acceptedData', acceptedData);
         socket.emit('strangerAccepted', acceptedData);
@@ -110,6 +108,9 @@ let AlertBox = function(id, option) {
       });
       alertClose.addEventListener('click', (event) => {
         event.preventDefault();
+        // delete property from invitations {}
+        delete invitations[inviterId];
+        console.log('updated invitations', invitations)
         alertClass.hide(alertBox);
         let rejectData = {token, inviterId};
         socket.emit('strangerRejected', rejectData);

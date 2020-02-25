@@ -66,7 +66,7 @@ socket.init = server => {
       if (!socketidMapping[socket.id]) {
         console.log('幽靈 socket.id !!!!!', socket.id)
       }
-      
+
       // update active time
       onlineUsers[user].time = Date.now();
       // console.log('socket on online, onlineUsers', onlineUsers);
@@ -75,6 +75,14 @@ socket.init = server => {
       if (onlineUsers[user].invitation_accepted !== 0) {
         console.log('invitation_accepted === 1, emitting startStrangerModeMatch...')
         socket.emit('startStrangerModeMatch', onlineUsers[user].invitation_accepted);
+      }
+
+      // if rejected by stranger notify the inviter
+      if ((onlineUsers[user].inviting) === -1) {
+        socket.emit('rejected')
+        // change back to 0
+        onlineUsers[user].inviting = 0;
+        console.log('rejected by stranger, onlineUsers', onlineUsers)
       }
 
       // if there's an invitation notify the invited
@@ -87,9 +95,9 @@ socket.init = server => {
           console.log('emitting invited...')
           socket.emit('invited', invitations[i]);
         }
-      }
-      console.groupEnd();
+      };
 
+      console.groupEnd();
     })
 
     socket.on('joinMatch', async (token) => {
@@ -435,10 +443,6 @@ socket.init = server => {
       let token = data.token;
       let inviterId = tokenIdMapping[token];
       let inviterName = onlineUsers[inviterId].username;
-      if ((Date.now() - onlineUsers[inviterId].inviting) < 60 * 1000) {
-        socket.emit('noStranger','You cannot send more than one invitation within a minute!')
-        return;
-      }
 
       let result = await getStranger(onlineUsers, inviterId);
       if (!result) {
@@ -458,7 +462,7 @@ socket.init = server => {
       onlineUsers[result.strangerId].invited.push(invitation);
 
       // update inviter's data
-      onlineUsers[inviterId].inviting = Date.now();
+      onlineUsers[inviterId].inviting = 1;
       
       console.log('socket on getStranger, onlineUsers',onlineUsers)
       socket.emit('stranger', invitation);
@@ -470,22 +474,24 @@ socket.init = server => {
       let id = data.inviterId;
       console.log('data', data)
       onlineUsers[id].invitation_accepted = data.url;
-      console.log('onlineUsers[id]', onlineUsers[id])
+      console.log('onlineUsers[id]', onlineUsers[id]);
+      onlineUsers[inviterId].inviting = 0;
       console.groupEnd();
     });
 
     socket.on('strangerRejected', (data) => {
       console.group('---------> strangerRejected')
+      console.log(data)
       let token = data.token;
       let user = tokenIdMapping[token];
       let inviterId = data.inviterId;
       for (let i=0; i<onlineUsers[user].invited.length; i++) {
-        if (onlineUsers[user].invited[i].inviter == id) {
-          array.splice(i, 1);
+        if (onlineUsers[user].invited[i].inviter == inviterId) {
+          onlineUsers[user].invited.splice(i, 1);
           break;
         }
-      }
-      onlineUsers[inviterId].invited = 0;
+      };
+      onlineUsers[inviterId].inviting = -1;
       console.log('onlineUsers after strangerRejected ---- ', onlineUsers);
 
       console.groupEnd();
