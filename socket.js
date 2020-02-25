@@ -202,10 +202,10 @@ socket.init = server => {
       console.log('socket on join, startInfo', startInfo)
       io.to(matchKey).emit('startMatch', startInfo);
 
-      // ++++++++ remove from onlineUsers to prevent invalid invitations
-      delete onlineUsers[userid1];
-      delete onlineUsers[userid2];
-      console.log('remove both users from onlineUsers to prevent invalid invitations')
+      // // ++++++++ remove from onlineUsers to prevent invalid invitations
+      // delete onlineUsers[userid1];
+      // delete onlineUsers[userid2];
+      // console.log('remove both users from onlineUsers to prevent invalid invitations')
       
       console.groupEnd();
     });
