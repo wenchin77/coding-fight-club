@@ -110,12 +110,17 @@ let AlertBox = function(id, option) {
         event.preventDefault();
         // delete property from invitations {}
         delete invitations[inviterId];
-        console.log('updated invitations', invitations)
+        console.log('updated invitations at reject', invitations)
         alertClass.hide(alertBox);
         let rejectData = {token, inviterId};
         socket.emit('strangerRejected', rejectData);
       });
       let alertTimeout = setTimeout(() => {
+        // delete property from invitations {}
+        if (invitations[inviterId]) {
+          delete invitations[inviterId];
+          console.log('updated invitations at timeout', invitations)
+        }
         alertClass.hide(alertBox);
         clearTimeout(alertTimeout);
       }, option.closeTime);

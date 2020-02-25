@@ -475,7 +475,7 @@ socket.init = server => {
       console.log('data', data)
       onlineUsers[id].invitation_accepted = data.url;
       console.log('onlineUsers[id]', onlineUsers[id]);
-      onlineUsers[inviterId].inviting = 0;
+      onlineUsers[id].inviting = 0;
       console.groupEnd();
     });
 
