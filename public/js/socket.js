@@ -95,6 +95,9 @@ let AlertBox = function(id, option) {
       alertYes.addEventListener('click', async (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
+        // delete property from invitations {}
+        delete invitations[inviterId];
+        console.log('updated invitations at accept', invitations)
         // create a match
         let matchKey = await getKey();
         let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
