@@ -40,7 +40,7 @@ function socketInit() {
     let inviteTime = data.time;
     let questionID = await getQuestion(category, difficulty);
 
-    if (!url.includes('match/')) {
+    if (url.includes('match/')) {
       console.log('at match page, do not show invitations!')
       return;
     }
