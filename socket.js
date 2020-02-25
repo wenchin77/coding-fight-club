@@ -11,23 +11,27 @@ const socketio = require("socket.io");
 const socket = {};
 
 // online user check data
-const onlineUsers = {};
-const tokenIdMapping = {};
+const socketidMapping = new Map(); // { socketid: userid }
+const onlineUsers = {}; // { userid: { username, time, inviting, invitation_accepted, invited} }
+const availableUsers = new Set(); // ([userid, userid, userid])
+const tokenIdMapping = {}; // { token: userid }
 
 socket.init = server => {
-  console.log('socket server initialized...');
-
   const io = socketio.listen(server);
+  console.log('socket initialized...');
   
   // match data
-  const matchList = {}; // to save match key & user mapping info
-  const socketidMapping = {}; // to save socketid & user mapping info
-  const winnerCheck = {}; // on submit: to assign performance points
+  const matchList = {}; // { matchKey: [userid, userid] }
+  const winnerCheck = {}; // on submit: 換位子？？？ { matchKey: [{ user, smallCorrectness, largeCorrectness, largePassed, largeExecTime, performance, answerTime, points }] }
   
   io.on("connection", socket => {
+    let token = socket.handshake.query.token;
+    console.log('token ============', token)
     let url = socket.request.headers.referer;
     console.group('---------> io on connection');
     console.log('user connected at', url);
+
+    // add 
     console.log('io on connetion, socketidMapping: ', socketidMapping);
     console.groupEnd();
 
@@ -59,13 +63,12 @@ socket.init = server => {
       }
 
       // Add user to socketidMapping (socketid: userid)
-      if (!socketidMapping[socket.id]) {
-        socketidMapping[socket.id] = user;
+      if (!socketidMapping.has(socket.id)) {
+        console.log('setting socketidMapping')
+        socketidMapping.set(socket.id, user);
       };
       console.log('socket on online, socketidMapping: ', socketidMapping);
-      if (!socketidMapping[socket.id]) {
-        console.log('幽靈 socket.id !!!!!', socket.id)
-      }
+      console.log('socketidMapping size', socketidMapping.size);
 
       // update active time
       onlineUsers[user].time = Date.now();
@@ -494,13 +497,26 @@ socket.init = server => {
       console.log('onlineUsers after strangerRejected ---- ', onlineUsers);
 
       console.groupEnd();
-    })
+    });
+
+    socket.on('exit', () => {
+      // blah blah blah....
+      // do something after user exits a match!!!!!!!
+    });
 
     socket.on(('disconnect' || 'exit'), () => {
-      console.log('---------> disconnect', socket.id)
-      if (!socketidMapping[socket.id]) {
+      console.log('---------> disconnect', socket.id);
+      
+      // remove property from socketidMapping
+      if (!socketidMapping.has(socket.id)) {
         console.log('幽靈 socket.id !!!!!', socket.id)
+      } else {
+        socketidMapping.delete(socket.id);
       }
+      console.log('socket on online, socketidMapping: ', socketidMapping);
+      console.log('socketidMapping size', socketidMapping.size);
+      
+
       let url = socket.request.headers.referer;
       let socketid = socket.id;
       
@@ -566,6 +582,9 @@ socket.init = server => {
 };
 
 
+
+
+
 // remove timeout users (1 min with no ping) in onlineUserList
 // check every 60 sec
 setInterval(() => {
@@ -593,7 +612,7 @@ let getStranger = (obj, inviterId) => {
   if (strangerId === inviterId) {
     console.log('token belongs to me, find the next person')
     // if token belongs to me, find the next person 
-    let newIndex = (index+1)%keys.length
+    let newIndex = (index+1)%keys.length;
     console.log('newIndex', newIndex)
     let newResult = obj[keys[newIndex]];
     let newStrangerId = keys[newIndex];

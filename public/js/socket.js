@@ -14,7 +14,9 @@ const invitations = {};
 
 
 function socketInit() {
-  socket = io();
+  socket = io({query: {
+    token: localStorage.getItem('token')
+  }});
   // whenever it connects pass the token
   // this is because socketio reconnects itself sometimes and data is lost if we don't pass it when connecting
   let token = localStorage.getItem('token');
