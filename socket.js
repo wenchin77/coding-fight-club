@@ -106,11 +106,6 @@ socket.init = server => {
       let user;
       let username;
 
-      // ++++++++ remove from onlineUsers to prevent invalid invitations
-      delete onlineUsers[user];
-      console.log('remove user from onlineUsers to prevent invalid invitations')
-      
-
       // get userid & username in db if it's not in memory
       if (!tokenIdMapping[token]) {
         console.log('!onlineUsers[token], 進去 db 找');
@@ -126,6 +121,11 @@ socket.init = server => {
         username = onlineUsers[user].username;
         console.log('username', username)
       }
+
+      // ++++++++ remove from onlineUsers to prevent invalid invitations
+      delete onlineUsers[user];
+      console.log('remove user from onlineUsers to prevent invalid invitations')
+      
 
       // Add a room if it doesn't exist
       if (!matchList[matchKey]) {
