@@ -504,15 +504,16 @@ socket.init = server => {
       }
       let url = socket.request.headers.referer;
       let socketid = socket.id;
-      let user = socketidMapping[socketid];
-      console.log('disconnect user',user)
-      console.log('disconnect onlineUsers', onlineUsers)
-      console.log('disconnect socketidMapping', socketidMapping)
-      let username = onlineUsers[user].username;
+      
 
       // match page
       if (url.includes('/match/')){
         let matchKey = getMatchKey(url);
+        let user = socketidMapping[socketid];
+        console.log('disconnect user',user)
+        console.log('disconnect onlineUsers', onlineUsers)
+        console.log('disconnect socketidMapping', socketidMapping)
+        let username = onlineUsers[user].username;
 
         // 用 socketidMapping (socketid: user) 找出退出的 user
         console.log('match page socket on disconnect: my socketid', socketid)

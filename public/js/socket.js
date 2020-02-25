@@ -8,9 +8,10 @@ if (localStorage.getItem('token') && localStorage.getItem('id')){
   socketInit();
 }
 
-
-
+// to handle invitations across all pages
 const invitations = {};
+
+
 
 function socketInit() {
   socket = io();
