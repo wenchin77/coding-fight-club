@@ -106,6 +106,12 @@ socket.init = server => {
       let user;
       let username;
 
+      // remove from onlineUsers to prevent invalid invitations
+      if (onlineUsers[user]){
+        delete onlineUsers[user];
+        console.log('remove from onlineUsers to prevent invalid invitations')
+      };
+
       // get userid & username in db if it's not in memory
       if (!tokenIdMapping[token]) {
         console.log('!onlineUsers[token], 進去 db 找');
@@ -113,13 +119,6 @@ socket.init = server => {
         user = result[0].id;
         username = result[0].user_name;
         tokenIdMapping[token] = user;
-        onlineUsers[user] = {
-          username,
-          time: Date.now(),
-          inviting: 0, // if it's 1 user can't invite again
-          invitation_accepted: 0,
-          invited: []
-        };
       } else {
         user = tokenIdMapping[token];
         console.log('user', user)
