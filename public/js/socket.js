@@ -8,10 +8,6 @@ if (localStorage.getItem('token') && localStorage.getItem('id')){
   socketInit();
 }
 
-// to handle invitations across all pages
-const invitations = {};
-
-
 
 function socketInit() {
   console.log('token: ',localStorage.getItem('token'))
@@ -49,15 +45,7 @@ function socketInit() {
     let difficulty = data.difficulty;
     let inviteTime = data.time;
     let questionID = await getQuestion(category, difficulty);
-
-    if (!invitations[inviteTime]) {
-      console.log('not in invitation before...');
-      // only show if alert hasn't popped up before
-      invitations[inviteTime] = {inviterName, category, difficulty, inviterId, alert: 0};
-      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId, inviteTime);
-      console.log('invitations', invitations);
-    }
-    
+    showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId);
   });
   
   
@@ -82,7 +70,7 @@ async function getKey() {
 
 // Responsive alert box adjusted from https://codepen.io/takaneichinose/pen/eZoZxv
 let AlertBox = function(id, option) {
-  this.show = function(msg, questionID, inviterId, inviteTime) {
+  this.show = function(msg, questionID, inviterId) {
     if (msg === ''  || typeof msg === 'undefined' || msg === null) {
       throw '"msg parameter is empty"';
     }
@@ -108,8 +96,6 @@ let AlertBox = function(id, option) {
       alertYes.addEventListener('click', async (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
-        invitations[inviteTime].alert = 1;
-        console.log('updated invitations at accept', invitations)
         // create a match
         let matchKey = await getKey();
         let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
@@ -124,19 +110,11 @@ let AlertBox = function(id, option) {
       });
       alertClose.addEventListener('click', (event) => {
         event.preventDefault();
-        invitations[inviteTime].alert = 1;
-        console.log('updated invitations at reject', invitations);
         alertClass.hide(alertBox);
         let rejectData = {token, inviterId};
         socket.emit('strangerRejected', rejectData);
       });
       let alertTimeout = setTimeout(() => {
-        if (invitations[inviteTime].alert = 0) {
-          let rejectData = {token, inviterId};
-          socket.emit('strangerRejected', rejectData);
-          invitations[inviteTime].alert = 1;
-          console.log('invitation timeout: rejected', invitations);
-        }
         alertClass.hide(alertBox);
         clearTimeout(alertTimeout);
       }, option.closeTime);

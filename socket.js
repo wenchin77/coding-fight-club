@@ -79,8 +79,11 @@ socket.init = server => {
         for (let i = 0; i < invitations.length; i++) {
           console.log(invitations[i]);
           console.log("emitting invited...");
-          socket.emit("invited", invitations[i]);
+          socket.emit("invited", invitations[i]);          
         }
+        // delete invite to prevent duplicated invitations
+        console.log('deleting invitations after emitting...');
+        onlineUsers.get(user).invited = [];
       }
 
       console.log("onlineUsers size before checking", onlineUsers.size);
@@ -529,6 +532,14 @@ socket.init = server => {
       let token = data.token;
       let inviterId = tokenIdMapping.get(token);
       let inviterName = onlineUsers.get(inviterId).username;
+
+      if (onlineUsers.get(inviterId).inviting === 1) {
+        socket.emit(
+          "noStranger",
+          "You can't send out more than one invitation within a minute!"
+        );
+        return;
+      }
 
       let stranger = await getStranger(inviterId);
       if (!stranger) {
