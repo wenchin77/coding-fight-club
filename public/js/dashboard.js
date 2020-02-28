@@ -48,19 +48,23 @@ async function showMatchResult (userID, result) {
   }
 
   let matchResultSummary = [];
+  console.log(result)
   // handle each match (2 rows: you & opponent)
   for (let i=0; i<result.length; i+=2) {
-    let opponent
+    let myIndex;
+    let opponent;
     if (result[i].userid === userID) {
+      myIndex = i;
       opponent = result[i+1].user_name;
     } else {
+      myIndex = i+1;
       opponent = result[i].user_name;
     }
     let question = result[i].question_name;
     let difficulty = result[i].difficulty;
     let category = result[i].category;
     let winnerId = result[i].winner_user_id;
-    let points = result[i].points;
+    let points = result[myIndex].points;
     let matchKey = result[i].match_key;
     let url = `https://coding-fight-club.thewenchin.com/match_result/${matchKey}`
     let winLose;
