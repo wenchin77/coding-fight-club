@@ -40,7 +40,7 @@ function socketInMatchInit() {
   // submitted already
   socket.on("alreadySubmitted", () => {
     showAlert(
-      "You already submitted your code in this match. Let's wait a bit for your opponent to submit too!"
+      "You already submitted your code or exited this match. Let's wait a bit for your opponent to submit!"
     );
   });
 
@@ -103,6 +103,13 @@ function socketInMatchInit() {
       "opponentRunCodeOutput"
     ).innerHTML = `<p id="terminalMessage">${submitMessage.message}</p>`;
   });
+
+  socket.on('exit', () => {
+    showAlert("You exited this match!", () => {
+      // redirect to match_result page with match_key param
+      window.location = `/`;
+    });
+  })
 
   socket.once("endMatch", matchKey => {
     showAlert("The match has ended! Let check out the result.", () => {
@@ -224,7 +231,7 @@ function showTestCase() {
 }
 
 function exitMatch() {
-  let text = `Are you sure you want to exit the match? You can't join this match again and you won't get any points.`;
+  let text = `Are you sure you want to exit the match? You won't be able to submit in this match or get any points.`;
   showAlertWithButtons(text, () => {
     window.location.pathname = "/";
     socket.emit("exit", token);

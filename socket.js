@@ -658,7 +658,12 @@ socket.init = server => {
           return;
         }
 
-        // if winnerCheck.has(matchKey): opponent submitted before
+        if (winnerCheck.get(matchKey)[0].user === user) {
+          console.log('User existed before', winnerCheck);
+          socket.emit('exit')
+          return;
+        }
+
         // auto end matches where 1 user submit then 1 user left OR both exit
         let result = {
           user,
@@ -683,7 +688,7 @@ socket.init = server => {
         // update match_table: winner
         await matchController.updateMatchWinner(matchKey, winner);
 
-        io.to(matchKey).emit("endMatch", matchKey);
+        socket.emit('exit')
         console.log("winnerCheck after match", winnerCheck);
 
         socket.leave(matchKey); // leave socket room
