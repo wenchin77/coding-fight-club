@@ -74,8 +74,6 @@ socket.on('rejected', msg => {
   console.log('stranger rejected...');
   // turn off countdown timer alert
   localStorage.removeItem('inviteTime');
-  // clearInterval(inviteTimer);
-  // showAlert(msg);
 })
 
 
@@ -99,6 +97,7 @@ function countdown(inviteTime) {
       return;
     }
     if (secondsLeft === 0) {
+      socket.emit('strangerTimedOut', localStorage.getItem('token'));
       console.log('countdown finished');
       clearInterval(inviteTimer);
       localStorage.removeItem('inviteTime');

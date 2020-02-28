@@ -81,9 +81,10 @@ socket.init = server => {
           console.log("emitting invited...");
           socket.emit("invited", invitations[i]);          
         }
-        // delete invite to prevent duplicated invitations
-        console.log('deleting invitations after emitting...');
-        onlineUsers.get(user).invited = [];
+        // 先不要刪掉 +++++++++++++++++++++
+        // // delete invite to prevent duplicated invitations
+        // console.log('deleting invitations after emitting...');
+        // onlineUsers.get(user).invited = [];
       }
 
       console.log("onlineUsers size before checking", onlineUsers.size);
@@ -571,11 +572,16 @@ socket.init = server => {
 
     socket.on("strangerAccepted", data => {
       console.group("---------> strangerAccepted");
-      let id = data.inviterId;
+      let user = tokenIdMapping.get(data.token);
+      let inviterId = data.inviterId;
       console.log("data", data);
-      onlineUsers.get(id).invitation_accepted = data.url;
-      console.log("onlineUsers.get(id)", onlineUsers.get(id));
-      onlineUsers.get(id).inviting = 0;
+      onlineUsers.get(inviterId).invitation_accepted = data.url;
+      console.log("onlineUsers.get(inviterId)", onlineUsers.get(inviterId));
+      onlineUsers.get(inviterId).inviting = 0;
+
+      console.log('deleting invitations at strangerAccepted...');
+      onlineUsers.get(user).invited = [];
+
       console.groupEnd();
     });
 
@@ -585,20 +591,39 @@ socket.init = server => {
       let token = data.token;
       let user = tokenIdMapping.get(token);
       let inviterId = data.inviterId;
-      for (let i = 0; i < onlineUsers.get(user).invited.length; i++) {
+
+      onlineUsers.get(inviterId).inviting = -1;
+
+      console.log('deleting invitation at strangerRejected...');
+      for (let i=0; i<onlineUsers.get(user).invited.length; i++) {
         if (onlineUsers.get(user).invited[i].inviter == inviterId) {
           onlineUsers.get(user).invited.splice(i, 1);
           break;
         }
       }
-      onlineUsers.get(inviterId).inviting = -1;
       console.log("onlineUsers after strangerRejected ---- ", onlineUsers);
 
       console.groupEnd();
     });
 
+    socket.on("strangerTimedOut", token => {
+      console.group("---------> strangerTimedOut");
+      let user = tokenIdMapping.get(token);
+      onlineUsers.get(user).inviting = -1;
+
+      console.log('deleting invitation at strangerTimedOut...');
+      for (let i=0; i<onlineUsers.get(user).invited.length; i++) {
+        if (onlineUsers.get(user).invited[i].inviter == inviterId) {
+          onlineUsers.get(user).invited.splice(i, 1);
+          break;
+        }
+      }
+      console.log("onlineUsers after strangerTimedOut ---- ", onlineUsers);
+
+      console.groupEnd();
+    });
+
     socket.on("exit", async token => {
-      // do something after user exits a match!++++++++++++++
       console.group("---------> exit");
       let matchKey = getMatchKey(url);
       let user = tokenIdMapping.get(token);

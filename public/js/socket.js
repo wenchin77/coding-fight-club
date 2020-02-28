@@ -1,5 +1,8 @@
 let socket; // for other pages to use
 
+// to handle invitations across all pages
+let invitations = {};
+
 const url = window.location.pathname;
 // use socket to keep track of online users
 if (localStorage.getItem('token') && localStorage.getItem('id')){
@@ -9,8 +12,8 @@ if (localStorage.getItem('token') && localStorage.getItem('id')){
 }
 
 
-function socketInit() {
-  console.log('token: ',localStorage.getItem('token'))
+async function socketInit() {
+  console.log('invitations',invitations)
   socket = io({query: {
     token: localStorage.getItem('token')
   }});
@@ -25,10 +28,11 @@ function socketInit() {
 
   // setInterval every 20 sec at every page except match page
   if (!url.includes('match/')) {
+    // ping server
     setInterval(() => {
-      // ping server
       socket.emit('online', token);
     }, 1000*20);
+
   };
 
   socket.on('invited', async (data) => {
@@ -44,8 +48,33 @@ function socketInit() {
     let category = data.category;
     let difficulty = data.difficulty;
     let inviteTime = data.time;
+
+    if ((Date.now() - inviteTime) > 1000 * 20) {
+      console.log('invite timed out, deleting in invitations & emitting rejection...');
+      if (invitations[inviteTime]) {
+        delete invitations[inviteTime];
+      };
+      let rejectData = {token, inviterId};
+      socket.emit('strangerRejected', rejectData);
+      console.log('invitations', invitations);
+      return;
+    };
+
     let questionID = await getQuestion(category, difficulty);
-    showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId);
+
+    if (!invitations[inviteTime]) {
+      console.log('not in invitation before...');
+      invitations[inviteTime] = {
+        inviterName, 
+        category, 
+        difficulty, 
+        inviterId, 
+      };
+      console.log('inviteTime',inviteTime);
+      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId);
+      console.log('invitations', invitations);
+    }
+    
   });
   
   
@@ -96,6 +125,7 @@ let AlertBox = function(id, option) {
       alertYes.addEventListener('click', async (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
+        console.log('updated invitations at accept', invitations)
         // create a match
         let matchKey = await getKey();
         let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
@@ -110,6 +140,7 @@ let AlertBox = function(id, option) {
       });
       alertClose.addEventListener('click', (event) => {
         event.preventDefault();
+        console.log('reject', invitations);
         alertClass.hide(alertBox);
         let rejectData = {token, inviterId};
         socket.emit('strangerRejected', rejectData);
@@ -117,6 +148,9 @@ let AlertBox = function(id, option) {
       let alertTimeout = setTimeout(() => {
         alertClass.hide(alertBox);
         clearTimeout(alertTimeout);
+        console.log('timeout -> reject', invitations);
+        let rejectData = {token, inviterId};
+        socket.emit('strangerRejected', rejectData);
       }, option.closeTime);
     }
   };
