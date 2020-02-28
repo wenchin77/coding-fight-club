@@ -9,8 +9,8 @@ module.exports = {
     return mysql.query('SELECT question_id from match_table WHERE match_key = ?', [key])
   },
 
-  queryUpdateMatch: (key, now) => {
-    return mysql.query('UPDATE match_table SET match_start_time = ? WHERE match_key = ? LIMIT 1', [now, key])
+  queryUpdateMatch: (key, data) => {
+    return mysql.query('UPDATE match_table SET ? WHERE match_key = ? LIMIT 1', [data, key])
   },
 
   queryGetMatchID: (key) => {
@@ -41,8 +41,8 @@ module.exports = {
     return mysql.query('SELECT large_exec_time FROM question INNER JOIN match_table ON question.id = match_table.question_id INNER JOIN match_detail ON match_table.id = match_detail.match_id WHERE question.id = ? AND large_exec_time IS NOT NULL ORDER BY large_exec_time ASC', [question_id])
   },
 
-  queryUpdateMatchWinner: (key, winner, loser) => {
-    return mysql.query('UPDATE match_table SET winner_user_id = ?, loser_user_id = ? WHERE match_key = ? LIMIT 1', [winner, loser, key])
+  queryUpdateMatchWinner: (key, winner, status) => {
+    return mysql.query('UPDATE match_table SET winner_user_id = ?, match_status = ? WHERE match_key = ? LIMIT 1', [winner, status, key])
   },
 
   queryGetMatchDetails: (match_id) => {
@@ -54,46 +54,31 @@ module.exports = {
   },
 
   queryGetMatchSummary: (user_id) => {
-    return mysql.query(`SELECT u.user_name AS loser_name, t2.*
-    FROM
-      (SELECT u.user_name AS winner_name, t1.*
-        FROM
-        (SELECT m.id AS matchid, 
-            m.winner_user_id AS winner_id, m.loser_user_id AS loser_id,
-            m.match_start_time AS match_start_time, m.match_key AS match_key,
-            md.user_id AS user_id, md.points AS points, u.user_name AS user_name,
-            q.question_name AS question_name, q.difficulty AS difficulty, q.category AS category
-        FROM match_table m
-            INNER JOIN match_detail md ON m.id = md.match_id 
-            INNER JOIN user_table u ON md.user_id = u.id
-            INNER JOIN question q ON m.question_id = q.id
-            WHERE u.id = ? AND m.winner_user_id IS NOT NULL
-            ) as t1
-      INNER JOIN user_table u ON t1.winner_id = u.id) as t2
-    INNER JOIN user_table u ON t2.loser_id = u.id
-    ORDER BY match_start_time DESC
-    LIMIT 5`, [user_id])
+    return mysql.query(`SELECT u.id AS userid, md.points, md.match_id, u.user_name, m.match_key, m.winner_user_id, m.match_start_time, q.question_name, q.category, q.difficulty
+    FROM match_detail md
+    INNER JOIN user_table u ON md.user_id = u.id
+    INNER JOIN match_table m ON m.id = md.match_id
+    INNER JOIN question q ON q.id = m.question_id
+    WHERE md.match_id IN (SELECT match_id FROM match_detail WHERE user_id = ?) AND m.match_status = 1
+    ORDER BY match_start_time DESC LIMIT 10`, [user_id])
   },
 
   queryGetMatchHistory: (user_id) => {
-    return mysql.query(`SELECT u.user_name AS loser_name, t2.*
-    FROM
-      (SELECT u.user_name AS winner_name, t1.*
-        FROM
-        (SELECT m.id AS matchid, 
-            m.winner_user_id AS winner_id, m.loser_user_id AS loser_id,
-            m.match_start_time AS match_start_time, m.match_key AS match_key,
-            md.user_id AS user_id, md.points AS points, u.user_name AS user_name,
-            q.question_name AS question_name, q.difficulty AS difficulty, q.category AS category
-        FROM match_table m
-            INNER JOIN match_detail md ON m.id = md.match_id 
-            INNER JOIN user_table u ON md.user_id = u.id
-            INNER JOIN question q ON m.question_id = q.id
-            WHERE u.id = ? AND m.winner_user_id IS NOT NULL
-            ) as t1
-      INNER JOIN user_table u ON t1.winner_id = u.id) as t2
-    INNER JOIN user_table u ON t2.loser_id = u.id
+    return mysql.query(`SELECT u.id AS userid, md.points, md.match_id, u.user_name, m.match_key, m.winner_user_id, m.match_start_time, q.question_name, q.category, q.difficulty
+    FROM match_detail md
+    INNER JOIN user_table u ON md.user_id = u.id
+    INNER JOIN match_table m ON m.id = md.match_id
+    INNER JOIN question q ON q.id = m.question_id
+    WHERE md.match_id IN (SELECT match_id FROM match_detail WHERE user_id = ?) AND m.match_status = 1
     ORDER BY match_start_time DESC`, [user_id])
   },
+
+  queryGetMatchStatus: (key) => {
+    return mysql.query(`SELECT match_status FROM match_table WHERE match_key = ? LIMIT 1`, [key])
+  },
+
+  queryUpdateMatchStatus: (key, status) => {
+    return mysql.query('UPDATE match_table SET match_status = ? WHERE match_key = ? LIMIT 1', [status, key])
+  }
 
 }

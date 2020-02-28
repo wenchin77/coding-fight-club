@@ -45,10 +45,9 @@ function socketInMatchInit() {
   });
 
   socket.once("waitForOpponent", msg => {
-    showAlert(msg, () => {
-      document.getElementById("runCodeOutput").innerHTML =
-        '<p id="terminalMessage">Hold on. You will be able to read the question and code right after your opponent joins.</p>';
-    });
+    showAlertNoButtons(msg);
+    document.getElementById("runCodeOutput").innerHTML =
+    '<p id="terminalMessage">Hold on. You will be able to read the question and code right after your opponent joins.</p>';
   });
 
   socket.on("joinLeaveMessage", msgObject => {
@@ -160,7 +159,6 @@ function stopTimer() {
 }
 
 function runCode() {
-  console.log('userID in runCode',userID);
   if (!document.getElementById("questionDescription")) {
     showAlert('You can only run your code after the match starts.')
     return;
@@ -179,7 +177,7 @@ function runCode() {
   testcaseValue = sampleTestCase + "\n" + testcaseValue;
 
   let payload = {
-    user: userID,
+    token,
     code: codeareaValue,
     test: testcaseValue,
     difficulty,
@@ -198,11 +196,12 @@ function submitCode() {
   showAlertWithButtons(text, () => {
     // stop timer
     stopTimer();
-    showAlert("Hold on! Our server is evaluating your code now...");
+    showAlertNoButtons("Hold on! Our server is evaluating your code now...");
     // send code to server (get test cases in server)
     let codeareaValue = codemirrorEditor.getValue();
     let payload = {
       user: userID,
+      token,
       code: codeareaValue,
       difficulty
     };
@@ -225,10 +224,10 @@ function showTestCase() {
 }
 
 function exitMatch() {
-  let text = `Are you sure you want to exit the match? You can join this match again if it's within match time.`;
+  let text = `Are you sure you want to exit the match? You can't join this match again and you won't get any points.`;
   showAlertWithButtons(text, () => {
     window.location.pathname = "/";
-    socket.emit("exit", userID);
+    socket.emit("exit", token);
   });
 }
 

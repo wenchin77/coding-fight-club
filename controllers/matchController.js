@@ -7,7 +7,8 @@ module.exports = {
     // generate a random no as match key to put in url
     let data = {
       question_id,
-      match_key
+      match_key,
+      match_status: -1
     }
     try {
       let result = await matchModel.queryInsertMatch(data);
@@ -17,12 +18,24 @@ module.exports = {
     }
   },
 
-  updateMatch: async (key, now) => {
+  updateMatch: async (key, match_start_time, match_status) => {
     try {
       // can combine these two qeuries???
-      let result = await matchModel.queryUpdateMatch(key, now);
+      let data = {
+        match_start_time,
+        match_status
+      }
+      let result = await matchModel.queryUpdateMatch(key, data);
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  
+  updateMatchStatus: async (key, status) => {
+    try {
+      await matchModel.queryUpdateMatchStatus(key, status);
     } catch (err) {
       console.log(err);
     }
@@ -105,9 +118,10 @@ module.exports = {
     }
   },
 
-  updateMatchWinner: async (key, winner, loser) => {
+  updateMatchWinner: async (key, winner) => {
     try {
-      let result = await matchModel.queryUpdateMatchWinner(key, winner, loser);
+      let status = 1; // match ended
+      let result = await matchModel.queryUpdateMatchWinner(key, winner, status);
     } catch (err) {
       console.log(err);
     }
@@ -134,6 +148,15 @@ module.exports = {
   getMatchHistory: async (user_id) => {
     try {
       let result = await matchModel.queryGetMatchHistory(user_id);
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  getMatchStatus: async (key) => {
+    try {
+      let result = await matchModel.queryGetMatchStatus(key);
       return result;
     } catch (err) {
       console.log(err);

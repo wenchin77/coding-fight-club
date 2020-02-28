@@ -30,13 +30,19 @@ function socketInit() {
   // setInterval every 20 sec at every page except match page
   if (!url.includes('match/')) {
     setInterval(() => {
+      // ping server
       socket.emit('online', token);
     }, 1000*20);
   };
 
   socket.on('invited', async (data) => {
     console.log('invited!', data);
+    if (url.includes('match/')) {
+      console.log('at match page, do not show invitations!')
+      return;
+    }
 
+    // if it wasn't in invitations{}, add it & show alert
     let inviterName = data.inviterName;
     let inviterId = data.inviter;
     let category = data.category;
@@ -44,19 +50,17 @@ function socketInit() {
     let inviteTime = data.time;
     let questionID = await getQuestion(category, difficulty);
 
-    if (url.includes('match/')) {
-      console.log('at match page, do not show invitations!')
-      return;
-    }
-    // if it wasn't in invitations{}, add it & show alert
-    if (!invitations[inviterId]) {
-      console.log('not in invitation before... show alert box');
-      invitations[inviterId] = {inviterName, category, difficulty, inviteTime};
-      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId);
+    if (!invitations[inviteTime]) {
+      console.log('not in invitation before...');
+      // only show if alert hasn't popped up before
+      invitations[inviteTime] = {inviterName, category, difficulty, inviterId, alert: 0};
+      showAlertBox(`${inviterName} challenged you to a match of ${difficulty} ${category}!`,questionID, inviterId, inviteTime);
       console.log('invitations', invitations);
     }
     
   });
+  
+  
 
 }
 
@@ -78,7 +82,7 @@ async function getKey() {
 
 // Responsive alert box adjusted from https://codepen.io/takaneichinose/pen/eZoZxv
 let AlertBox = function(id, option) {
-  this.show = function(msg, questionID, inviterId) {
+  this.show = function(msg, questionID, inviterId, inviteTime) {
     if (msg === ''  || typeof msg === 'undefined' || msg === null) {
       throw '"msg parameter is empty"';
     }
@@ -104,8 +108,7 @@ let AlertBox = function(id, option) {
       alertYes.addEventListener('click', async (event) => {
         event.preventDefault();
         alertClass.hide(alertBox);
-        // delete property from invitations {}
-        delete invitations[inviterId];
+        invitations[inviteTime].alert = 1;
         console.log('updated invitations at accept', invitations)
         // create a match
         let matchKey = await getKey();
@@ -121,18 +124,18 @@ let AlertBox = function(id, option) {
       });
       alertClose.addEventListener('click', (event) => {
         event.preventDefault();
-        // delete property from invitations {}
-        delete invitations[inviterId];
-        console.log('updated invitations at reject', invitations)
+        invitations[inviteTime].alert = 1;
+        console.log('updated invitations at reject', invitations);
         alertClass.hide(alertBox);
         let rejectData = {token, inviterId};
         socket.emit('strangerRejected', rejectData);
       });
       let alertTimeout = setTimeout(() => {
-        // delete property from invitations {}
-        if (invitations[inviterId]) {
-          delete invitations[inviterId];
-          console.log('updated invitations at timeout', invitations)
+        if (invitations[inviteTime].alert = 0) {
+          let rejectData = {token, inviterId};
+          socket.emit('strangerRejected', rejectData);
+          invitations[inviteTime].alert = 1;
+          console.log('invitation timeout: rejected', invitations);
         }
         alertClass.hide(alertBox);
         clearTimeout(alertTimeout);

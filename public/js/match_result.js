@@ -92,8 +92,9 @@ async function showMatchResult (userID, result) {
   let myIndex = ((userID == matchResult[0].user_id) ? 0 : 1);
   let opponentIndex = ((myIndex == 0) ? 1 : 0);
   let winLose;
+  console.log('winner', winner)
 
-  if (winner === 'tie') {
+  if (winner === 0) {
     document.getElementById("winLose").innerHTML = 'You Tied!';
     winLose = 'Tie'
   } else if (winner === userID) {

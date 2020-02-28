@@ -50,34 +50,38 @@ function capitalize (str) {
 
 // ++++++++++++ add paging
 async function showMatchResult (userID, result) {
+  console.log(result)
   if (result.length === 0) {
     console.log('no matches found')
     document.getElementById('noMatches').innerHTML = 'No match result yet...'
     return;
   }
+
   let matchResultSummary = [];
-  // let length = (result.length<=5) ? result.length : 5;
-  // show latest 5 matches
-  for (let i=0; i<result.length; i++) {
-    console.log(result[i])
+  // handle each match (2 rows: you & opponent)
+  for (let i=0; i<result.length; i+=2) {
+    let opponent;
+    if (result[i].userid === userID) {
+      opponent = result[i+1].user_name;
+    } else {
+      opponent = result[i].user_name;
+    }
+    console.log('opponent', opponent)
     let question = result[i].question_name;
     let difficulty = result[i].difficulty;
     let category = result[i].category;
-    let winnerId = result[i].winner_id;
-    let points = result[i].points
-    let opponent = (result[i].winner_id === userID) ? result[i].loser_name : result[i].winner_name;
+    let winnerId = result[i].winner_user_id;
+    let points = result[i].points;
     let matchKey = result[i].match_key;
     let url = `https://coding-fight-club.thewenchin.com/match_result/${matchKey}`
-    console.log('url',url)
     let winLose;
-    if (winnerId === 'tie') {
+    if (winnerId === 0) {
       winLose = 'Tie'
     } else if (userID == winnerId) {
       winLose = 'Win';
     } else {
       winLose = 'Lose'
     };
-
     let startTime = new Date(result[i].match_start_time)
     let localStartTime = startTime.toLocaleString();
 
@@ -94,6 +98,7 @@ async function showMatchResult (userID, result) {
       };
     matchResultSummary.push(matchResult);
   }
+
   console.log(matchResultSummary);
   // add data to table
   addDataToTable('allMatchesTable', matchResultSummary);
@@ -142,11 +147,6 @@ function generateTable(table, data) {
 async function showProfile(token) {
   try {
     const response = await axios.post(`/api/v1/user/get_user_info?token=${token}`)
-    // console.log('showProfile data', response.data);
-    // document.getElementById('username').innerHTML = `Username: ${response.data[0].user_name}`
-    // document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`
-    // document.getElementById('points').innerHTML = `Points: ${response.data[0].points}`
-    // document.getElementById('level').innerHTML = `Level: ${response.data[0].level_name}`;
     return response.data[0];
   } catch (error) {
     console.log(error);

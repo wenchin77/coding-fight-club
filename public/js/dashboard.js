@@ -46,20 +46,25 @@ async function showMatchResult (userID, result) {
     document.getElementById('noMatches').innerHTML = 'No match result yet...'
     return;
   }
+
   let matchResultSummary = [];
-  let length = (result.length<=5) ? result.length : 5;
-  // show latest 5 matches
-  for (let i=0; i<length; i++) {
+  // handle each match (2 rows: you & opponent)
+  for (let i=0; i<result.length; i+=2) {
+    let opponent
+    if (result[i].userid === userID) {
+      opponent = result[i+1].user_name;
+    } else {
+      opponent = result[i].user_name;
+    }
     let question = result[i].question_name;
     let difficulty = result[i].difficulty;
     let category = result[i].category;
-    let winnerId = result[i].winner_id;
-    let points = result[i].points
-    let opponent = (result[i].winner_id === userID) ? result[i].loser_name : result[i].winner_name;
+    let winnerId = result[i].winner_user_id;
+    let points = result[i].points;
     let matchKey = result[i].match_key;
     let url = `https://coding-fight-club.thewenchin.com/match_result/${matchKey}`
     let winLose;
-    if (winnerId === 'tie') {
+    if (winnerId === 0) {
       winLose = 'Tie'
     } else if (userID == winnerId) {
       winLose = 'Win';
@@ -80,7 +85,6 @@ async function showMatchResult (userID, result) {
         Question: question,
         Points: points,
         url
-        // 'Match Details': `<a href='${url}'>View</a>`
       };
     matchResultSummary.push(matchResult);
   }
