@@ -1,4 +1,3 @@
-
 function logout() {
   localStorage.removeItem('id');
   localStorage.removeItem('username')
@@ -11,7 +10,7 @@ function logout() {
   document.getElementById('membername').innerHTML = 'Sign In';
   document.getElementById('member').href = '/signin';
   showAlert('Logged out!')
-}
+};
 
 function showAlert (text, callback) {
   const modal = document.getElementById("myModal");

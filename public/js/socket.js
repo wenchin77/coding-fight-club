@@ -11,9 +11,16 @@ if (localStorage.getItem('token') && localStorage.getItem('id')){
   socketInit();
 }
 
+function ping(token) {
+  socket.emit('online', token);
+  // count online users at homepage
+  if (url === '/') {
+    socket.emit('userCount');
+  };
+}
+
 
 async function socketInit() {
-  console.log('invitations',invitations)
   socket = io({query: {
     token: localStorage.getItem('token')
   }});
@@ -28,12 +35,20 @@ async function socketInit() {
 
   // setInterval every 20 sec at every page except match page
   if (!url.includes('match/')) {
-    // ping server
+    ping(token);
     setInterval(() => {
-      socket.emit('online', token);
+      ping(token)
     }, 1000*20);
-
   };
+
+  socket.on('count', userNo => {
+    console.log('user no', userNo);
+    if (userNo < 2) {
+      document.getElementById('userNo').innerHTML = `${userNo} player online now`;
+      return;
+    };
+    document.getElementById('userNo').innerHTML = `${userNo} players online now`;
+  })
 
   socket.on('invited', async (data) => {
     console.log('invited!', data);

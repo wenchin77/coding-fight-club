@@ -2,6 +2,7 @@ const fs = require("fs");
 const matchController = require("./controllers/matchController");
 const questionController = require("./controllers/questionController");
 const userController = require("./controllers/userController");
+const { getMatchKey } = require('./util/socket');
 
 // child process setup for code execution
 const { spawn } = require("child_process");
@@ -89,6 +90,10 @@ socket.init = server => {
       console.log("availableUsers size before checking", availableUsers.size);
       console.log("matchList size before checking", matchList.size);
       console.groupEnd();
+    });
+
+    socket.on('userCount', () => {
+      socket.emit('count', onlineUsers.size);
     });
 
     socket.on("joinMatch", async token => {
@@ -1083,11 +1088,7 @@ const getTimeoutMs = difficulty => {
   return 20000;
 };
 
-const getMatchKey = url => {
-  let urlSplitedBySlash = url.split("/");
-  let key = urlSplitedBySlash[urlSplitedBySlash.length - 1];
-  return key;
-};
+
 
 const calculatePoints = async (
   matchKey,

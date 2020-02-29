@@ -57,24 +57,33 @@ function socketInMatchInit() {
     }
   });
 
-
-
   socket.once("startMatch", startInfo => {
-    console.log(startInfo)
+    console.log(startInfo);
+    // get start time from db & start timer
+    let secondsLeft = parseInt(startInfo.startTime / 1000 + 60 * 60 - Date.now() / 1000);
+    console.log('secondsLeft',secondsLeft)
+    if (secondsLeft <= 0) {
+      showAlert('The match has ended!', () => {
+        window.location.pathname = '/dashboard'
+      })
+      return;
+    };
+    setTimer(startInfo.startTime);
+
     // show opponent name
     console.log('users.user1.user',startInfo.user1.user);
     console.log('userID', userID);
     opponent = (startInfo.user1.user === userID) ? startInfo.user2.username : startInfo.user1.username;
     console.log('opponent',opponent);
     showQuestion(startInfo.question);
+
     // show start match message
     showAlert(`The match against ${opponent} is on!`, () => {
       document.getElementById("opponent").innerHTML = `Opponent: ${opponent}`;
       document.getElementById("runCodeOutput").innerHTML =
         '<p id="terminalMessage">Write the code and test cases to see result.</p>';
     });
-    // get start time from db & start timer
-    setTimer(startInfo.startTime);
+    
   });
 
   // 接收 codeResult 並顯示（每次都蓋掉上次的）
@@ -125,7 +134,7 @@ function socketInMatchInit() {
     });
   })
 
-  socket.once("endMatch", matchKey => {
+  socket.on("endMatch", matchKey => {
     showAlert("The match has ended! Let check out the result.", () => {
       // redirect to match_result page with match_key param
       window.location = `/match_result/${matchKey}`;
@@ -149,21 +158,31 @@ function setTimer(startTime) {
   let hoursLabel = document.getElementById("hours");
   let minutesLabel = document.getElementById("minutes");
   let secondsLabel = document.getElementById("seconds");
-  let totalSeconds = 60 * 60; // +++++++++ 1h max (to be updated)
-  let secondsLeft = parseInt(startTime / 1000 + totalSeconds - Date.now() / 1000);
-  timer = setInterval(
-    setTime(secondsLeft, hoursLabel, minutesLabel, secondsLabel),
-    1000
+  let totalSeconds = 60 * 60; // +++++++++ 1h max
+  timer = setInterval(() => {
+    let secondsLeft = parseInt(startTime / 1000 + totalSeconds - Date.now() / 1000);
+    if (secondsLeft === 0) {
+      clearInterval(timer);
+      console.log('match timed out, emitting exit...');
+      showAlert('Times up!', () => {
+        socket.emit("exit", token);
+      })
+      return;
+    }
+    showCountdown(secondsLeft, hoursLabel, minutesLabel, secondsLabel);
+  }, 1000
   );
 }
 
-function setTime(secondsLeft, hoursLabel, minutesLabel, secondsLabel) {
-  return () => {
-    secondsLeft = secondsLeft - 1;
-    secondsLabel.innerHTML = pad(secondsLeft % 60);
-    minutesLabel.innerHTML = pad(parseInt((secondsLeft % 3600) / 60));
-    hoursLabel.innerHTML = pad(parseInt(secondsLeft / 3600));
-  };
+function stopTimer() {
+  clearInterval(timer);
+}
+
+function showCountdown(secondsLeft, hoursLabel, minutesLabel, secondsLabel) {
+  secondsLeft = secondsLeft - 1;
+  secondsLabel.innerHTML = pad(secondsLeft % 60);
+  minutesLabel.innerHTML = pad(parseInt((secondsLeft % 3600) / 60));
+  hoursLabel.innerHTML = pad(parseInt(secondsLeft / 3600));
 }
 
 function pad(val) {
@@ -173,10 +192,6 @@ function pad(val) {
   } else {
     return valString;
   }
-}
-
-function stopTimer() {
-  clearInterval(timer);
 }
 
 function runCode() {
@@ -233,6 +248,7 @@ function submitCode() {
   });
 }
 
+
 function showTestCase() {
   if (!document.getElementById("questionDescription")) {
     return;
@@ -248,6 +264,8 @@ function showTestCase() {
 function exitMatch() {
   let text = `Are you sure you want to exit the match? You won't be able to submit in this match or get any points.`;
   showAlertWithButtons(text, () => {
+    // stop timer
+    stopTimer();
     window.location.pathname = "/";
     socket.emit("exit", token);
   });

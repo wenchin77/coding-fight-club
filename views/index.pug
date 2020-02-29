@@ -1,14 +1,18 @@
 extends layout
 
+block scripts
+  script(src='../js/index.js')
+
 block content
   .backgroundImageWrapper
     .homeContent
       h1 Welcome to Coding Fight Club
-      h4 Achieve mastery through live challenges
+      h5 Achieve mastery through live algorithms challenges
       //- p A software platform that helps engineers sharpen their programming skills via live competitions on algorithms
 
       a(href='/signin')
-        button JOIN THE CLUB NOW
+        button JOIN THE CLUB
+      h5#userNo
 
       //- img.header-image(src='../img/main.jpg')
       //- #products.products

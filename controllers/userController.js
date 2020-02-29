@@ -1,11 +1,10 @@
 // const AppError = require('../util/appError');
 // sql 語句拆到 model/user 去
-const userModel = require('../models/user');
+const userModel = require("../models/user");
 const crypto = require("crypto");
 
-
 module.exports = {
-  insertUser: async (data) => {
+  insertUser: async data => {
     let now = Date.now();
     let hash = crypto.createHash("sha256");
     hash.update(data.email + data.password + now);
@@ -15,23 +14,23 @@ module.exports = {
     let passwordHash = crypto.createHash("sha256");
     passwordHash.update(data.password);
     let encryptedPassword = passwordHash.digest("hex");
-    
-    try  {
+
+    try {
       let userInfo = {
         user_name: data.username,
         user_password: encryptedPassword,
         email: data.email,
-        provider: 'native',
+        provider: "native",
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token,
         points: 0,
         level_id: 1 // beginner level id
-      }
-      console.log('inserting user...')
+      };
+      console.log("inserting user...");
       let result = await userModel.queryInsertUser(userInfo);
       let getUserInfo = await userModel.querySelectUserByEmail(data.email);
-      console.log(getUserInfo)
-      return({
+      console.log(getUserInfo);
+      return {
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
         email: getUserInfo[0].email,
@@ -40,13 +39,13 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      });
+      };
     } catch (err) {
       console.log(err);
     }
   },
 
-  updateUser: async (data) => {
+  updateUser: async data => {
     // check if token's not expired, if not send back the same token
     let now = Date.now();
     let getUserInfo = await userModel.querySelectUserByEmail(data.email);
@@ -61,21 +60,21 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      }
-      return(userInfo);
-    };
+      };
+      return userInfo;
+    }
 
     // token expired: set a new token and send back to frontend
     let hash = crypto.createHash("sha256");
     hash.update(data.email + data.password + now);
     let token = hash.digest("hex");
-    
-    try  {
+
+    try {
       let userReq = {
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token
-      }
-      console.log('updating user...')
+      };
+      console.log("updating user...");
       await userModel.queryUpdateUser(userReq);
       let getUserInfo = await userModel.querySelectUserByEmail(data.email);
       let userInfo = {
@@ -87,35 +86,35 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level,
         access_expired: getUserInfo[0].access_expired
-      }
-      return(userInfo);
+      };
+      return userInfo;
     } catch (err) {
       console.log(err);
     }
   },
 
-  insertGoogleUser: async (data) => {
+  insertGoogleUser: async data => {
     let now = Date.now();
     let hash = crypto.createHash("sha256");
     hash.update(data.email + now);
     let token = hash.digest("hex");
 
-    try  {
+    try {
       let userInfo = {
         user_name: data.name,
         email: data.email,
         picture: data.picture,
-        provider: 'google',
+        provider: "google",
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token,
         points: 0,
         level_id: 1 // beginner level id
-      }
-      console.log('inserting user...')
+      };
+      console.log("inserting user...");
       let result = await userModel.queryInsertUser(userInfo);
       let getUserInfo = await userModel.querySelectUserByEmail(data.email);
-      console.log(getUserInfo)
-      return({
+      console.log(getUserInfo);
+      return {
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
         email: getUserInfo[0].email,
@@ -125,13 +124,13 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      });
+      };
     } catch (err) {
       console.log(err);
     }
   },
 
-  updateGoogleUser: async (data) => {
+  updateGoogleUser: async data => {
     // check if token's not expired, if not send back the same token
     let now = Date.now();
     let getUserInfo = await userModel.querySelectUserByEmail(data.email);
@@ -147,21 +146,21 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      }
-      return(userInfo);
-    };
+      };
+      return userInfo;
+    }
 
     // token expired: set a new token and send back to frontend
     let hash = crypto.createHash("sha256");
     hash.update(data.email + now);
     let token = hash.digest("hex");
-    
-    try  {
+
+    try {
       let userReq = {
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token
-      }
-      console.log('updating user...')
+      };
+      console.log("updating user...");
       await userModel.queryUpdateUser(userReq);
       let getUserInfo = await userModel.querySelectUserByEmail(data.email);
       let userInfo = {
@@ -174,36 +173,36 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level,
         access_expired: getUserInfo[0].access_expired
-      }
-      return(userInfo);
+      };
+      return userInfo;
     } catch (err) {
       console.log(err);
     }
   },
 
-  insertGithubUser: async (data) => {
+  insertGithubUser: async data => {
     let now = Date.now();
     let hash = crypto.createHash("sha256");
     hash.update(data.email + now);
     let token = hash.digest("hex");
 
-    try  {
+    try {
       let userInfo = {
         user_name: data.name,
         email: data.email,
         picture: data.picture,
-        provider: 'github',
+        provider: "github",
         github_url: data.github_url,
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token,
         points: 0,
         level_id: 1 // beginner level id
-      }
-      console.log('inserting user...')
+      };
+      console.log("inserting user...");
       let result = await userModel.queryInsertUser(userInfo);
       let getUserInfo = await userModel.querySelectUserByEmail(data.email);
       console.log(getUserInfo);
-      return({
+      return {
         id: getUserInfo[0].id,
         username: getUserInfo[0].user_name,
         email: getUserInfo[0].email,
@@ -214,13 +213,13 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      });
+      };
     } catch (err) {
       console.log(err);
     }
   },
 
-  updateGithubUser: async (data) => {
+  updateGithubUser: async data => {
     // check if token's not expired, if not send back the same token
     let now = Date.now();
     let getUserInfo = await userModel.querySelectUserByEmail(data.email);
@@ -237,21 +236,21 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
-      }
-      return(userInfo);
-    };
+      };
+      return userInfo;
+    }
 
     // token expired: set a new token and send back to frontend
     let hash = crypto.createHash("sha256");
     hash.update(data.email + now);
     let token = hash.digest("hex");
-    
-    try  {
+
+    try {
       let userReq = {
         access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
         token
-      }
-      console.log('updating user...')
+      };
+      console.log("updating user...");
       await userModel.queryUpdateUser(userReq);
       let getUserInfo = await userModel.querySelectUserByEmail(data.email);
       let userInfo = {
@@ -265,37 +264,35 @@ module.exports = {
         points: getUserInfo[0].points,
         level: getUserInfo[0].level,
         access_expired: getUserInfo[0].access_expired
-      }
-      return(userInfo);
+      };
+      return userInfo;
     } catch (err) {
       console.log(err);
     }
   },
 
-
-  selectUserByToken: async (token) => {
+  selectUserByToken: async token => {
     try {
       let result = await userModel.querySelectUserByToken(token);
-      return(result);
+      return result;
     } catch (err) {
       console.log(err);
     }
   },
-  
 
-  countUsersByEmail: async (email) => {
+  countUsersByEmail: async email => {
     try {
       let emailNumObj = await userModel.queryCountUsersByEmail(email);
-      return(emailNumObj[0]['COUNT (*)']);
+      return emailNumObj[0]["COUNT (*)"];
     } catch (err) {
       console.log(err);
     }
   },
 
-  countUsersByUserName: async (username) => {
+  countUsersByUserName: async username => {
     try {
       let emailNumObj = await userModel.queryCountUsersByUsername(username);
-      return(emailNumObj[0]['COUNT (*)']);
+      return emailNumObj[0]["COUNT (*)"];
     } catch (err) {
       console.log(err);
     }
@@ -307,17 +304,20 @@ module.exports = {
     passwordHash.update(password);
     let encryptedPassword = passwordHash.digest("hex");
     try {
-      let rowNumObj = await userModel.queryCountUsersByEmailPassword(email, encryptedPassword);
-      return(rowNumObj[0]['COUNT (*)']);
+      let rowNumObj = await userModel.queryCountUsersByEmailPassword(
+        email,
+        encryptedPassword
+      );
+      return rowNumObj[0]["COUNT (*)"];
     } catch (err) {
       console.log(err);
     }
   },
 
-  selectUserInfoByToken: async (token) => {
+  selectUserInfoByToken: async token => {
     try {
       let result = await userModel.querySelectUserInfoByToken(token);
-      return(result);
+      return result;
     } catch (err) {
       console.log(err);
     }
@@ -325,13 +325,13 @@ module.exports = {
 
   insertBugReport: async (reporter, content) => {
     try {
-      await userModel.queryInsertBugReport({reporter, content});
+      await userModel.queryInsertBugReport({ reporter, content });
     } catch (err) {
       console.log(err);
     }
   },
 
-  updateUserPointsLevel: async (user_id) => {
+  updateUserPointsLevel: async user_id => {
     try {
       // check next level's min points
       let checkNextLevelMin = await userModel.querySelectNextLevelMin(user_id);
@@ -341,25 +341,16 @@ module.exports = {
 
       // if user points > next level's min points, update level id too
       if (userTotalPoionts >= nextLevelMin) {
-        console.log('level up! userTotalPoionts >= nextLevelMin')
+        console.log("level up! userTotalPoionts >= nextLevelMin");
         let level = nextLevelId;
         let result = await userModel.queryUpdateUserLevel(level, user_id);
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
-
   },
 
   selectLeaderboardUsers: async () => {
-    try {
-      let result = await userModel.querySelectLeaderboardUsers();
-      return result;
-    } catch (err) {
-      console.log(err)
-    } 
+    return await userModel.querySelectLeaderboardUsers();
   }
-
-  
-
-}
+};

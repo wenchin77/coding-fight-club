@@ -10,6 +10,7 @@ body {
   padding-top: 45px;
   background-color: #333333;
   color: #ffffff;
+  height: 100%;
 }
 
 header {
@@ -84,8 +85,10 @@ th, td {
 .wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh - 50px);
   width: 100%;
+  position: relative;
+  padding-bottom: 50px;
 }
 
 p {
@@ -266,15 +269,19 @@ section {
 }
 
 
-/* footer layout --------------------
-footer {
+/* footer layout -------------------- */
+.footer {
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
   width: 100%;
-  padding: 40px;
-  padding-bottom: 200px;
+  /* padding: 40px; */
   font-size: 0.9em;
+
+  position: absolute;
+  bottom: 0;
+  height: 50px;
 }
 
 .footer-content,
@@ -287,8 +294,7 @@ footer {
   letter-spacing: normal;
 }
 
-
-.social-icon img {
+/* .social-icon img {
   padding-left: 10px;
   padding-right: 10px;
 } */
@@ -618,7 +624,7 @@ button:hover {
   background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),url('../img/main.jpg');
   background-position: center;
   background-size: cover;
-  position: absolute;
+  position: relative;
 }
 
 .signinSignupForm {

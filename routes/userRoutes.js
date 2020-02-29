@@ -4,6 +4,7 @@ const router = express.Router();
 const request = require("request");
 const axios = require('axios');
 const userController = require('../controllers/userController');
+const {getLeaderboard} = require('./handler')
 // for github clientid & client secret
 require('dotenv').config();
 
@@ -187,15 +188,7 @@ function getGoogleProfile (accessToken) {
 	})
 };
 
-router.get('/leaderboard', async (req, res) => {
-  try {
-    let result = await userController.selectLeaderboardUsers();
-    res.json(result);
-  } catch (e) {
-    res.status(500).send(e)
-  }
-})
-
+router.get('/leaderboard', getLeaderboard(userController));
 
 router.post('/bug_report', async (req, res) => {
   let reporter = req.query.reporter;
@@ -204,9 +197,9 @@ router.post('/bug_report', async (req, res) => {
   console.log(bug)
   try {
     await userController.insertBugReport(reporter, bug);
-    res.status(200).send('Bug report filed!')
+    res.status(200).send('Bug report filed!');
   } catch (e) {
-    res.status(500).send(e)
+    res.status(404).send(e)
   }
 }) 
 

@@ -15,8 +15,6 @@ html
     script(src="https://unpkg.com/axios/dist/axios.min.js")
     block scripts
 
-
-
   body
     .wrapper
       header.header
@@ -44,8 +42,6 @@ html
               img.notificationLogo(src='../img/account.png')
               //- span#notificationNo 0
       section
-        .reportBug 
-          a(href='/bug_report') Report a bug
         .popupNotification
           div#alert-area.alert-area
         #myModal.modal
@@ -75,29 +71,26 @@ html
         // loader ++++++++++++++
 
 
-      //- footer.footer
-      //-   div
-      //-     ul.footer-content
-      //-       li
-      //-         a(href='#') 關於Stylish
-      //-       li |
-      //-       li
-      //-         a(href='#') 服務條款
-      //-       li |
-      //-       li
-      //-         a(href='#') 隱私政策
-      //-       li |
-      //-       li
-      //-         a(href='#') 聯絡我們
-      //-       li |
-      //-       li
-      //-         a(href='#') FAQ
-      //-   .social-icon
-      //-     a(href='#')
-      //-       img(src='../images/line.png')
-      //-     a(href='#')
-      //-       img(src='../images/twitter.png')
-      //-     a(href='#')
-      //-       img(src='../images/facebook.png')
-      //-   .rights
-      //-     p © 2018. All rights reserved.
+      footer.footer
+        div
+          ul.footer-content
+            li
+              a(href='#') Terms
+            li |
+            li
+              a(href='#') Contact Us
+            li |
+            li
+              a(href='#') Bug Report
+            li |
+            li
+              a(href='#') GitHub Repo
+        //- .social-icon
+        //-   a(href='#')
+        //-     img(src='../images/line.png')
+        //-   a(href='#')
+        //-     img(src='../images/twitter.png')
+        //-   a(href='#')
+        //-     img(src='../images/facebook.png')
+        .rights
+          p © 2020. All rights reserved.
