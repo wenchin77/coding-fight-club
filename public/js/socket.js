@@ -4,6 +4,26 @@ let socket; // for other pages to use
 let invitations = {};
 
 const url = window.location.pathname;
+if (!localStorage.getItem('token')) {
+  socket = io();
+  // count online users at homepage
+  if (url === '/') {
+    socket.emit('userCount');
+    setInterval(() => {
+      socket.emit('userCount');
+    }, 1000*20);
+  };
+  socket.on('count', userNo => {
+    console.log('user no', userNo);
+    if (userNo < 2) {
+      document.getElementById('userNo').innerHTML = `${userNo} player online now`;
+      return;
+    };
+    document.getElementById('userNo').innerHTML = `${userNo} players online now`;
+  })
+
+}
+
 // use socket to keep track of online users
 if (localStorage.getItem('token') && localStorage.getItem('id')){
   console.log('socket init...')
@@ -12,6 +32,7 @@ if (localStorage.getItem('token') && localStorage.getItem('id')){
 }
 
 function ping(token) {
+  console.log('ping')
   socket.emit('online', token);
   // count online users at homepage
   if (url === '/') {

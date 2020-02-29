@@ -27,8 +27,14 @@ socket.init = server => {
 
   io.on("connection", async socket => {
     console.group("---------> io on connection");
+
+    console.log('socket connections', socket.client.conn.server.clientsCount);
+    socket.on('userCount', () => {
+      console.log('收到 user count, emitting num...')
+      socket.emit('count', onlineUsers.size);
+    });
+
     let token = socket.handshake.query.token;
-    // sometimes token is undefined (can't get query), why +++++++++++++++
     if (token === undefined) {
       console.log("我他媽拿不到 token");
       return;
@@ -90,10 +96,6 @@ socket.init = server => {
       console.log("availableUsers size before checking", availableUsers.size);
       console.log("matchList size before checking", matchList.size);
       console.groupEnd();
-    });
-
-    socket.on('userCount', () => {
-      socket.emit('count', onlineUsers.size);
     });
 
     socket.on("joinMatch", async token => {
@@ -669,7 +671,7 @@ socket.init = server => {
         console.log(err);
       } finally {
         let matchID = await matchController.getMatchId(matchKey);
-        let code = "N/A";
+        let code = '// You did not submit in this match';
         let smallCorrectness = "N/A";
         let largeCorrectness = "N/A";
         let correctness = 0;

@@ -27,7 +27,7 @@ html
           div
             ul.nav-cat
               li
-                a(href='') About
+                a(href='/about') About
               li |
               li
                 a(href='/match_setup') Match
@@ -37,10 +37,7 @@ html
           .nav-member
             a(href='/signin')#member
               #membername Sign In
-              //- a(href='#').notification
-              //- img.notificationLogo(src='../img/notification.png' onclick='clearNotifications()')
               img.notificationLogo(src='../img/account.png')
-              //- span#notificationNo 0
       section
         .popupNotification
           div#alert-area.alert-area
@@ -63,14 +60,6 @@ html
           document.getElementById('member').href = '/dashboard';
         }
 
-        
-
-
-        
-
-        // loader ++++++++++++++
-
-
       footer.footer
         div
           ul.footer-content
@@ -78,13 +67,13 @@ html
               a(href='#') Terms
             li |
             li
-              a(href='#') Contact Us
+              a(href='/contact') Contact
             li |
             li
-              a(href='#') Bug Report
+              a(href='/bug_report') Bug Report
             li |
             li
-              a(href='#') GitHub Repo
+              a(href='https://github.com/wenchin77/coding-fight-club/') GitHub Repo
         //- .social-icon
         //-   a(href='#')
         //-     img(src='../images/line.png')
@@ -93,4 +82,4 @@ html
         //-   a(href='#')
         //-     img(src='../images/facebook.png')
         .rights
-          p © 2020. All rights reserved.
+          p © Wenchin 2020. All rights reserved.
