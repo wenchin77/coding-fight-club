@@ -5,14 +5,14 @@ block scripts
 block content
 
   .backgroundImageWrapper
-    .profileWrapper
+    .leaderboardWrapper
       .profileTitle
         h2#matchResult Leaderboard 
         
 
       .profileContent
-        h3 Top 20 players at Coding Fight Club
-        p.leaderboardTableContainer 
-        table#leaderboardTable
+        h3#leaderboardDescription Top 20 players at Coding Fight Club
+        .leaderboardTableContainer 
+          table#leaderboardTable
           
   script(src='../js/leaderboard.js')

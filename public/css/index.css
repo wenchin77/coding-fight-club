@@ -64,6 +64,12 @@ table, th, td {
   border: 1px solid #666666;
 }
 
+/* sticky table head*/
+thead tr th {
+  position:sticky;
+  top:0; /* 列首永遠固定於上 */
+}
+
 th {
   background-color: #555555;
 }
@@ -547,7 +553,7 @@ button:hover {
 }
 
 
-/* Match result & match history page ------------------- */
+/* Match result, match history & leaderboard page ------------------- */
 .matchResultWrapper {
   margin: 15px;
 }
@@ -560,10 +566,25 @@ button:hover {
 
 .summaryTableContainer,
 .resultTableContainer,
-.allMatchesTableContainer,
-.leaderboardTableContainer {
+.allMatchesTableContainer {
   overflow-x: auto;
   width: 80%;
+}
+
+.leaderboardWrapper {
+  width: 1000px;
+  height: 500px;
+  position: relative;
+  margin: 10% auto;
+  background: rgba(0,0,0,0.65);
+  padding: 25px;
+  overflow: hidden; /* 整體不讓 scroll, scroll 留給表格 */
+}
+
+.leaderboardTableContainer {
+  overflow: auto;
+  height: 350px; /* 固定高度 */
+  width: 100%;
 }
 
 #summaryTable,
