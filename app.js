@@ -57,12 +57,15 @@ app.get('/leaderboard', (req, res) => {
   res.render('leaderboard');
 });
 
-// about page
+// about pages
 app.get('/about', (req, res) => {
   res.render('about');
 });
 
-// bug report
+app.get('/terms', (req, res) => {
+  res.render('terms');
+});
+
 app.get('/bug_report', (req, res) => {
   res.render('bug_report');
 });

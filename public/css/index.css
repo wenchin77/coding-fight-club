@@ -594,6 +594,14 @@ button:hover {
   width: 100%;
 }
 
+.leaderboardTableContainer :hover {
+  cursor: default;
+}
+
+.levelTableHead {
+  background-color: #777;
+}
+
 #summaryTable,
 #allMatchesTable,
 #leaderboardTable {
@@ -723,9 +731,19 @@ button:hover {
 .checkboxText {
   font-family: Arial, Helvetica, sans-serif;
   color: #666;
-  font-size: 0.75em;
-  bottom: 100px;
+  font-size: 0.7em;
+  bottom: 99px;
   position: absolute;
+}
+
+.agreeTerms {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #666;
+  font-size: 0.6em;
+  left: 45px;
+  bottom: 3px;
+  position: absolute;
+  text-decoration: underline;
 }
 
 #checkboxQuestionImg {
@@ -780,9 +798,38 @@ button:hover {
   position: relative;
   text-align: center;
   margin: 12% auto;
-  /* background: rgba(256,256,256,0.75); */
   padding: 5px;
   overflow: hidden;
+}
+
+/* about page --------------------*/
+.aboutContent {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  text-align: center;
+  margin: 20px auto;
+  padding: 5px;
+  overflow: auto;
+}
+
+.aboutContent::-webkit-scrollbar {
+  display: none;
+}
+
+.screenshot {
+  width: 100%;
+  margin: auto;
+  border: 1px solid rgb(186, 186, 186);
+  /* border-radius: 4px; */
+  /* padding: 5px; */
+  /* box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.2), 0 20px 20px 0 rgba(0, 0, 0, 0.19); */
+}
+
+.explanation {
+  width: 80%;
+  margin: auto;
+  margin-bottom: 50px;
 }
 
 /* Bug report page -------------------- */
