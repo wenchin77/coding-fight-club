@@ -21,7 +21,6 @@ header {
   position: fixed;
   top: 0;
   width: 100%;
-  /* background-color: #2a2a2a; */
   background-color: #333333;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
@@ -79,7 +78,6 @@ th, td {
 .wrapper {
   display: flex;
   flex-direction: column;
-  /* margin-top: 15px; */
   min-height: 100vh;
   width: 100%;
 }
@@ -109,7 +107,6 @@ footer p {
 
 .nav-cat li {
   color: grey;
-  /* letter-spacing: 0.3em; */
 }
 
 .nav-member {
@@ -168,7 +165,6 @@ footer p {
 section {
   display: flex;
   flex-direction: column;
-  /* margin: 15px; */
 }
 
 .reportBug {
@@ -254,32 +250,6 @@ section {
   border-top: solid 2px #d8d8d8;
 }
 
-/* .products {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  width: 90%;
-  margin: 50px auto;
-}
-
-.item {
-  display: flex;
-  flex-direction: column;
-  margin: 20px;
-  justify-content: space-between;
-  width: 25%;
-}
-
-.main_image {
-  max-width: 100%;
-  margin-bottom: 15px;
-}
-
-.products p {
-  margin-top: 15px;
-  margin-bottom: 0;
-} */
-
 .questionImg {
   width: 17px;
   height: 17px;
@@ -350,15 +320,19 @@ button:hover {
 .matchPageSections {
   display: flex;
   flex-direction: column;
-  margin: 10px
+  margin: 10px;
 }
 
 .titleSection {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 3px;
-  margin-top: 20px;
+  z-index: 50;
+  padding: 15px;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
 }
 
 .questionArea,
@@ -368,18 +342,20 @@ button:hover {
 }
 
 .matchQuestion,
-.opponent,
-.level,
-.timer {
+.opponent {
   flex: 1;
+}
+
+.timer {
+  flex: 0.5;
 }
 
 #submitBtn,
 #exitBtn {
-  flex: 0.4;
+  flex: 0.5;
   border: none;
   background-color: #444444;
-  margin-right: 8px;
+  margin-left: 15px;
   color: #ffffff;
 }
 
@@ -394,20 +370,30 @@ button:hover {
 .contentSection {
   display: flex;
   flex-direction: row;
+  top: 127px;
+  left: 0;
+  bottom: 15px;
+  width: 100vw;
+  position:fixed;
+  overflow-y:scroll;
+  overflow-x:hidden;
+  margin-right: 10px;
 }
 
 .leftSection {
   flex: 2;
+  margin-left: 15px;
+  margin-right: 15px;
 }
 
 .rightSection {
   flex: 3;
+  margin-right: 15px;
 }
 
 .leftSection,
 .rightSection {
   height: 100%;
-  margin: 8px;
 }
 
 .sectionName {
@@ -421,7 +407,7 @@ button:hover {
   background: #000;
   width: 100%;
   height: 300px;
-  padding: 10px;
+  padding: 5px 10px;
   overflow: auto;
 }
 
@@ -435,11 +421,15 @@ button:hover {
 #opponentRunCodeOutput {
   background: #000;
   width: 100%;
-  height: 100px;
+  height: 150px;
   margin: 0;
   white-space: pre-wrap;
   padding: 10px;
   overflow: auto;
+}
+
+#runCodeOutput {
+  display: block;
 }
 
 .CodeMirror-scroll,
@@ -451,6 +441,10 @@ button:hover {
 #testCaseArea {
   display: none;
   position: relative;
+}
+
+#testCaseArea textarea {
+  font: 1em/1 "Courier New", Helvetica, Arial;
 }
 
 #testcase {
@@ -487,6 +481,10 @@ button:hover {
   color: #ffffff;
 }
 
+.CodeMirror-lines {
+  font: 1em/1 "Courier New", Helvetica, Arial;
+}
+
 /* Match setup page ------------------- */
 .matchSetupWrapper {
   margin: 15px;
@@ -511,6 +509,7 @@ button:hover {
 
 .timerImg {
   width: 20px;
+  margin-right: 8px;
 }
 
 .chooseQuestion,
@@ -561,13 +560,15 @@ button:hover {
 
 .summaryTableContainer,
 .resultTableContainer,
-.allMatchesTableContainer {
+.allMatchesTableContainer,
+.leaderboardTableContainer {
   overflow-x: auto;
   width: 80%;
 }
 
 #summaryTable,
-#allMatchesTable {
+#allMatchesTable,
+#leaderboardTable {
   table-layout: fixed;
 }
 

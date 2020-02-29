@@ -187,7 +187,14 @@ function getGoogleProfile (accessToken) {
 	})
 };
 
-
+router.get('/leaderboard', async (req, res) => {
+  try {
+    let result = await userController.selectLeaderboardUsers();
+    res.json(result);
+  } catch (e) {
+    res.status(500).send(e)
+  }
+})
 
 
 router.post('/bug_report', async (req, res) => {

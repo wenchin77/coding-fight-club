@@ -12,12 +12,13 @@ const socket = {};
 
 // online user check data
 const onlineUsers = new Map(); // { userid: { username, time, inviting, invitation_accepted, invited} }
-const availableUsers = new Set(); // ([userid, userid, userid])
 const tokenIdMapping = new Map(); // { token: userid }
+const availableUsers = new Set(); // ([userid, userid, userid])
+const inMatchUsers = new Set(); // ([userid, userid, userid])
 
 // match data
 const matchList = new Map(); // { matchKey: [userid, userid] }
-const winnerCheck = new Map(); // on submit: 換位子？？？ { matchKey: [{ user, smallCorrectness, largeCorrectness, largePassed, largeExecTime, performance, answerTime, points }] }
+const winnerCheck = new Map(); // { matchKey: [{ user, smallCorrectness, largeCorrectness, largePassed, largeExecTime, performance, answerTime, points }] }
 
 socket.init = server => {
   const io = socketio.listen(server);
@@ -81,10 +82,6 @@ socket.init = server => {
           console.log("emitting invited...");
           socket.emit("invited", invitations[i]);          
         }
-        // 先不要刪掉 +++++++++++++++++++++
-        // // delete invite to prevent duplicated invitations
-        // console.log('deleting invitations after emitting...');
-        // onlineUsers.get(user).invited = [];
       }
 
       console.log("onlineUsers size before checking", onlineUsers.size);
@@ -105,17 +102,33 @@ socket.init = server => {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
         return;
       }
-
       let userInfo = await getUserInfo(token);
       console.log("userInfo", userInfo);
       let user = userInfo.user;
       let username = userInfo.username;
-
+      
       // delete user from availableUsers to prevent invalid invitations
       availableUsers.delete(user);
+      inMatchUsers.add(user);
       console.log(
-        "delete user from availableUsers to prevent invalid invitations"
+        "delete user from availableUsers & add user in inMatchUsers to prevent invalid invitations"
       );
+
+
+      // Reject user if match started & user isn't in the room
+      if (matchList.has(matchKey)) {
+        if (
+          matchList.get(matchKey).start_time &&
+          !matchList.get(matchKey).users.has(user)
+        ) {
+          socket.emit(
+            "rejectUser",
+            "Oops, there are already two people in this match!"
+          );
+          return;
+        }
+      }
+
 
       // Add a room & user if it doesn't exist
       if (!matchList.get(matchKey)) {
@@ -143,17 +156,7 @@ socket.init = server => {
         "matchList.get(matchKey).users.has(user) ===",
         matchList.get(matchKey).users.has(user)
       );
-      // Reject user if match started & user isn't in the room
-      if (
-        matchList.get(matchKey).start_time &&
-        !matchList.get(matchKey).users.has(user)
-      ) {
-        socket.emit(
-          "rejectUser",
-          "Oops, there are already two people in this match!"
-        );
-        return;
-      }
+      
 
       console.log("adding a room in matchList...");
       matchList.get(matchKey).users.add(user);
@@ -190,7 +193,10 @@ socket.init = server => {
       let userid1 = iterator1.next().value;
       let userid2 = iterator1.next().value;
 
+      console.log('onlineUsers', onlineUsers);
+
       console.log(userid1, userid2);
+      console.log(onlineUsers.get(userid1).username, onlineUsers.get(userid2).username)
 
       // get or insert match start time (only insert once at the start)
       let matchStartTime;
@@ -237,6 +243,15 @@ socket.init = server => {
     socket.on("runCode", async data => {
       console.group("---------> runCode");
       let matchKey = getMatchKey(socket.request.headers.referer);
+
+      // check if match has ended, if so redirect
+      let matchStatus = await getMatchStatus(matchKey);
+      console.log("matchStatus", matchStatus);
+      if (matchStatus > 0) {
+        socket.emit("rejectUser", "This match has ended. Start a new one now!");
+        return;
+      }
+
       let code = data.code;
       let user = tokenIdMapping.get(data.token);
       let testAll = data.test;
@@ -297,6 +312,15 @@ socket.init = server => {
     socket.on("submit", async data => {
       console.group("---------> submit");
       let matchKey = getMatchKey(socket.request.headers.referer);
+
+      // check if match has ended, if so redirect
+      let matchStatus = await getMatchStatus(matchKey);
+      console.log("matchStatus", matchStatus);
+      if (matchStatus > 0) {
+        socket.emit("rejectUser", "This match has ended. Start a new one now!");
+        return;
+      }
+
       let user = tokenIdMapping.get(data.token);
       let username = onlineUsers.get(user).username;
       console.log("matchKey", matchKey);
@@ -504,7 +528,6 @@ socket.init = server => {
       }
 
       let winner = await getWinner(winnerCheck, matchKey);
-      let loser;
       if (winnerCheck.get(matchKey)[0].user === winner) {
         loser = winnerCheck.get(matchKey)[1].user;
       } else {
@@ -516,6 +539,8 @@ socket.init = server => {
 
       io.to(matchKey).emit("endMatch", matchKey);
       console.log("winnerCheck after match", winnerCheck);
+
+      inMatchUsers.delete(user);
 
       winnerCheck.delete(matchKey);
       console.log("winnerCheck.size", winnerCheck.size);
@@ -712,11 +737,12 @@ socket.init = server => {
 
         // update match_table: winner
         await matchController.updateMatchWinner(matchKey, winner);
-
-        socket.emit('exit')
+        io.to(matchKey).emit("endMatch", matchKey);
         console.log("winnerCheck after match", winnerCheck);
 
         socket.leave(matchKey); // leave socket room
+
+        inMatchUsers.delete(user);
 
         winnerCheck.delete(matchKey);
         console.log("winnerCheck.size", winnerCheck.size);
@@ -766,11 +792,12 @@ socket.init = server => {
 // check every 60 sec
 setInterval(async () => {
   console.group("---------> setInterval");
+  console.log('inMatchUsers',inMatchUsers)
 
-  // delete idle users
+  // delete users that are idle & not in a match
   for (let userid of onlineUsers.keys()) {
     let value = onlineUsers.get(userid);
-    if (Date.now() - value.time > 1000 * 60) {
+    if ((Date.now() - value.time > 1000 * 60) && (!inMatchUsers.has(userid))) {
       console.log(
         "user timeout, deleting user in onlineUsers, availableUsers and tokenIdMapping...",
         userid
@@ -788,6 +815,7 @@ setInterval(async () => {
       console.log("tokenIdMapping size after checking", tokenIdMapping.size);
     }
   }
+  
 
   // delete timed out matches
   for (let matchKey of matchList.keys()) {

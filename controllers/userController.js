@@ -351,6 +351,15 @@ module.exports = {
 
   },
 
+  selectLeaderboardUsers: async () => {
+    try {
+      let result = await userModel.querySelectLeaderboardUsers();
+      return result;
+    } catch (err) {
+      console.log(err)
+    } 
+  }
+
   
 
 }

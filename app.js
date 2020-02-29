@@ -53,6 +53,10 @@ app.get('/dashboard', (req, res) => {
   res.render('dashboard');
 });
 
+app.get('/leaderboard', (req, res) => {
+  res.render('leaderboard');
+});
+
 // bug report
 app.get('/bug_report', (req, res) => {
   res.render('bug_report');

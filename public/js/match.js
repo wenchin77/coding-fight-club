@@ -79,15 +79,29 @@ function socketInMatchInit() {
 
   // 接收 codeResult 並顯示（每次都蓋掉上次的）
   socket.on("codeResult", resultObj => {
+    // show error message in red
+    let firstLine = resultObj.output.split('\n')[0];
+    let contentAfterFirstLine;
+    if (resultObj.output.split('\n')[1]) {
+      contentAfterFirstLine = resultObj.output.replace(firstLine + '\n', '');
+    } else {
+      contentAfterFirstLine = ''
+    }
     // 顯示自己的結果在自己的 terminal
     if (resultObj.user === userID) {
-      document.getElementById("runCodeOutput").innerHTML = "";
-      document.getElementById("runCodeOutput").innerHTML = resultObj.output;
+      if(resultObj.output.includes('PASSED')) {
+        document.getElementById("runCodeOutput").innerHTML = `<div style='color: green'>${firstLine}</div><div>${contentAfterFirstLine}</div>`;
+      } else {
+        document.getElementById("runCodeOutput").innerHTML = `<div style='color: red'>${firstLine}</div><div>${contentAfterFirstLine}</div>`;
+      }
       return;
-    }
+    };
     // 顯示別人的結果在自己的 terminal
-    document.getElementById("opponentRunCodeOutput").innerHTML =
-      resultObj.output;
+    if(resultObj.output.includes('PASSED')) {
+      document.getElementById("opponentRunCodeOutput").innerHTML = `<div style='color: green'>${firstLine}</div><div>${contentAfterFirstLine}</div>`;
+    } else {
+      document.getElementById("opponentRunCodeOutput").innerHTML = `<div style='color: red'>${firstLine}</div><div>${contentAfterFirstLine}</div>`;
+    }
   });
 
   socket.once("waitForMatchEnd", submitMessage => {
@@ -121,7 +135,7 @@ function socketInMatchInit() {
 
 function showQuestion(questionObject) {
   document.getElementById("matchQuestion").innerHTML = questionObject.question;
-  document.getElementById("question").innerHTML = `<p id="questionDescription">${questionObject.description}</p>`;
+  document.getElementById("question").innerHTML = `<div id="questionDescription">${questionObject.description}</div>`;
   document.getElementById("sampleTestCase").innerHTML = questionObject.sampleCase;
   codemirrorEditor.setValue(questionObject.code);
   sampleCaseExpected = questionObject.sampleExpected;
@@ -174,7 +188,8 @@ function runCode() {
   document.getElementById("testCaseArea").style.display = "none";
   document.getElementById("testcaseBtn").style.background = "#444444";
   // 顯示 run code
-  document.getElementById("runCodeOutput").style.display = "flex";
+  document.getElementById("runCodeOutput").style.display = "block";
+  document.getElementById("runCodeOutput").innerHTML = "<div style='color: grey'>Running your code...</div>";
   document.getElementById("runcodeBtn").style.background = "#555555";
 
   // send code & test to server

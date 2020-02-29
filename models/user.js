@@ -48,6 +48,12 @@ module.exports = {
 
   queryUpdateUserLevel: (level_id, user_id) => {
     return mysql.query('UPDATE user_table SET level_id = ? WHERE id = ?', [level_id, user_id])
+  },
+
+  querySelectLeaderboardUsers: () => {
+    return mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
+    INNER JOIN level_table l ON u.level_id = l.id
+    ORDER BY points DESC LIMIT 20`)
   }
 
 }
