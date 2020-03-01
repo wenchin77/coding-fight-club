@@ -5,6 +5,7 @@ if(!(localStorage.getItem('token'))) {
 
 setElementActive('.category button', 'categoryActive');
 setElementActive('.difficulty button', 'difficultyActive');
+setElementActive('.language button', 'languageActive');
 
 
 async function inviteAFriend() {
@@ -143,21 +144,3 @@ socket.on('startStrangerModeMatch', url => {
   console.log('get startStrangerModeMatch...')
   window.location = url;
 });
-
-
-// async function insertMatch(questionID, matchKey) {
-//   try {
-//     const response = await axios.post('/api/v1/match/insert_match', {
-//       questionID,
-//       matchKey
-//     })
-//     return response;
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
-// async function getKey() {
-//   let keyObject = await axios.post('/api/v1/match/get_key');
-//   return keyObject.data;
-// };

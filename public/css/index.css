@@ -500,7 +500,7 @@ button:hover {
 
 /* Match setup page ------------------- */
 .matchSetupWrapper {
-  margin: 15px;
+  margin: 20px;
 }
 
 .setupContentSection {
@@ -525,13 +525,14 @@ button:hover {
   margin-right: 8px;
 }
 
-.chooseQuestion,
 .chooseOpponent {
-  height: 100%;
+  margin-bottom: 200px;
 }
 
+.language,
 .category, 
-.difficulty {
+.difficulty,
+.mode {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -540,24 +541,51 @@ button:hover {
 }
 
 .categoryTitle,
-.difficultyTitle {
-  width: 120px;
+.difficultyTitle,
+.languageTitle,
+.modeTitle {
+  width: 140px;
 }
 
+.language button,
 .category button,
 .difficulty button {
+  width: 200px;
   margin-left: 15px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+}
+
+.strangerMode,
+.friendMode {
+  display: flex;
+  flex-direction: column;
+  color: #555;
+  background-color: #ddd;
+  border: 2px solid #ddd;
+  margin-left: 15px;
+  padding: 10px;
+  width: 308px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+.modeImg {
+  width: 100px;
+  height: 100px;
+  background-color: #ddd;
 }
 
 .difficultyActive,
-.categoryActive {
-  background-color: #810000;
+.categoryActive,
+.languageActive {
+  background-color: #720000;
+  border: 2px solid #fff;
   color: #ffffff;
 }
 
-.friendMode {
-  margin-left: 15px;
-}
 
 
 /* Match result, match history & leaderboard page ------------------- */
@@ -589,7 +617,7 @@ button:hover {
 
 .leaderboardWrapper {
   width: 80%;
-  height: 70%;
+  height: 460px;
   position: relative;
   margin: 10% auto;
   background: rgba(0,0,0,0.65);
@@ -599,7 +627,7 @@ button:hover {
 
 .leaderboardTableContainer {
   overflow: auto;
-  height: 500px; /* 固定高度 */
+  height: 320px; /* 固定高度 */
   width: 100%;
 }
 

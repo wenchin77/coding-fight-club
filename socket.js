@@ -69,6 +69,8 @@ socket.init = server => {
           "startStrangerModeMatch",
           onlineUsers.get(user).invitation_accepted
         );
+        onlineUsers.get(user).invitation_accepted = 0;
+        console.log('after startStrangerModeMatch... onlineUsers.get(user)', onlineUsers.get(user))
       }
 
       // if rejected by stranger notify the inviter
@@ -148,7 +150,6 @@ socket.init = server => {
         });
       }
 
-      console.log("socket on join, matchList", matchList);
       console.log(
         "matchList.get(matchKey).users",
         matchList.get(matchKey).users
@@ -158,15 +159,9 @@ socket.init = server => {
         matchList.get(matchKey).users.size
       );
 
-      console.log(
-        "matchList.get(matchKey).users.has(user) ===",
-        matchList.get(matchKey).users.has(user)
-      );
-      
-
       console.log("adding a room in matchList...");
       matchList.get(matchKey).users.add(user);
-      console.log("socket on join, matchList", matchList);
+      console.log("adding user in matchList ======", matchList);
       console.log(
         "matchList.get(matchKey).size",
         matchList.get(matchKey).users.size

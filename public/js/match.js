@@ -81,7 +81,7 @@ function socketInMatchInit() {
     showAlert(`The match against ${opponent} is on!`, () => {
       document.getElementById("opponent").innerHTML = `Opponent: ${opponent}`;
       document.getElementById("runCodeOutput").innerHTML =
-        '<p id="terminalMessage">Write the code and test cases to see result.</p>';
+        '<p id="terminalMessage">Write the code in JavaScript and try out different test cases to see the result.</p>';
     });
     
   });
@@ -273,5 +273,6 @@ function exitMatch() {
 
 function showHelp() {
   showAlert(`<p>Click on 'Test Case' to add or update test cases. Click on 'Run Code' to try out your current code with them whenever you want.</p>
-  <p>When you are ready to submit your code, click on 'Submit'. You can only submit once in a match. If you exit, you won't be able to get points or submit again.</p>`)
+  <p>When you are ready to submit your code, click on 'Submit'. You can only submit once in a match. If you exit, you won't be able to get points or submit again.</p>
+  <p>Currently we only support JavaScript as the programming language.</p>`)
 }

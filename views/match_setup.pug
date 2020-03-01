@@ -3,29 +3,45 @@ extends layout
 block content
   .matchSetupWrapper
     .setupTitle
-      h2 Match Setup
+      h2.setupTitleText Match Setup
       img.questionImg(src='../img/question.png')
     .setupContentSection
       .chooseQuestion 
         h3 Choose an algorithms question
         div We'll pick a question for you randomly based on your category and difficulty choices
+        p Note: Currently we only support JavaScript as the programming language.
+        
+        .language 
+          .languageTitle Language
+          button(value='javascript') JavaScript
+         
         .category 
-          .categoryTitle - Category 
+          .categoryTitle Category
           button(value='array') Array
           //- button(value='hash_table') Hash Table
           //- button(value='string') String
           button(value='binary_search') Binary Search
 
         .difficulty 
-          .difficultyTitle - Difficulty 
+          .difficultyTitle Difficulty
           button(value='easy') Easy
           button(value='medium') Medium
           button(value='hard') Hard
-    
-      .chooseOpponent 
+
+      .chooseOpponent#chooseOpponent
         h3 Choose your opponent
-        button.strangerMode(type='button' onclick='getAStranger()') Challenge a Stranger
-        button.friendMode(type='button' onclick='inviteAFriend()') Invite a Friend
+        div We'll find you an online player or you can invite a friend straight away
+        p Note: By challenging a stranger, you have to wait for 60 seconds at most for the user to confirm
+        .mode
+          .modeTitle Mode
+          .strangerMode(onclick='getAStranger()')
+            img.modeImg(src='../img/random.png')
+            div Challenge a Stranger
+          .friendMode(onclick='inviteAFriend()')
+            img.modeImg(src='../img/letter.png')
+            div Invite a Friend  
+
+        
 
 
   script(src='../js/match_setup.js')
