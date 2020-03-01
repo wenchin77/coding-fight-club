@@ -10,7 +10,7 @@ setElementActive('.language button', 'languageActive');
 
 async function inviteAFriend() {
   if (!document.querySelector('.categoryActive') || !document.querySelector('.difficultyActive')) {
-    showAlert("Please select a category and a difficulty level.");
+    showAlert("Please select your match's language, category and difficulty level.");
     return;
   }
   let category = document.querySelector('.categoryActive').value;

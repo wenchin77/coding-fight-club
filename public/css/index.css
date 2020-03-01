@@ -907,6 +907,7 @@ button:hover {
   padding: 30px;
   width: 75%;
   text-align: center;
+  height: fit-content;
 }
 
 .close {
