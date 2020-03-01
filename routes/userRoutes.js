@@ -4,13 +4,13 @@ const router = express.Router();
 const request = require("request");
 const axios = require('axios');
 const userController = require('../controllers/userController');
-const {getLeaderboard, signup} = require('./handler');
+const handler = require('./handler');
 // for github clientid & client secret
 require('dotenv').config();
 
 
 // 路徑是 /api/v1/user
-router.post('/signup', signup(userController));
+router.post('/signup', handler.signup(userController));
 
 router.post('/get_user_info', async (req, res) => {
   let token = req.query.token;
@@ -161,18 +161,16 @@ function getGoogleProfile (accessToken) {
 	})
 };
 
-router.get('/leaderboard', getLeaderboard(userController));
+router.get('/leaderboard', handler.getLeaderboard(userController));
 
 router.post('/bug_report', async (req, res) => {
-  let reporter = req.query.reporter;
+  let token = req.query.token;
   let bug = req.query.bug;
-  console.log(reporter)
-  console.log(bug)
   try {
-    await userController.insertBugReport(reporter, bug);
-    res.status(200).send('Bug report filed!');
+    await userController.insertBugReport(token, bug);
+    res.status(200).send(`Thanks! Here's the bug report you filed: ${bug}`);
   } catch (e) {
-    res.status(404).send(e)
+    res.status(404).send('Bug report error')
   }
 }) 
 

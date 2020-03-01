@@ -323,12 +323,8 @@ module.exports = {
     }
   },
 
-  insertBugReport: async (reporter, content) => {
-    try {
-      await userModel.queryInsertBugReport({ reporter, content });
-    } catch (err) {
-      console.log(err);
-    }
+  insertBugReport: async (token, bug) => {
+    return await userModel.queryInsertBugReport(token, bug);
   },
 
   updateUserPointsLevel: async user_id => {

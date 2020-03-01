@@ -1,20 +1,12 @@
 extends layout
 
+block scripts
+  script(src='../js/bug_report.js')
+
 block content
   .bugReportWrapper
     h3 Report a Bug
-    div What's your name?
-      br
-      input#bugReporter
     div What went wrong?
-      br
-      input#bug
-      br
-      br
-      button(onclick="sendBug()") Submit
-    #myModal.modal
-      .modalContent
-        span.close &times;
-        p#modalText
+    textarea#bug
+    button(onclick="sendBug()") Submit
 
-  script(src='../js/bug_report.js')

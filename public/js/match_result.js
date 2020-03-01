@@ -180,5 +180,5 @@ function addDataToTable(elementId, array) {
 
 
 function showHelp() {
-  showAlert('How we evaluate your code: correctness & performance')
+  showAlert(`We evaluate your code based on correctness and performance. <a href='/about#match_result'>Click me</a> to see the details.`)
 }

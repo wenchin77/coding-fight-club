@@ -272,5 +272,6 @@ function exitMatch() {
 }
 
 function showHelp() {
-  // show help message
+  showAlert(`<p>Click on 'Test Case' to add or update test cases. Click on 'Run Code' to try out your current code with them whenever you want.</p>
+  <p>When you are ready to submit your code, click on 'Submit'. You can only submit once in a match. If you exit, you won't be able to get points or submit again.</p>`)
 }

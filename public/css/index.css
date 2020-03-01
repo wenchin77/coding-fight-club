@@ -836,7 +836,7 @@ button:hover {
 }
 
 .explanation {
-  width: 80%;
+  width: 70%;
   margin: auto;
   margin-bottom: 50px;
 }
@@ -844,6 +844,20 @@ button:hover {
 /* Bug report page -------------------- */
 .bugReportWrapper {
   margin: 15px;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+}
+
+#bug {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 100%;
+  height: 200px;
+  color: #000;
+  resize: none;
+  font: 1em/1 Helvetica, Arial;
+  padding: 10px
 }
 
 /* modal layout --------------------*/
@@ -874,8 +888,13 @@ button:hover {
   font-weight: bold;
 }
 
-#modalText {
+#modalText,
+#modalText a {
   color: #777777;
+}
+
+#modalText a {
+  text-decoration: underline;
 }
 
 .modalButtons {

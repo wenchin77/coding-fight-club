@@ -34,8 +34,8 @@ module.exports = {
     return mysql.query('SELECT id, user_name FROM user_table WHERE token = ?', [token]);
   },
 
-  queryInsertBugReport: (data) => {
-    return mysql.query('INSERT INTO bug_report SET ?', data);
+  queryInsertBugReport: (token, bug) => {
+    return mysql.query(`INSERT INTO bug_report (user_id, bug) VALUES ((SELECT id FROM user_table WHERE token = ?), ?)`, [token, bug]);
   },
 
   querySelectNextLevelMin: (user_id) => {
