@@ -42,7 +42,7 @@ block content
         button.submitBtn(type='submit') SIGN ME IN
 
       form.inputGroup#signup(action='/api/v1/user/signup' method='post')
-        input.inputField#signupUsername(type='text' name='username' placeholder='Username (4-10 letters, numbers or the underscore)' required)
+        input.inputField#signupUsername(type='text' name='username' placeholder='Username (4-10 characters)' required)
         input.inputField#signupEmail(type='email' name='email' placeholder='Email' required)
         input.inputField#signupPassword(type='password' name='password' placeholder='Password (4-16 characters)' required)
         a(href='/terms')

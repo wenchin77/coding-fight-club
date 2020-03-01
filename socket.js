@@ -26,11 +26,10 @@ socket.init = server => {
   console.log("socket initialized...");
 
   io.on("connection", async socket => {
-    console.group("---------> io on connection");
+    console.log("---------> io on connection");
 
     console.log('socket connections', socket.client.conn.server.clientsCount);
     socket.on('userCount', () => {
-      console.log('收到 user count, emitting num...')
       socket.emit('count', onlineUsers.size);
     });
 
@@ -46,10 +45,10 @@ socket.init = server => {
     let userInfo = await getUserInfo(token);
     console.log("userInfo", userInfo);
 
-    console.groupEnd();
+    
 
     socket.on("online", async token => {
-      console.group("---------> online");
+      console.log("---------> online");
       let userInfo = await getUserInfo(token);
       console.log("userInfo", userInfo);
       let user = userInfo.user;
@@ -95,11 +94,11 @@ socket.init = server => {
       console.log("tokenIdMapping size before checking", tokenIdMapping.size);
       console.log("availableUsers size before checking", availableUsers.size);
       console.log("matchList size before checking", matchList.size);
-      console.groupEnd();
+      
     });
 
     socket.on("joinMatch", async token => {
-      console.group("---------> joinMatch");
+      console.log("---------> joinMatch");
       let matchKey = getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
@@ -244,11 +243,11 @@ socket.init = server => {
       console.log("socket on join, startInfo", startInfo);
       io.to(matchKey).emit("startMatch", startInfo);
 
-      console.groupEnd();
+      
     });
 
     socket.on("runCode", async data => {
-      console.group("---------> runCode");
+      console.log("---------> runCode");
       let matchKey = getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
@@ -313,11 +312,11 @@ socket.init = server => {
       }
       // send an event to everyone in the room including the sender
       io.to(matchKey).emit("codeResult", codeResult);
-      console.groupEnd();
+      
     });
 
     socket.on("submit", async data => {
-      console.group("---------> submit");
+      console.log("---------> submit");
       let matchKey = getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
@@ -556,12 +555,12 @@ socket.init = server => {
       matchList.delete(matchKey);
       console.log("matchList.size", matchList.size);
 
-      console.groupEnd();
+      
     });
 
     socket.on("getStranger", async data => {
       // data: {token, category, difficulty}
-      console.group("---------> getStranger");
+      console.log("---------> getStranger");
       let token = data.token;
       let inviterId = tokenIdMapping.get(token);
       let inviterName = onlineUsers.get(inviterId).username;
@@ -599,11 +598,11 @@ socket.init = server => {
 
       console.log("socket on getStranger, onlineUsers", onlineUsers);
       socket.emit("stranger", invitation);
-      console.groupEnd();
+      
     });
 
     socket.on("strangerAccepted", data => {
-      console.group("---------> strangerAccepted");
+      console.log("---------> strangerAccepted");
       let user = tokenIdMapping.get(data.token);
       let inviterId = data.inviterId;
       console.log("data", data);
@@ -614,11 +613,11 @@ socket.init = server => {
       console.log('deleting invitations at strangerAccepted...');
       onlineUsers.get(user).invited = [];
 
-      console.groupEnd();
+      
     });
 
     socket.on("strangerRejected", data => {
-      console.group("---------> strangerRejected");
+      console.log("---------> strangerRejected");
       console.log(data);
       let token = data.token;
       let user = tokenIdMapping.get(token);
@@ -635,11 +634,11 @@ socket.init = server => {
       }
       console.log("onlineUsers after strangerRejected ---- ", onlineUsers);
 
-      console.groupEnd();
+      
     });
 
     socket.on("strangerTimedOut", token => {
-      console.group("---------> strangerTimedOut");
+      console.log("---------> strangerTimedOut");
       let user = tokenIdMapping.get(token);
       onlineUsers.get(user).inviting = -1;
 
@@ -652,11 +651,11 @@ socket.init = server => {
       }
       console.log("onlineUsers after strangerTimedOut ---- ", onlineUsers);
 
-      console.groupEnd();
+      
     });
 
     socket.on("exit", async token => {
-      console.group("---------> exit");
+      console.log("---------> exit");
       let matchKey = getMatchKey(url);
       let user = tokenIdMapping.get(token);
       console.log("user on exit", user);
@@ -759,11 +758,11 @@ socket.init = server => {
         console.log("matchList.size", matchList.size);
       }
 
-      console.groupEnd();
+      
     });
 
     socket.on("disconnect", () => {
-      console.group("---------> disconnect");
+      console.log("---------> disconnect");
       let token = socket.handshake.query.token;
       // sometimes token is undefined (can't get query), why +++++++++++++++
       if (token === undefined) {
@@ -790,7 +789,7 @@ socket.init = server => {
       console.log("matchList", matchList);
       console.log("user disconnected at", url);
 
-      console.groupEnd();
+      
     });
   });
 };
@@ -798,7 +797,7 @@ socket.init = server => {
 // remove timeout users (1 min with no ping) in onlineUserList
 // check every 60 sec
 setInterval(async () => {
-  console.group("---------> setInterval");
+  console.log("---------> setInterval");
   console.log('inMatchUsers',inMatchUsers)
 
   // delete users that are idle & not in a match
@@ -844,7 +843,7 @@ setInterval(async () => {
     }
   }
 
-  console.groupEnd();
+  
 }, 1000 * 60); // 之後調整成長一點
 
 async function getUserInfo(token) {

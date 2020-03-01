@@ -77,8 +77,8 @@ document.forms['signup'].addEventListener('submit', (event) => {
   
   // validate username, email and password
   let username = document.getElementById('signupUsername').value;
-  if (!validateRegEx(username, /^[0-9a-zA-Z_]{4,10}$/)) {
-    showAlert('Please enter 4-10 letters, numbers or the underscore as your username.');
+  if (!validateRegEx(username, /^.{4,10}$/)) {
+    showAlert('Please enter 4-10 characters as your username.');
     return;
   };
   let email = document.getElementById('signupEmail').value;
