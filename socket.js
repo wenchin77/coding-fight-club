@@ -421,7 +421,6 @@ socket.init = server => {
       let startTime = matchList.get(matchKey).start_time;
       let answerTime = (Date.now() - startTime) / 1000; // in seconds
 
-      let matchID = await matchController.getMatchId(matchKey);
       // rate correctness, performance
       let calculated = await matchUtil.calculatePoints(
         matchKey,
@@ -431,6 +430,8 @@ socket.init = server => {
       let performance = calculated.perfPoints;
       let points = calculated.points;
       let largePassed = calculated.largePassed;
+
+      let matchID = await matchController.getMatchId(matchKey);
       // update match_detail
       await matchController.updateMatchDetail(
         matchID,
@@ -449,10 +450,7 @@ socket.init = server => {
       // update user table: + points (and level table if needed)
       await userController.updateUserPointsLevel(user);
 
-      // update winnerCheck {} for performance points calculation
-      if (!winnerCheck.has(matchKey)) {
-        winnerCheck.set(matchKey, []);
-      }
+
       let result = {
         user,
         smallCorrectness,
@@ -464,6 +462,11 @@ socket.init = server => {
         answerTime,
         points
       };
+
+      // update winnerCheck {} for performance points calculation
+      if (!winnerCheck.has(matchKey)) {
+        winnerCheck.set(matchKey, []);
+      }
       winnerCheck.get(matchKey).push(result);
 
       // fs 刪掉 ./sessions js files
@@ -508,7 +511,6 @@ socket.init = server => {
       let token = data.token;
       let inviterId = tokenIdMapping.get(token);
       let inviterName = onlineUsers.get(inviterId).username;
-
       if (onlineUsers.get(inviterId).inviting === 1) {
         socket.emit(
           "noStranger",
@@ -516,8 +518,7 @@ socket.init = server => {
         );
         return;
       }
-
-      let stranger = await matchUtil.getStranger(inviterId);
+      let stranger = await matchUtil.getStranger(inviterId, availableUsers);
       if (!stranger) {
         socket.emit(
           "noStranger",
@@ -584,8 +585,6 @@ socket.init = server => {
         }
       }
       console.log("onlineUsers after strangerTimedOut ---- ", onlineUsers);
-
-      
     });
 
     socket.on("exit", async token => {
@@ -649,8 +648,8 @@ socket.init = server => {
         }
 
         if (winnerCheck.get(matchKey)[0].user === user) {
-          console.log('User existed before', winnerCheck);
-          socket.emit('exit')
+          console.log('User exited before', winnerCheck);
+          socket.emit('exitMultipleTimes')
           return;
         }
 
@@ -717,33 +716,12 @@ socket.init = server => {
 setInterval(async () => {
   console.log("---------> setInterval");
   console.log('inMatchUsers',inMatchUsers)
-
   // delete users that are idle & not in a match
-  for (let userid of onlineUsers.keys()) {
-    let value = onlineUsers.get(userid);
-    if ((Date.now() - value.time > 1000 * 60) && (!inMatchUsers.has(userid))) {
-      console.log(
-        "user timeout, deleting user in onlineUsers, availableUsers and tokenIdMapping...",
-        userid
-      );
-      onlineUsers.delete(userid);
-      console.log("onlineUsers size after checking", onlineUsers.size);
-      availableUsers.delete(userid);
-      console.log("availableUsers size after checking", availableUsers.size);
-      for (let token of tokenIdMapping.keys()) {
-        let value = tokenIdMapping.get(token);
-        if (value === userid) {
-          tokenIdMapping.delete(token);
-        }
-      }
-      console.log("tokenIdMapping size after checking", tokenIdMapping.size);
-    }
-  }
-  
+  matchUtil.deleteTimedOutUsers(onlineUsers, availableUsers, inMatchUsers, tokenIdMapping);
   // delete timed out matches
   for (let matchKey of matchList.keys()) {
     matchUtil.deleteTimedOutMatches(matchList, matchKey);
   }
-}, 1000 * 60); // 之後調整成長一點
+}, 1000 * 60);
 
 module.exports = socket;
