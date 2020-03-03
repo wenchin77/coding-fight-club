@@ -1,5 +1,6 @@
 function tempSignin() {
   const userName = document.getElementById('signinName').value;
-  window.location.pathname= 'match';
+  document.getElementById('membername').innerHTML = userName;
+  window.location.pathname= 'match_setup';
   localStorage.setItem('name', userName);
 }
