@@ -2,10 +2,7 @@ const fs = require("fs");
 const matchController = require("./controllers/matchController");
 const questionController = require("./controllers/questionController");
 const userController = require("./controllers/userController");
-const { getMatchKey } = require('./util/socket');
-
-// child process setup for code execution
-const { spawn } = require("child_process");
+const matchUtil = require('./util/match');
 
 // socket.io setup for live terminal result
 const socketio = require("socket.io");
@@ -33,23 +30,23 @@ socket.init = server => {
       socket.emit('count', onlineUsers.size);
     });
 
-    let token = socket.handshake.query.token;
+    const token = socket.handshake.query.token;
     if (token === undefined) {
       console.log("我他媽拿不到 token");
       return;
     }
-    let url = socket.request.headers.referer;
+    const url = socket.request.headers.referer;
     console.log("user connected at", url);
 
     // add user in tokenIdMapping & onlineUsers
-    let userInfo = await getUserInfo(token);
+    const userInfo = await matchUtil.getUserInfo(token, onlineUsers, tokenIdMapping);
     console.log("userInfo", userInfo);
 
     
 
     socket.on("online", async token => {
       console.log("---------> online");
-      let userInfo = await getUserInfo(token);
+      let userInfo = await matchUtil.getUserInfo(token, onlineUsers, tokenIdMapping);
       console.log("userInfo", userInfo);
       let user = userInfo.user;
 
@@ -92,25 +89,25 @@ socket.init = server => {
         }
       }
 
-      console.log("onlineUsers size before checking", onlineUsers.size);
-      console.log("tokenIdMapping size before checking", tokenIdMapping.size);
-      console.log("availableUsers size before checking", availableUsers.size);
-      console.log("matchList size before checking", matchList.size);
+      console.log("onlineUsers size", onlineUsers.size);
+      console.log("tokenIdMapping size", tokenIdMapping.size);
+      console.log("availableUsers size", availableUsers.size);
+      console.log("matchList size", matchList.size);
       
     });
 
     socket.on("joinMatch", async token => {
       console.log("---------> joinMatch");
-      let matchKey = getMatchKey(socket.request.headers.referer);
+      let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
-      let matchStatus = await getMatchStatus(matchKey);
+      let matchStatus = await matchUtil.getMatchStatus(matchKey);
       console.log("matchStatus", matchStatus);
       if (matchStatus > 0) {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
         return;
       }
-      let userInfo = await getUserInfo(token);
+      let userInfo = await matchUtil.getUserInfo(token, onlineUsers, tokenIdMapping);
       console.log("userInfo", userInfo);
       let user = userInfo.user;
       let username = userInfo.username;
@@ -187,7 +184,7 @@ socket.init = server => {
       }
 
       // when there are 2 people in the room
-      let questionObject = await getQuestionDetail(matchKey, false);
+      let questionObject = await matchUtil.getQuestionDetail(matchKey, false);
 
       // send user info to display
       const iterator1 = matchList.get(matchKey).users.values();
@@ -243,10 +240,10 @@ socket.init = server => {
 
     socket.on("runCode", async data => {
       console.log("---------> runCode");
-      let matchKey = getMatchKey(socket.request.headers.referer);
+      let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
-      let matchStatus = await getMatchStatus(matchKey);
+      let matchStatus = await matchUtil.getMatchStatus(matchKey);
       console.log("matchStatus", matchStatus);
       if (matchStatus > 0) {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
@@ -260,44 +257,26 @@ socket.init = server => {
       let difficulty = data.difficulty;
       let questionConst = data.questionConst;
       let sampleCaseExpected = data.sampleCaseExpected;
-
-      // put together the code for running
-      let finalCode = putTogetherCodeOnRun(
+      let finalCode = matchUtil.putTogetherCodeOnRun(
         code,
         questionConst,
         sampleCaseExpected,
         test
       );
-
-      // 按不同 user 存到 ./sessions js files
-      setUserCodeFile(matchKey, user, finalCode);
+      matchUtil.setUserCodeFile(matchKey, user, finalCode);
 
       let codeResult = {};
-      // Run code in child process
       try {
-        let childResult = await runCodeInChildProcess(
+        let childResult = await matchUtil.runCodeInChildProcess(
           matchKey,
           user,
           difficulty,
           10
         );
-
-        // give sample test case result
-        let sampleSplited = childResult.split("\n");
-        let sampleOutput = sampleSplited[1].split(": ")[1];
-        let sampleExpected = sampleSplited[2].split(": ")[1];
-
-        // add sample test result to childResult
-        if (sampleOutput == sampleExpected) {
-          childResult = "SAMPLE TEST PASSED\n" + childResult;
-        } else {
-          childResult = "SAMPLE TEST FAILED\n" + childResult;
-        }
-
-        // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
+        let updatedChildResult = matchUtil.addSampleTestResult(childResult);
         codeResult = {
           user: user,
-          output: childResult
+          output: updatedChildResult
         };
       } catch (e) {
         codeResult = {
@@ -305,17 +284,15 @@ socket.init = server => {
           output: e
         };
       }
-      // send an event to everyone in the room including the sender
       io.to(matchKey).emit("codeResult", codeResult);
-      
     });
 
     socket.on("submit", async data => {
       console.log("---------> submit");
-      let matchKey = getMatchKey(socket.request.headers.referer);
+      let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
-      let matchStatus = await getMatchStatus(matchKey);
+      let matchStatus = await matchUtil.getMatchStatus(matchKey);
       console.log("matchStatus", matchStatus);
       if (matchStatus > 0) {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
@@ -328,33 +305,14 @@ socket.init = server => {
       console.log("user", user);
       console.log("username", username);
 
-      // Check if the user submitted before
-      let submitTime = 0;
-      console.log("winnerCheck -------", winnerCheck);
-      if (winnerCheck.has(matchKey)) {
-        console.log(
-          "winnerCheck.get(matchKey)[0]",
-          winnerCheck.get(matchKey)[0]
-        );
-
-        for (let i = 0; i < winnerCheck.get(matchKey).length; i++) {
-          if (winnerCheck.get(matchKey)[i].user === user) {
-            submitTime += 1;
-            console.log(
-              "winnerCheck[matchKey][i].user --- ",
-              winnerCheck.get(matchKey)[i].user
-            );
-          }
-        }
-      }
-      console.log("submitTime ---", submitTime);
+      let submitTime = matchUtil.checkSubmitTime(winnerCheck, matchKey, user);
       if (submitTime > 0) {
         socket.emit("alreadySubmitted");
         return;
       }
 
       let code = data.code;
-      let questionObject = await getQuestionDetail(matchKey, true);
+      let questionObject = await matchUtil.getQuestionDetail(matchKey, true);
       let questionConst = questionObject.const;
       let smallTestCases = questionObject.smallSampleCases;
       let difficulty = questionObject.difficulty;
@@ -363,17 +321,17 @@ socket.init = server => {
       let smallTestCasesNumber = smallTestCases.length;
       let smallPassedCasesNumber = 0;
       for (let i = 0; i < smallTestCases.length; i++) {
-        let testCaseFinalCode = putTogetherCodeOnSubmit(
+        let testCaseFinalCode = matchUtil.putTogetherCodeOnSubmit(
           code,
           questionConst,
           smallTestCases[i]
         );
 
         // 按不同 user 存到 ./sessions js files
-        setUserCodeFile(matchKey, user, testCaseFinalCode);
+        matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await runCodeInChildProcess(
+          let childResult = await matchUtil.runCodeInChildProcess(
             matchKey,
             user,
             difficulty,
@@ -387,11 +345,8 @@ socket.init = server => {
 
           // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
-            console.log(`test case [${i}] passed`);
             smallPassedCasesNumber += 1;
-          } else {
-            console.log(`test case [${i}] failed`);
-          }
+          };
         } catch (e) {
           console.log(e);
         }
@@ -402,18 +357,18 @@ socket.init = server => {
       let largeTestCasesNumber = largeTestCases.length;
       let largePassedCasesNumber = 0;
       let largeTestExecTimeSum = 0;
-      let largeExecTimeObj = []; // 這個跟小測資不同！
+      let largeExecTimeArr = []; // 這個跟小測資不同！
       for (let i = 0; i < largeTestCases.length; i++) {
-        let testCaseFinalCode = putTogetherCodeOnSubmit(
+        let testCaseFinalCode = matchUtil.putTogetherCodeOnSubmit(
           code,
           questionConst,
           largeTestCases[i]
         );
         // 按不同 user 存到 ./sessions js files
-        setUserCodeFile(matchKey, user, testCaseFinalCode);
+        matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await runCodeInChildProcess(
+          let childResult = await matchUtil.runCodeInChildProcess(
             matchKey,
             user,
             difficulty,
@@ -432,13 +387,12 @@ socket.init = server => {
 
           // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
-            console.log(`test case [${i}] passed`);
             largePassedCasesNumber += 1;
             largeTestExecTimeSum += parseFloat(testExecTime);
-            largeExecTimeObj.push(testExecTime);
+            largeExecTimeArr.push(testExecTime);
           } else {
-            console.log(`test case [${i}] failed`);
-            largeExecTimeObj.push("failed");
+            // large test failed: -1 in largeExecTimeArr
+            largeExecTimeArr.push(-1);
           }
         } catch (e) {
           console.log(e);
@@ -469,10 +423,10 @@ socket.init = server => {
 
       let matchID = await matchController.getMatchId(matchKey);
       // rate correctness, performance
-      let calculated = await calculatePoints(
+      let calculated = await matchUtil.calculatePoints(
         matchKey,
         correctness,
-        largeExecTimeObj
+        largeExecTimeArr
       );
       let performance = calculated.perfPoints;
       let points = calculated.points;
@@ -513,7 +467,7 @@ socket.init = server => {
       winnerCheck.get(matchKey).push(result);
 
       // fs 刪掉 ./sessions js files
-      deleteFile(matchKey, user);
+      matchUtil.deleteFile(matchKey, user);
 
       // check 自己是第幾個 insert match_detail 的人
       let submitNumber = winnerCheck.get(matchKey).length;
@@ -528,13 +482,8 @@ socket.init = server => {
         return;
       }
 
-      let winner = await getWinner(winnerCheck, matchKey);
-      if (winnerCheck.get(matchKey)[0].user === winner) {
-        loser = winnerCheck.get(matchKey)[1].user;
-      } else {
-        loser = winnerCheck.get(matchKey)[0].user;
-      }
-
+      let winner = await matchUtil.getWinner(winnerCheck, matchKey);
+      
       // update match_table: winner
       await matchController.updateMatchWinner(matchKey, winner);
 
@@ -568,7 +517,7 @@ socket.init = server => {
         return;
       }
 
-      let stranger = await getStranger(inviterId);
+      let stranger = await matchUtil.getStranger(inviterId);
       if (!stranger) {
         socket.emit(
           "noStranger",
@@ -590,10 +539,8 @@ socket.init = server => {
 
       // update inviter's data
       onlineUsers.get(inviterId).inviting = 1;
-
       console.log("socket on getStranger, onlineUsers", onlineUsers);
       socket.emit("stranger", invitation);
-      
     });
 
     socket.on("strangerAccepted", data => {
@@ -604,11 +551,8 @@ socket.init = server => {
       onlineUsers.get(inviterId).invitation_accepted = data.url;
       console.log("onlineUsers.get(inviterId)", onlineUsers.get(inviterId));
       onlineUsers.get(inviterId).inviting = 0;
-
       console.log('deleting invitations at strangerAccepted...');
       onlineUsers.get(user).invited = [];
-
-      
     });
 
     socket.on("strangerRejected", data => {
@@ -617,9 +561,7 @@ socket.init = server => {
       let token = data.token;
       let user = tokenIdMapping.get(token);
       let inviterId = data.inviterId;
-
       onlineUsers.get(inviterId).inviting = -1;
-
       console.log('deleting invitation at strangerRejected...');
       for (let i=0; i<onlineUsers.get(user).invited.length; i++) {
         if (onlineUsers.get(user).invited[i].inviter == inviterId) {
@@ -627,16 +569,13 @@ socket.init = server => {
           break;
         }
       }
-      console.log("onlineUsers after strangerRejected ---- ", onlineUsers);
-
-      
+      console.log("onlineUsers after strangerRejected ---- ", onlineUsers);      
     });
 
     socket.on("strangerTimedOut", token => {
       console.log("---------> strangerTimedOut");
       let user = tokenIdMapping.get(token);
       onlineUsers.get(user).inviting = -1;
-
       console.log('deleting invitation at strangerTimedOut...');
       for (let i=0; i<onlineUsers.get(user).invited.length; i++) {
         if (onlineUsers.get(user).invited[i].inviter == inviterId) {
@@ -651,7 +590,7 @@ socket.init = server => {
 
     socket.on("exit", async token => {
       console.log("---------> exit");
-      let matchKey = getMatchKey(url);
+      let matchKey = matchUtil.getMatchKey(url);
       let user = tokenIdMapping.get(token);
       console.log("user on exit", user);
       try {
@@ -705,7 +644,7 @@ socket.init = server => {
           };
           winnerCheck.get(matchKey).push(result);
           // fs 刪掉 ./sessions js files
-          deleteFile(matchKey, user);
+          matchUtil.deleteFile(matchKey, user);
           return;
         }
 
@@ -729,12 +668,7 @@ socket.init = server => {
         };
         winnerCheck.get(matchKey).push(result);
 
-        let winner = await getWinner(winnerCheck, matchKey);
-        if (winnerCheck.get(matchKey)[0].user === winner) {
-          loser = winnerCheck.get(matchKey)[1].user;
-        } else {
-          loser = winnerCheck.get(matchKey)[0].user;
-        }
+        let winner = await matchUtil.getWinner(winnerCheck, matchKey);
 
         // update match_table: winner
         await matchController.updateMatchWinner(matchKey, winner);
@@ -766,25 +700,14 @@ socket.init = server => {
       }
 
       let url = socket.request.headers.referer;
-      let matchKey = getMatchKey(url);
+      let matchKey = matchUtil.getMatchKey(url);
       console.log(url);
       if (url.includes("/match/") && matchList.has(matchKey)) {
         console.log("user left match page");
         // if time's up delete match from matchList
-        let startTime = matchList.get(matchKey).start_time;
-        if (Date.now() - startTime > 1000 * 60 * 60) {
-          console.log(
-            "match timeout, deleting match in matchList...",
-            matchKey
-          );
-          matchList.delete(matchKey);
-          console.log("matchList size after checking", matchList.size);
-        }
+        matchUtil.deleteTimedOutMatches(matchList, matchKey);
       }
-      console.log("matchList", matchList);
       console.log("user disconnected at", url);
-
-      
     });
   });
 };
@@ -817,356 +740,10 @@ setInterval(async () => {
     }
   }
   
-
   // delete timed out matches
   for (let matchKey of matchList.keys()) {
-    let value = matchList.get(matchKey);
-    console.log("matchKey", matchKey);
-    if (
-      value.start_time > 0 &&
-      Date.now() - value.start_time > 1000 * 60 * 60
-    ) {
-      console.log("match timeout, deleting match in matchList...", matchKey);
-      matchList.delete(matchKey);
-      console.log("updating match status to 1...");
-      try {
-        await matchController.updateMatchStatus(matchKey, 1);
-      } catch (err) {
-        console.log(err);
-      }
-      console.log("matchList size after checking", matchList.size);
-    }
+    matchUtil.deleteTimedOutMatches(matchList, matchKey);
   }
-
-  
 }, 1000 * 60); // 之後調整成長一點
-
-async function getUserInfo(token) {
-  let user;
-  let username;
-  let userObj;
-  try {
-    if (!tokenIdMapping.has(token)) {
-      console.log("Cannot find user at tokenIdMapping, selecting from db...");
-      let result = await userController.selectUserInfoByToken(token);
-      user = result[0].id;
-      username = result[0].user_name;
-      userObj = {
-        username,
-        time: Date.now(),
-        inviting: 0,
-        invitation_accepted: 0,
-        invited: []
-      };
-      console.log(user, username);
-      console.log("inserting onlineUsers...");
-      onlineUsers.set(user, userObj);
-      console.log("inserting tokenIdMapping...");
-      tokenIdMapping.set(token, user);
-      console.log("onlineUsers", onlineUsers);
-      console.log("onlineUsers size", onlineUsers.size);
-      return { user, username };
-    }
-    console.log("Found user at tokenIdMapping");
-    user = tokenIdMapping.get(token);
-    username = onlineUsers.get(user).username;
-    return { user, username };
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-
-
-let getStranger = (inviterId) => {
-  if (availableUsers.size <= 1) {
-    console.log("only 1 user online now...");
-    return false;
-  }
-
-  console.log('Array.from(availableUsers)',Array.from(availableUsers))
-  let index = availableUsers.size.length * Math.random() << 0;
-  // let index = availableUsers.size * Math.random()
-
-  let strangerId = Array.from(availableUsers)[index];
-  console.log("index", index);
-  console.log("strangerId", strangerId);
-  console.log("inviterId (my id)", inviterId);
-
-  if (strangerId === inviterId) {
-    console.log("stranger === me, find the next person");
-    // if token belongs to me, find the next person
-    let newIndex = (index + 1) % availableUsers.size;
-    console.log("newIndex", newIndex);
-    let newStrangerId = Array.from(availableUsers)[newIndex];
-    console.log("newStrangerId", newStrangerId);
-    // let newResult = onlineUsers.get(newStrangerId);
-    // console.log({ result: newResult, strangerId: newStrangerId });
-    return newStrangerId;
-  } else {
-    // let result = onlineUsers.get(newStrangerId);
-    // console.log({ result, strangerId });
-    return strangerId;
-  }
-};
-
-const getMatchStatus = async matchKey => {
-  try {
-    let result = await matchController.getMatchStatus(matchKey);
-    if (result.length > 0) {
-      return result[0].match_status;
-    }
-    return 1;
-  } catch (err) {
-    console.log(err);
-    return 1;
-  }
-};
-
-const setUserCodeFile = (matchKey, user, code) => {
-  let answerFile = fs.openSync(`./sessions/${matchKey}_${user}.js`, "w");
-  fs.writeSync(answerFile, code, (encoding = "utf-8"));
-  fs.closeSync(answerFile);
-};
-
-const deleteFile = (matchKey, user) => {
-  let path = `./sessions/${matchKey}_${user}.js`;
-  fs.unlink(path, err => {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    console.log(`${matchKey}_${user}.js file removed`);
-  });
-};
-
-const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
-  let sampleTestCaseExpected = JSON.stringify(expected);
-  // exec time calculation
-  let finalCode = `console.time('Time');\n${code}\n`;
-  // sample test case
-  let consoleLogCode = `console.log('Sample test case: '+'${test[0]}');\nlet result_sample = JSON.stringify(${codeConst}(${test[0]}));\nconsole.log('Sample output: '+result_sample);\nconsole.log('Sample output expected: '+${sampleTestCaseExpected})`;
-  // user's test case
-  for (i = 1; i < 5; i++) {
-    if (test[i] && test[i] !== "") {
-      consoleLogCode += `\nconsole.log('')`;
-      consoleLogCode += `\nconsole.log('Your test case: '+'${test[i]}');`;
-      consoleLogCode += `\nlet result_${i} = JSON.stringify(${codeConst}(${test[i]}));`;
-      consoleLogCode += `\nconsole.log('Output: '+result_${i});`;
-    }
-  }
-  // format
-  finalCode += consoleLogCode + `\nconsole.log('')`;
-  finalCode += `\nconsole.timeEnd('Time');`;
-  return finalCode;
-};
-
-const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
-  let testCase = fs.readFileSync(sampleCase.test_case_path, {
-    encoding: "utf-8"
-  });
-  // exec time calculation
-  let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
-  // format
-  finalCode += `\nconsole.timeEnd('Time')`; // console.log(process.memoryUsage());
-  return finalCode;
-};
-
-const getQuestionDetail = async (matchKey, submitBoolean) => {
-  // get questionID with matchKey
-  let questionID = await matchController.getMatchQuestion(matchKey);
-  // get question details with questionID
-  let getQuestionResult = await questionController.selectQuestion(questionID);
-  // get sample test case with questionID
-  let smallSampleCases = await questionController.selectSampleTestCases(
-    questionID,
-    0
-  );
-  let largeSampleCases = await questionController.selectSampleTestCases(
-    questionID,
-    1
-  );
-
-  let questionObject = {
-    questionID: questionID,
-    question: getQuestionResult.question_name,
-    description: getQuestionResult.question_text,
-    code: getQuestionResult.question_code,
-    difficulty: getQuestionResult.difficulty,
-    category: getQuestionResult.category,
-    const: getQuestionResult.question_const
-  };
-
-  // senario: both users join (send sampleCases[0])
-  if (!submitBoolean) {
-    let sampleCase = smallSampleCases[0];
-    questionObject.sampleCase = fs.readFileSync(sampleCase.test_case_path, {
-      encoding: "utf-8"
-    });
-    questionObject.sampleExpected = sampleCase.test_result;
-    return questionObject;
-  }
-
-  // senario: a user submits (send sampleCases)
-  questionObject.smallSampleCases = smallSampleCases;
-  questionObject.largeSampleCases = largeSampleCases;
-  return questionObject;
-};
-
-const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
-  return new Promise((resolve, reject) => {
-    // limit max memory to prevent out of memory situations
-    let ls = spawn("node", [
-      `--max-old-space-size=${memoryLimit}`,
-      `./sessions/${matchKey}_${user}.js`
-    ]);
-    let result = "";
-
-    // timeout error setting
-    let timeoutMs = getTimeoutMs(difficulty);
-    let setTimeoutId = setTimeout(() => {
-      ls.kill();
-      console.log("timeout: killing child process...");
-      reject("EXECUTION TIMED OUT");
-    }, timeoutMs);
-
-    ls.stdout.on("data", data => {
-      console.log(`stdout: ${data}`);
-      // output 性質是 ArrayBuffer 所以要先處理
-      result += arrayBufferToStr(data);
-    });
-
-    ls.stderr.on("data", data => {
-      let dataStr = arrayBufferToStr(data);
-      if (data.includes("out of memory")) {
-        ls.kill();
-        console.log("out of memory: killing child process...");
-        reject("OUT OF MEMORY");
-      }
-      if (dataStr.includes("Error")) {
-        errorMsg =
-          dataStr
-            .split("Error")[0]
-            .split("\n")
-            .pop(-1) +
-          "Error" +
-          dataStr.split("Error")[1].split("\n")[0];
-        reject(errorMsg);
-      }
-      if (dataStr.includes("throw")) {
-        errorMsg = dataStr.split("throw")[1];
-        reject(`throw${errorMsg}`);
-      }
-      reject("Unknow error");
-      console.error(`stderr: ${data}`);
-    });
-
-    ls.on("error", reject).on("close", code => {
-      if (code === 0) {
-        resolve(result);
-      } else {
-        reject(result);
-      }
-      console.log(
-        `exited child_process at ${matchKey}_${user}.js with code ${code}`
-      );
-      clearTimeout(setTimeoutId); // clear it or it'll keep timing
-    });
-  });
-};
-
-const getTimeoutMs = difficulty => {
-  if (difficulty === "easy") {
-    return 12000;
-  } else if (difficulty === "medium") {
-    return 15000;
-  }
-  return 20000;
-};
-
-
-
-const calculatePoints = async (
-  matchKey,
-  totalCorrectness,
-  largeExecTimeObj
-) => {
-  // rate performance
-  let perfPoints = 0;
-  let largePassedNo = 0;
-
-  // get questionID with matchKey
-  let questionID = await matchController.getMatchQuestion(matchKey);
-  // get threshold_ms from db test table
-  let largeThreshold = await questionController.selectThresholdMs(questionID);
-
-  console.log("largeThreshold[i].threshold_ms", largeThreshold[0].threshold_ms);
-  console.log("largeExecTimeObj", parseInt(largeExecTimeObj[0]));
-
-  for (let i = 0; i < largeThreshold.length; i++) {
-    if (parseInt(largeExecTimeObj[i]) <= largeThreshold[i].threshold_ms) {
-      perfPoints += 100 / largeThreshold.length;
-      largePassedNo += 1;
-    }
-  }
-
-  let largePassed = `${largePassedNo}/${largeExecTimeObj.length}`;
-
-  let points = (totalCorrectness + perfPoints) / 2;
-
-  let calculated = {
-    perfPoints,
-    points,
-    largePassed
-  };
-  return calculated;
-};
-
-const getWinner = async (winnerCheck, matchKey) => {
-  console.log("getting winner");
-  let winner;
-  let user_0 = winnerCheck.get(matchKey)[0].user;
-  let user_1 = winnerCheck.get(matchKey)[1].user;
-
-  // points
-  let points_0 = winnerCheck.get(matchKey)[0].points;
-  let points_1 = winnerCheck.get(matchKey)[1].points;
-
-  // answer time
-  let answerTime_0 = winnerCheck.get(matchKey)[0].answerTime;
-  let answerTime_1 = winnerCheck.get(matchKey)[1].answerTime;
-
-  if (points_0 === 0 && points_1 === 0) {
-    winner = "tie";
-    console.log("points_0 & points_1 are both 0");
-    return winner;
-  }
-
-  if (points_0 > points_1) {
-    winner = user_0;
-    console.log("points_0 > points_1");
-  } else if (points_0 < points_1) {
-    winner = user_1;
-    console.log("points_0 < points_1");
-  } else {
-    // same points
-    if (answerTime_0 < answerTime_1) {
-      winner = user_0;
-      console.log("same points, answerTime_0 < answerTime_1");
-    } else if (answerTime_0 > answerTime_1) {
-      winner = user_1;
-      console.log("same points, answerTime_0 > answerTime_1");
-    } else {
-      winner = "tie";
-      console.log("same points, answerTime_0 = answerTime_1");
-    }
-  }
-  console.log("winner", winner);
-  return winner;
-};
-
-const arrayBufferToStr = buf => {
-  return String.fromCharCode.apply(null, new Uint16Array(buf));
-};
 
 module.exports = socket;

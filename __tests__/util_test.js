@@ -1,4 +1,4 @@
-const {getMatchKey} = require('../util/socket');
+const {getMatchKey} = require('../util/match');
 const assert = require('assert');
 
 describe('getMatchKey', () => {

@@ -94,7 +94,7 @@ describe('signup', () => {
 });
 
 describe("getLeaderboard", () => {
-  const fakeData = {
+  const leaderboardData = {
     0: {
       user_name: "testuser_0",
       points: 2117,
@@ -117,7 +117,7 @@ describe("getLeaderboard", () => {
 
   const userController = {
     selectLeaderboardUsers: async () => {
-      return fakeData;
+      return leaderboardData;
     }
   };
 
@@ -130,7 +130,7 @@ describe("getLeaderboard", () => {
     const req = mockRequest();
     const res = mockResponse();
     await getLeaderboard(userController)(req, res);
-    expect(res.json).toHaveBeenCalledWith(fakeData);
+    expect(res.json).toHaveBeenCalledWith(leaderboardData);
   });
   test("should return 404 error", async () => {
     const req = mockRequest();
