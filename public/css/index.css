@@ -7,6 +7,28 @@
 body {
   margin: 0;
   font: 1em/1 "Courier New", Helvetica, Arial;
+  padding-top: 45px;
+  background-color: #333333;
+  color: #ffffff;
+}
+
+header {
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  /* background-color: #2a2a2a; */
+  background-color: #333333;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+section {
+  background-color: #333333;
+
 }
 
 ul {
@@ -25,10 +47,31 @@ li {
 button {
   font: 1em/1 "Courier New", Helvetica, Arial;
   padding: 10px;
+  border: 0;
+  opacity: 0.85;
 }
 
 textarea {
   color: #ffffff;
+  border: none;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table, th, td {
+  border: 1px solid #666666;
+}
+
+th {
+  background-color: #555555;
+}
+
+th, td {
+  height: 30px;
+  padding: 8px;
 }
 
 /* wrapper layout --------------------*/
@@ -36,14 +79,13 @@ textarea {
 .wrapper {
   display: flex;
   flex-direction: column;
+  margin-top: 15px;
   min-height: 100vh;
   width: 100%;
-  background-color: #333333;
-  color: #ffffff;
 }
 
 p {
-  color: grey;
+  color: #999999;
 }
 
 footer p {
@@ -51,13 +93,6 @@ footer p {
 }
 
 /* header layout --------------------*/
-.header {
-  display: flex;
-  flex-direction: column;
-  margin-top: 15px;
-  /* margin-bottom: 12px; */
-}
-
 .nav-bar,
 .nav-cat,
 .codingfightclub {
@@ -66,6 +101,7 @@ footer p {
   flex-wrap: nowrap;
   align-items: center;
 }
+
 
 .codingfightclub {
   margin-right: 15px;
@@ -112,6 +148,20 @@ section {
   margin: 15px;
 }
 
+.alertBox {
+  /* display: none; */
+  position: fixed;
+  
+}
+
+.reportBug {
+  position: fixed;
+  text-decoration: underline;
+  bottom: 25px;
+  right: 25px;
+  overflow: hidden;
+}
+
 .products {
   display: flex;
   flex-wrap: wrap;
@@ -137,6 +187,15 @@ section {
   margin-top: 15px;
   margin-bottom: 0;
 }
+
+.questionImg {
+  width: 17px;
+  height: 17px;
+  margin-left: 10px;
+  margin-bottom: 3px;
+  margin-right: 10px;
+}
+
 
 /* footer layout --------------------
 footer {
@@ -180,6 +239,17 @@ footer a:link {
   text-decoration: none;
 }
 
+tr:hover {background-color: #444444;}
+
+textarea:focus {outline: 0;}
+
+button:focus {outline:0;}
+button:hover {
+  opacity: 1;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.30);
+}
+
+
 /* Match page ------------------- */
 .matchPageSections {
   display: flex;
@@ -190,7 +260,18 @@ footer a:link {
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-bottom: 3px;
 }
+
+.questionArea,
+.codearea {
+  margin-bottom: 50px;
+  height: 300px;
+}
+/* 
+.CodeMirror {
+  height: auto;
+} */
 
 .matchQuestion,
 .opponent,
@@ -200,8 +281,7 @@ footer a:link {
 }
 
 #submitBtn,
-#exitBtn,
-#helpBtn {
+#exitBtn {
   flex: 0.4;
   border: none;
   background-color: #444444;
@@ -246,8 +326,14 @@ footer a:link {
   border: 0;
   background: #000;
   width: 100%;
-  height: 330px;
+  height: 300px;
   padding: 10px;
+  overflow: auto;
+}
+
+#questionDescription,
+#terminalMessage {
+  margin: 0;
 }
 
 #testcase,
@@ -259,6 +345,7 @@ footer a:link {
   margin: 0;
   white-space: pre-wrap;
   padding: 10px;
+  overflow: auto;
 }
 
 .CodeMirror-scroll,
@@ -267,8 +354,19 @@ footer a:link {
   background-color: #000;
 }
 
-#testcase {
+#testCaseArea {
   display: none;
+  position: relative;
+}
+
+#testcase {
+  padding-top: 30px;
+}
+
+#sampleTestCase {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
 .rightSection button {
@@ -280,8 +378,15 @@ footer a:link {
 
 #testcaseBtn,
 .terminalResult {
-  background: #222222;
+  background: #444444;
   color: #ffffff;
+}
+
+.terminalButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: #222222;
 }
 
 #runcodeBtn {
@@ -289,13 +394,77 @@ footer a:link {
 }
 
 /* Match setup page ------------------- */
+.setupContentSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.setupTitle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 .timer {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
+
 .timerImg {
   width: 20px;
+}
+
+.chooseQuestion,
+.chooseOpponent {
+  height: 100%;
+}
+
+.category, 
+.difficulty {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.categoryTitle,
+.difficultyTitle {
+  width: 120px;
+}
+
+.category button,
+.difficulty button {
+  margin-left: 15px;
+}
+
+.difficultyActive,
+.categoryActive {
+  background-color: #810000;
+  color: #ffffff;
+}
+
+
+/* Match result page ------------------- */
+.resultTitle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.summaryTableContainer,
+.resultTableContainer {
+  overflow-x: auto;
+  width: 80%;
+}
+
+#summaryTable {
+  table-layout: fixed;
+}
+
+.submittedCodeContainer {
+  width: 80%;
 }
 
 /* Profile page -------------------- */
@@ -336,4 +505,69 @@ footer a:link {
 
 
 
+/* modal layout --------------------*/
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 101;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.6);
+}
+
+.modalContent {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 30px;
+  width: 75%;
+  text-align: center;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+#modalText {
+  color: #777777;
+}
+
+.modalButtons {
+  display: none;
+  flex-direction: row;
+  justify-content: center;
+}
+
+#noButton,
+#yesButton {
+  width: 45%;
+  text-align: center;
+}
+
+#yesButton {
+  background-color: #810000;
+  margin-left: 10px;
+  color: #ffffff;
+}
+
+#noButton {
+  background-color: #cccccc;
+  margin-right: 10px;
+  color: #444444;
+}
+
+
+
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
 

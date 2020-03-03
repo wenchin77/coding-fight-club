@@ -10,8 +10,7 @@ html
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
     script(src='/socket.io/socket.io.js')
     script(src='../js/index.js')
-    
-
+    script(src="https://unpkg.com/axios/dist/axios.min.js")
 
 
   body
@@ -38,6 +37,8 @@ html
               #membername Sign In
               img.profilelogo(src='../img/account.png')
       section
+        .reportBug 
+          a(href='/bug_report') Report a bug
         block content
 
       script.
@@ -48,6 +49,10 @@ html
           document.getElementById('member').href = '/profile'
         }
 
+
+        
+
+        // loader ++++++++++++++
 
 
       //- footer.footer

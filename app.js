@@ -4,7 +4,8 @@ const cors = require('cors');
 const AppError = require('./util/appError.js');
 const socket = require('./socket');
 const path = require('path');
-// const userRoutes = require('./routes/userRoutes');
+
+const matchRoutes = require('./routes/matchRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 
 // view engine setup
@@ -17,32 +18,28 @@ const bodyparser = require("body-parser");
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 
-// Allow Cross-Origin requests
+// allow cross-origin requests
 app.use(cors());
 
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-
-// app.get('/match', (req, res) => {
-//   res.render('match');
-// });
-
-// room page
-app.get('/match/:roomID', (req, res) => {
-  let roomID = req.params.roomID;
-  res.render('match', {
-    roomID: roomID
-    // users: roomInfo[roomID]
-  });
-});
-
-
+// match pages
 app.get('/match_setup', (req, res) => {
   res.render('match_setup');
 });
 
+app.get('/match/:matchKey', (req, res) => {
+  res.render('match');
+});
+
+app.get('/match_result/:matchKey', (req, res) => {
+  res.render('match_result');
+});
+
+
+// user pages
 app.get('/signin', (req, res) => {
   res.render('signin');
 });
@@ -51,12 +48,17 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
-// Routes
-// app.use('/api/v1/user', userRoutes);
+// bug report
+app.get('/bug_report', (req, res) => {
+  res.render('bug_report');
+});
+
+// api routes
+app.use('/api/v1/match', matchRoutes);
 app.use('/api/v1/question', questionRoutes);
 
 
-// handle undefined Routes
+// handle undefined routes
 app.use('*', (req, res, next) => {
   const err = new AppError(404, 'fail', 'undefined route');
   next(err, req, res, next);
