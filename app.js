@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const AppError = require('./util/appError.js');
+const errors = require('./util/errors.js');
 const socket = require('./socket');
 const path = require('path');
 const bodyparser = require("body-parser");
@@ -75,12 +75,11 @@ app.use(`/api/${cst.API_VERSION}/match`, matchRoutes);
 app.use(`/api/${cst.API_VERSION}/question`, questionRoutes);
 app.use(`/api/${cst.API_VERSION}/user`, userRoutes);
 
-
 // handle undefined routes
 app.use('*', (req, res, next) => {
   console.log('originalUrl: ', req.originalUrl);
-  const err = new AppError(404, 'fail', 'undefined route');
-  next(err, req, res, next);
+  res.render('error');
+  throw (errors.undefinedRouteError);
 });
 
 const server = app.listen(3000, () => {

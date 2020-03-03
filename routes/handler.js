@@ -5,29 +5,23 @@ function signup(userController) {
     try {
       let data = req.body;
       // req.body eg. { username: '1234', email: '1234@com', password: '1234' }
-
       // check in db if username exists
       let userNumByUsername = await userController.countUsersByUserName(
         data.username
       );
       if (userNumByUsername > 0) {
-        console.error("Username taken...");
-        res.status(403).send(errors.usernameTakenError);
-        return;
+        throw (errors.usernameTakenError);
       }
-
       // check in db if email exists
       let userNumByEmail = await userController.countUsersByEmail(data.email);
       if (userNumByEmail > 0) {
-        console.error("Account with this email taken...");
-        res.status(403).send(errors.userEmailTakenError);
-        return;
+        throw (errors.userEmailTakenError);
       }
-
       let result = await userController.insertUser(data);
       res.status(200).send(result);
     } catch (err) {
-      res.status(500).send(errors.serverError);
+      console.log('catched err', err)
+      res.status(err.statusCode).send(err.message);
     }
   };
 }
