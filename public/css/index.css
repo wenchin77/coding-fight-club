@@ -1,7 +1,5 @@
 * {
   box-sizing: border-box;
-  background-color: #333333;
-  color: #ffffff;
 }
 
 /* Base Styles ------------------- */
@@ -21,12 +19,16 @@ ul {
 
 li {
   margin-right: 10px;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 button {
   font: 1em/1 "Courier New", Helvetica, Arial;
   padding: 10px;
+}
+
+textarea {
+  color: #ffffff;
 }
 
 /* wrapper layout --------------------*/
@@ -36,15 +38,16 @@ button {
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+  background-color: #333333;
+  color: #ffffff;
 }
-
 
 p {
   color: grey;
 }
 
 footer p {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* header layout --------------------*/
@@ -52,14 +55,14 @@ footer p {
   display: flex;
   flex-direction: column;
   margin-top: 15px;
-  margin-bottom: 12px;
+  /* margin-bottom: 12px; */
 }
 
 .nav-bar,
 .nav-cat,
 .codingfightclub {
-	display: flex;
-	flex-direction: row;
+  display: flex;
+  flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
 }
@@ -76,6 +79,12 @@ footer p {
 .nav-member {
   margin-left: auto;
   margin-right: 20px;
+}
+
+#member {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .header-image-container {
@@ -111,7 +120,7 @@ section {
   margin: 50px auto;
 }
 
-.item { 
+.item {
   display: flex;
   flex-direction: column;
   margin: 20px;
@@ -156,7 +165,6 @@ footer {
   padding-right: 10px;
 } */
 
-
 /* Pseudo Styles -------------------- */
 header a:visited,
 header a:link,
@@ -172,7 +180,6 @@ footer a:link {
   text-decoration: none;
 }
 
-
 /* Match page ------------------- */
 .matchPageSections {
   display: flex;
@@ -185,23 +192,27 @@ footer a:link {
   align-items: center;
 }
 
-.description {
-  flex: 4;
-}
-
+.matchQuestion,
+.opponent,
+.level,
 .timer {
-  flex: 1.2;
+  flex: 1;
 }
 
 #submitBtn,
 #exitBtn,
 #helpBtn {
-  flex: 0.5;
+  flex: 0.4;
   border: none;
   background-color: #444444;
+  margin-right: 8px;
+  color: #ffffff;
 }
 
-.description, .timer, #submitBtn, #exitBtn, #helpBtn {
+.matchQuestion,
+.opponent,
+.level,
+.timer {
   margin-left: 8px;
   margin-right: 8px;
 }
@@ -220,7 +231,7 @@ footer a:link {
 }
 
 .leftSection,
-.rightSection { 
+.rightSection {
   height: 100%;
   margin: 8px;
 }
@@ -230,40 +241,62 @@ footer a:link {
   background-color: #222222;
 }
 
-#question,
-#opponentRunCodeResult,
 #codearea,
-#runCodeResult,
-#testcase {
+#question {
+  border: 0;
+  background: #000;
+  width: 100%;
+  height: 330px;
   padding: 10px;
 }
 
-#codearea,
-#question { 
-  border: 0; 
-  background: #000; 
-  width: 100%;
-  height: 330px;
-}
-
 #testcase,
-#runCodeResult,
-#opponentRunCodeResult { 
-  background: #000; 
-  width: 100%; 
-  height: 100px; 
-  margin: 0; 
-  white-space: pre-wrap; 
+#runCodeOutput,
+#opponentRunCodeOutput {
+  background: #000;
+  width: 100%;
+  height: 100px;
+  margin: 0;
+  white-space: pre-wrap;
+  padding: 10px;
 }
 
-#testcase { 
+.CodeMirror-scroll,
+.CodeMirror-sizer,
+.CodeMirror-gutters {
+  background-color: #000;
+}
+
+#testcase {
   display: none;
 }
 
-.rightSection button { width: 20%; background: #555555; border: none; padding: 10px; }
+.rightSection button {
+  width: 30%;
+  background: #555555;
+  border: none;
+  padding: 10px;
+}
 
-#testcaseBtn, .terminalResult {background: #222222;}
+#testcaseBtn,
+.terminalResult {
+  background: #222222;
+  color: #ffffff;
+}
 
+#runcodeBtn {
+  color: #ffffff;
+}
+
+/* Match setup page ------------------- */
+.timer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.timerImg {
+  width: 20px;
+}
 
 /* Profile page -------------------- */
 .signin-signup,
@@ -294,4 +327,13 @@ footer a:link {
   width: 160px;
   margin: 10px;
 }
+
+
+
+
+
+
+
+
+
 

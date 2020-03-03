@@ -3,32 +3,59 @@ extends layout
 block content
   .matchPageSections
     .titleSection
-      .description You're playing CycleRotation CycleRotation CycleRotation with Ethan in JavaScript
-      .timer Time: XX:XX:XX
+      .matchQuestion#matchQuestion
+      .opponent#opponent Opponent: Pending...
+      .level Level: Easy
+      .timer#timer
+        img.timerImg(src='../img/clock.png')
+        div
+        label#hours 00
+        div :
+        label#minutes 00
+        div :
+        label#seconds 00
       button#submitBtn(type='button' onclick='') Submit
       button#helpBtn(type='button' onclick='') Help
-      button#exitBtn(type='button' onclick='') Exit
+      button#exitBtn(type='button' onclick='exitMatch()') Exit
     .contentSection
       .leftSection
         .questionArea
           .sectionName Question
-          #question Here's a question
+          #question
+   
 
         .opponentTerminal
-          .sectionName Opponent's Test Output
-          #opponentRunCodeResult I'm the result
+          .sectionName Opponent's Code Result
+          #opponentRunCodeOutput
+
 
       .rightSection
         .codearea
           .sectionName Your Solution
-          textarea#codearea(rows='25' cols='200') // Write your code here
-        .terminalResult 
+          textarea#codearea(rows='25' cols='200')
+        .terminalResult#terminalResult
           button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
-          button#runcodeBtn(type='button' onclick='runCode()') Run Code    
-          #runCodeResult
+          button#runcodeBtn(type='button' onclick='runCode()') Run Code
+          #runCodeOutput
           #testCaseArea
             textarea#testcase(rows='5' cols='200')
+          div * Each line is a seperate test case (5 max), eg: [1,2,3],5
+
+
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
   script(src='../js/match.js')
+
+  script.
+    // codemirror (syntax highlight & auto indent)
+    const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('codearea'), {
+      lineNumbers: true,
+      mode: "javascript",
+      theme: "base16-dark"
+    });
+
+    
+
 
 
 
