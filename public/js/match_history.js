@@ -67,7 +67,7 @@ async function showMatchResult (userID, result) {
     let winnerId = result[i].winner_user_id;
     let points = result[i].points;
     let matchKey = result[i].match_key;
-    let url = `https://coding-fight-club.thewenchin.com/match_result/${matchKey}`
+    let url = `${CST.PROTOCOL}${CST.HOST}/match_result/${matchKey}`
     let winLose;
     if (winnerId === 0) {
       winLose = 'Tie'

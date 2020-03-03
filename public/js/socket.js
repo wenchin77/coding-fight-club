@@ -119,7 +119,7 @@ async function socketInit() {
 
 async function getQuestion(category, difficulty) {
   try {
-    const response = await axios.get(`/api/v1/question/${category}?difficulty=${difficulty}`)
+    const response = await axios.get(`/api/${CST.API_VERSION}/question/${category}?difficulty=${difficulty}`)
     let questionID = response.data.question.id;
     return questionID;
   } catch (error) {
@@ -128,7 +128,7 @@ async function getQuestion(category, difficulty) {
 };
 
 async function getKey() {
-  let keyObject = await axios.post('/api/v1/match/get_key');
+  let keyObject = await axios.post(`/api/${CST.API_VERSION}/match/get_key`);
   return keyObject.data;
 };
 
@@ -164,7 +164,7 @@ let AlertBox = function(id, option) {
         console.log('updated invitations at accept', invitations)
         // create a match
         let matchKey = await getKey();
-        let url = `https://coding-fight-club.thewenchin.com/match/${matchKey}`;
+        let url = `${CST.PROTOCOL}${CST.HOST}/match/${matchKey}`;
         let acceptedData = {url, token, inviterId};
         console.log('acceptedData', acceptedData);
         socket.emit('strangerAccepted', acceptedData);
@@ -212,7 +212,7 @@ function showAlertBox(msg, questionID, inviterId) {
 
 async function insertMatch(questionID, matchKey) {
   try {
-    const response = await axios.post('/api/v1/match/insert_match', {
+    const response = await axios.post(`/api/${CST.API_VERSION}/match/insert_match`, {
       questionID,
       matchKey
     })

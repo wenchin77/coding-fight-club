@@ -127,11 +127,8 @@ function socketInMatchInit() {
     ).innerHTML = `<p id="terminalMessage">${submitMessage.message}</p>`;
   });
 
-  socket.on('exit', () => {
-    showAlert("You exited this match!", () => {
-      // redirect to match_result page with match_key param
-      window.location = `/`;
-    });
+  socket.on('exitMultipleTimes', () => {
+    window.location = `/`;
   })
 
   socket.on("endMatch", matchKey => {

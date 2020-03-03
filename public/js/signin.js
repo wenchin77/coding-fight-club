@@ -238,11 +238,11 @@ async function getGithubProfile(token) {
     showAlert('Welcome to the Coding Fight Club!', () => {
       // if user was invited in a match before signing in, redirect to match page
       if (localStorage.getItem('invited_url')) {
-        window.location.href = window.location.origin + localStorage.getItem('invited_url');
+        window.location.pathname = localStorage.getItem('invited_url');
         return;
       }
       // redirect to dashboard page
-      window.location.href = window.location.origin + '/dashboard';
+      window.location.pathname = 'dashboard';
     })
   } catch (error) {
     return(error);

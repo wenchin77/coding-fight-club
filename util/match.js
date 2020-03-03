@@ -47,7 +47,7 @@ async function getUserInfo(token, onlineUsers, tokenIdMapping) {
   }
 }
 
-let getStranger = inviterId => {
+let getStranger = (inviterId, availableUsers) => {
   if (availableUsers.size <= 1) {
     console.log("only 1 user online now...");
     return false;
@@ -325,7 +325,15 @@ const checkSubmitTime = (winnerCheck, matchKey, user) => {
   }
   console.log("submitTime ---", submitTime);
   return submitTime;
-}
+};
+
+const updateWinnerCheck = (winnerCheck, matchKey, result) => {
+  // update winnerCheck {} for performance points calculation
+  if (!winnerCheck.has(matchKey)) {
+    winnerCheck.set(matchKey, []);
+  }
+  winnerCheck.get(matchKey).push(result);
+};
 
 const deleteTimedOutMatches = async (matchList, matchKey) => {
   let startTime = matchList.get(matchKey).start_time;
@@ -339,6 +347,29 @@ const deleteTimedOutMatches = async (matchList, matchKey) => {
       console.log(err);
     }
     console.log("matchList size after checking", matchList.size);
+  }
+};
+
+const deleteTimedOutUsers = async (onlineUsers, availableUsers, inMatchUsers, tokenIdMapping) => {
+  for (let userid of onlineUsers.keys()) {
+    let value = onlineUsers.get(userid);
+    if ((Date.now() - value.time > 1000 * 60) && (!inMatchUsers.has(userid))) {
+      console.log(
+        "user timeout, deleting user in onlineUsers, availableUsers and tokenIdMapping...",
+        userid
+      );
+      onlineUsers.delete(userid);
+      console.log("onlineUsers size after checking", onlineUsers.size);
+      availableUsers.delete(userid);
+      console.log("availableUsers size after checking", availableUsers.size);
+      for (let token of tokenIdMapping.keys()) {
+        let value = tokenIdMapping.get(token);
+        if (value === userid) {
+          tokenIdMapping.delete(token);
+        }
+      }
+      console.log("tokenIdMapping size after checking", tokenIdMapping.size);
+    }
   }
 };
 
@@ -359,6 +390,7 @@ module.exports = {
   runCodeInChildProcess,
   calculatePoints,
   deleteTimedOutMatches,
+  deleteTimedOutUsers,
   addSampleTestResult,
   getWinner,
   checkSubmitTime
