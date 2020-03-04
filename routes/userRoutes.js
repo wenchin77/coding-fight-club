@@ -4,7 +4,6 @@ const router = express.Router();
 const request = require("request");
 const axios = require('axios');
 const userController = require('../controllers/userController');
-const handler = require('./handler');
 // for github clientid & client secret
 require('dotenv').config();
 
@@ -161,7 +160,7 @@ function getGoogleProfile (accessToken) {
 	})
 };
 
-router.get('/leaderboard', handler.getLeaderboard(userController));
+router.get('/leaderboard', userController.getLeaderboard());
 
 router.post('/bug_report', async (req, res) => {
   let token = req.query.token;

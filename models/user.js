@@ -67,7 +67,7 @@ module.exports = {
       return result;
     } catch (err) {
       await mysql.query("ROLLBACK");
-      throw err;
+      throw errors.serverError;
     }
   },
 
@@ -143,7 +143,7 @@ module.exports = {
   },
 
   querySelectLeaderboardUsers: async () => {
-    return mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
+    return await mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
     INNER JOIN level_table l ON u.level_id = l.id
     ORDER BY points DESC LIMIT 20`);
   }

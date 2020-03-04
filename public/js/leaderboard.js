@@ -3,11 +3,16 @@ main();
 async function main() {
   try {
     const response = await axios.get(`/api/${CST.API_VERSION}/user/leaderboard`);
+    console.log
     let leaderboardData = response.data;
     showLeaderboard(leaderboardData);
   } catch (err) {
-    showAlert('Something went wrong. Refresh the page to view leaderboard.')
-    console.log(err)
+    console.log(err);
+    if (!err.response) {
+      showAlert('Server error. Please try again later.');
+      return;
+    };
+    showAlert(err.response.data);
   }
 }
 

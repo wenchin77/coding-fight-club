@@ -12,7 +12,6 @@ module.exports = {
         let result = await userModel.queryInsertUser(data);
         res.status(200).send(result);
       } catch (err) {
-        console.log("catched err", err);
         res.status(err.statusCode).send(err.message);
       }
     };
@@ -310,6 +309,18 @@ module.exports = {
     }
   },
 
+  getLeaderboard: () => {
+    return async (req, res) => {
+      try {
+        let result = await userModel.querySelectLeaderboardUsers();
+        res.status(200).json(result);
+      } catch (err) {
+        console.log(err)
+        res.status(errors.serverError.statusCode).send(errors.serverError.message);
+      };
+    };
+  },
+  
   selectLeaderboardUsers: async () => {
     return await userModel.querySelectLeaderboardUsers();
   },
