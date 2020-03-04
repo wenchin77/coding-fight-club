@@ -22,6 +22,12 @@ app.use(bodyparser.urlencoded({ extended: true }));
 // allow cross-origin requests
 app.use(cors());
 
+
+// api routes
+app.use(`/api/${cst.API_VERSION}/match`, matchRoutes);
+app.use(`/api/${cst.API_VERSION}/question`, questionRoutes);
+app.use(`/api/${cst.API_VERSION}/user`, userRoutes);
+
 app.get('/', (req, res) => {
   res.render('index');
 });
@@ -70,16 +76,11 @@ app.get('/bug_report', (req, res) => {
   res.render('bug_report');
 });
 
-// api routes
-app.use(`/api/${cst.API_VERSION}/match`, matchRoutes);
-app.use(`/api/${cst.API_VERSION}/question`, questionRoutes);
-app.use(`/api/${cst.API_VERSION}/user`, userRoutes);
-
 // handle undefined routes
 app.use('*', (req, res, next) => {
   console.log('originalUrl: ', req.originalUrl);
   res.render('error');
-  throw (errors.undefinedRouteError);
+  throw errors.undefinedRouteError;
 });
 
 const server = app.listen(3000, () => {
