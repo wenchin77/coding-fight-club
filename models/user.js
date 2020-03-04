@@ -6,6 +6,7 @@ const request = require("request");
 
 module.exports = {
   querySignUp: async data => {
+    const connection = await mysql.pool.getConnection();
     try {
       console.log("at querySignUp...");
       // data eg. { username: '1234', email: '1234@com', password: '1234' }
@@ -65,9 +66,11 @@ module.exports = {
         access_expired: getUserInfo[0].access_expired
       };
       await mysql.query("COMMIT");
+      await connection.release();
       return result;
     } catch (err) {
       await mysql.query("ROLLBACK");
+      await connection.release();
       console.log('ROLLBACK at querySignUp');
       console.log(err);
       throw err;
@@ -75,6 +78,7 @@ module.exports = {
   },
 
   querySignIn: async data => {
+    const connection = await mysql.pool.getConnection();
     try {
       console.log("at querySignIn...");
       // data eg. { provider: 'native', email: '1234@com', password: '1234' }
@@ -120,6 +124,7 @@ module.exports = {
             access_expired: getUserInfo[0].access_expired
           };
           await mysql.query("COMMIT");
+          await connection.release();
           return userInfo;
         }
         // token expired: set a new token and send back to frontend
@@ -149,6 +154,7 @@ module.exports = {
           access_expired: updatedUserInfo[0].access_expired
         };
         await mysql.query("COMMIT");
+        await connection.release();
         return result;
       };
 
@@ -201,6 +207,7 @@ module.exports = {
             access_expired: getUserInfo[0].access_expired
           };
           await mysql.query("COMMIT");
+          await connection.release();
           return result;
         }
 
@@ -224,6 +231,7 @@ module.exports = {
             access_expired: getUserInfo[0].access_expired
           };
           await mysql.query("COMMIT");
+          await connection.release();
           return userInfo;
         }
         // token expired: set a new token and send back to frontend
@@ -253,6 +261,7 @@ module.exports = {
           access_expired: updatedUserInfo[0].access_expired
         };
         await mysql.query("COMMIT");
+        await connection.release();
         return result;
       };
 
@@ -314,6 +323,7 @@ module.exports = {
             access_expired: getUserInfo[0].access_expired
           };
           await mysql.query("COMMIT");
+          await connection.release();
           return result;
         }
 
@@ -337,6 +347,7 @@ module.exports = {
             access_expired: getUserInfo[0].access_expired
           };
           await mysql.query("COMMIT");
+          await connection.release();
           return userInfo;
         }
         // token expired: set a new token and send back to frontend
@@ -366,44 +377,41 @@ module.exports = {
           access_expired: updatedUserInfo[0].access_expired
         };
         await mysql.query("COMMIT");
+        await connection.release();
         return result;
       };
     } catch (err) {
       await mysql.query("ROLLBACK");
+      await connection.release();
+      console.log()
       console.log('ROLLBACK at querySignIn');
       console.log(err);
       throw err;
     }
   },
 
-  // querySelectUserByEmail: async email => {
-  //   return mysql.query(
-  //     "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
-  //     [email]
-  //   );
-  // },
 
-  querySelectUserByToken: async token => {
+  querySelectUserByToken: token => {
     return mysql.query(
       "SELECT user_table.id, user_table.email, user_table.user_name, user_table.points, user_table.github_url, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.token = ?",
       [token]
     );
   },
 
-  querySelectUserInfoByToken: async token => {
+  querySelectUserInfoByToken: token => {
     return mysql.query("SELECT id, user_name FROM user_table WHERE token = ?", [
       token
     ]);
   },
 
-  queryInsertBugReport: async (token, bug) => {
+  queryInsertBugReport: (token, bug) => {
     return mysql.query(
       `INSERT INTO bug_report (user_id, bug) VALUES ((SELECT id FROM user_table WHERE token = ?), ?)`,
       [token, bug]
     );
   },
 
-  querySelectNextLevelMin: async user_id => {
+  querySelectNextLevelMin: user_id => {
     return mysql.query(
       `SELECT l.level_name AS next_name, l.id AS next_id, l.min_points AS next_points, 
     u.level_id, u.points 
@@ -414,15 +422,15 @@ module.exports = {
     );
   },
 
-  queryUpdateUserLevel: async (level_id, user_id) => {
+  queryUpdateUserLevel: (level_id, user_id) => {
     return mysql.query("UPDATE user_table SET level_id = ? WHERE id = ?", [
       level_id,
       user_id
     ]);
   },
 
-  querySelectLeaderboardUsers: async () => {
-    return await mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
+  querySelectLeaderboardUsers: () => {
+    return mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
     INNER JOIN level_table l ON u.level_id = l.id
     ORDER BY points DESC LIMIT 20`);
   }

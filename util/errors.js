@@ -16,6 +16,8 @@ const googleNameOrEmailNotFound = new AppError(400, 'Permissions Error: name and
 
 const githubNameOrEmailNotFound = new AppError(400, 'Permissions Error: name and email are required when you sign in with a Github account.')
 
+const wrongMatch = new AppError(403, 'Wrong match.')
+
 module.exports = {
   serverError,
   undefinedRouteError,
@@ -24,5 +26,6 @@ module.exports = {
   userEmailNotSignedUp,
   userWrongPassword,
   googleNameOrEmailNotFound,
-  githubNameOrEmailNotFound
+  githubNameOrEmailNotFound,
+  wrongMatch
 }

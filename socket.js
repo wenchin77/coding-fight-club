@@ -42,8 +42,6 @@ socket.init = server => {
     const userInfo = await userController.getUserInfo(token, onlineUsers, tokenIdMapping);
     console.log("userInfo", userInfo);
 
-    
-
     socket.on("online", async token => {
       console.log("---------> online");
       let userInfo = await userController.getUserInfo(token, onlineUsers, tokenIdMapping);
@@ -586,6 +584,11 @@ socket.init = server => {
       }
       console.log("onlineUsers after strangerTimedOut ---- ", onlineUsers);
     });
+
+    socket.on("getMatchId", async (key) => {
+      let matchId = await matchController.getMatchId(key);
+      socket.emit('matchId', matchId);
+    })
 
     socket.on("exit", async token => {
       console.log("---------> exit");

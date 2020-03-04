@@ -116,12 +116,10 @@ document.forms['signup'].addEventListener('submit', (event) => {
       window.location.pathname = 'dashboard';
     })
   }).catch((error) => {
-    // server error
     if (!error.response) {
       showAlert('Server error. Please try again later.');
       return;
     };
-    // client error
     showAlert(error.response.data);
   });
 });
@@ -165,12 +163,10 @@ async function googleSignin() {
         window.location.pathname = 'dashboard';
       })
     } catch (error) {
-      // server error
       if (!error.response) {
         showAlert('Server error. Please try again later.');
         return;
       };
-      // client error
       showAlert(error.response.data);    
     }
 	})

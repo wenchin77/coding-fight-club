@@ -46,33 +46,25 @@ module.exports = {
   },
 
   queryGetMatchDetails: (match_id) => {
-    return mysql.query(`SELECT match_table.question_id, match_table.id, match_table.match_start_time,
-    match_table.updated_at, match_table.winner_user_id, match_detail.*, user_table.user_name
-    FROM match_table INNER JOIN match_detail ON match_table.id = match_detail.match_id 
-    INNER JOIN user_table ON match_detail.user_id = user_table.id
-    WHERE match_table.id = ?`, [match_id])
+    return mysql.query(`SELECT m.question_id, m.id, m.match_start_time,
+    m.updated_at, m.winner_user_id, md.*, u.user_name, q.*
+    FROM match_table m
+    INNER JOIN question q ON q.id = m.question_id
+    INNER JOIN match_detail md ON m.id = md.match_id 
+    INNER JOIN user_table u ON md.user_id = u.id
+    WHERE m.id = ?`, [match_id])
   },
 
-  queryGetMatchSummary: (user_id) => {
+  queryGetMatchSummary: (user_id, rowNo) => {
     return mysql.query(`SELECT u.id AS userid, md.points, md.match_id, u.user_name, m.match_key, m.winner_user_id, m.match_start_time, q.question_name, q.category, q.difficulty
     FROM match_detail md
     INNER JOIN user_table u ON md.user_id = u.id
     INNER JOIN match_table m ON m.id = md.match_id
     INNER JOIN question q ON q.id = m.question_id
     WHERE md.match_id IN (SELECT match_id FROM match_detail WHERE user_id = ?) AND m.match_status = 1
-    ORDER BY match_start_time DESC LIMIT 10`, [user_id])
+    ORDER BY match_start_time DESC LIMIT ?`, [user_id, rowNo])
   },
-
-  queryGetMatchHistory: (user_id) => {
-    return mysql.query(`SELECT u.id AS userid, md.points, md.match_id, u.user_name, m.match_key, m.winner_user_id, m.match_start_time, q.question_name, q.category, q.difficulty
-    FROM match_detail md
-    INNER JOIN user_table u ON md.user_id = u.id
-    INNER JOIN match_table m ON m.id = md.match_id
-    INNER JOIN question q ON q.id = m.question_id
-    WHERE md.match_id IN (SELECT match_id FROM match_detail WHERE user_id = ?) AND m.match_status = 1
-    ORDER BY match_start_time DESC`, [user_id])
-  },
-
+  
   queryGetMatchStatus: (key) => {
     return mysql.query(`SELECT match_status FROM match_table WHERE match_key = ? LIMIT 1`, [key])
   },

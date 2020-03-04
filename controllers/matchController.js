@@ -4,18 +4,20 @@ const matchModel = require("../models/match");
 const questionModel = require("../models/question");
 
 module.exports = {
-  insertMatch: async (question_id, match_key) => {
-    // generate a random no as match key to put in url
+  insertMatch: async (req, res) => {
     let data = {
-      question_id,
-      match_key,
+      question_id: req.body.questionID,
+      match_key: req.body.matchKey,
       match_status: -1
     };
     try {
-      let result = await matchModel.queryInsertMatch(data);
-      return result;
+      await matchModel.queryInsertMatch(data);
+      res.status(200).send("OK");
     } catch (err) {
       console.log(err);
+      res
+        .status(errors.serverError.statusCode)
+        .send(errors.serverError.message);
     }
   },
 
@@ -34,7 +36,7 @@ module.exports = {
     }
   },
 
-  getMatchId: async key => {
+  getMatchId: async (key) => {
     try {
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
@@ -43,9 +45,13 @@ module.exports = {
     }
   },
 
-  getKey: () => {
-    let key = cryptoRandomString({ length: 10, type: "numeric" });
-    return key;
+  getKey: (req, res) => {
+    try {
+      let key = cryptoRandomString({ length: 10, type: "numeric" });
+      res.json(key);
+    } catch (err) {
+      console.log(err);
+    }
   },
 
   getQuestionDetail: async (matchKey, submitBoolean) => {
@@ -183,15 +189,25 @@ module.exports = {
     }
   },
 
-  getMatchDetailPastExecTime: async question_id => {
+  getMatchDetailPastExecTime: async (req, res) => {
+    let questionID = req.query.questionid;
     try {
-      let result = await matchModel.queryGetMatchDetailPastExecTime(
-        question_id
-      );
-      return result;
+      let result = await matchModel.queryGetMatchDetailPastExecTime(questionID);
+      if (!result[0]) {
+        res.send("N/A");
+        return;
+      }
+      let timeAdded = 0;
+      for (let i = 0; i < result.length; i++) {
+        timeAdded += parseInt(result[i].large_exec_time);
+      }
+      let avgTime = timeAdded / result.length;
+      res.status(200).json(avgTime);
     } catch (err) {
       console.log(err);
-      return false;
+      res
+        .status(errors.serverError.statusCode)
+        .send(errors.serverError.message);
     }
   },
 
@@ -204,30 +220,42 @@ module.exports = {
     }
   },
 
-  getMatchDetails: async match_id => {
+  getMatchDetails: async (req, res) => {
+    let matchID = req.query.matchid;
     try {
-      let result = await matchModel.queryGetMatchDetails(match_id);
-      return result;
+      let result = await matchModel.queryGetMatchDetails(matchID);
+      res.status(200).json(result);
     } catch (err) {
       console.log(err);
+      res
+        .status(errors.serverError.statusCode)
+        .send(errors.serverError.message);
     }
   },
 
-  getMatchSummary: async user_id => {
+  getMatchSummary: async (req, res) => {
+    let userId = parseInt(req.query.userid);
     try {
-      let result = await matchModel.queryGetMatchSummary(user_id);
-      return result;
+      let result = await matchModel.queryGetMatchSummary(userId, 10);
+      res.status(200).json(result);
     } catch (err) {
       console.log(err);
+      res
+        .status(errors.serverError.statusCode)
+        .send(errors.serverError.message);
     }
   },
 
-  getMatchHistory: async user_id => {
+  getMatchHistory: async (req, res) => {
+    let userId = parseInt(req.query.userid);
     try {
-      let result = await matchModel.queryGetMatchHistory(user_id);
+      let result = await matchModel.queryGetMatchSummary(userId, 100);
       return result;
     } catch (err) {
       console.log(err);
+      res
+        .status(errors.serverError.statusCode)
+        .send(errors.serverError.message);
     }
   },
 

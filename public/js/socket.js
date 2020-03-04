@@ -21,7 +21,6 @@ if (!localStorage.getItem('token')) {
     };
     document.getElementById('userNo').innerHTML = `${userNo} players online now`;
   })
-
 }
 
 // use socket to keep track of online users
@@ -38,8 +37,7 @@ function ping(token) {
   if (url === '/') {
     socket.emit('userCount');
   };
-}
-
+};
 
 async function socketInit() {
   socket = io({query: {
@@ -128,7 +126,7 @@ async function getQuestion(category, difficulty) {
 };
 
 async function getKey() {
-  let keyObject = await axios.post(`/api/${CST.API_VERSION}/match/get_key`);
+  let keyObject = await axios.get(`/api/${CST.API_VERSION}/match/get_key`);
   return keyObject.data;
 };
 

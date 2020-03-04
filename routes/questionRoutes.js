@@ -4,18 +4,7 @@ const questionController = require('../controllers/questionController');
 
 // 路徑是 /api/v1/question
 
-router.post('/insert_question', async (req, res)=> {
-  let question = {
-    question_name: req.body.title,
-    question_text: req.body.description,
-    question_code: req.body.code,
-    question_const: req.body.const,
-    difficulty: req.body.difficulty,
-    category: req.body.category
-  };
-  let result = await questionController.insertQuestion(question);
-  res.send(result);
-});
+router.post('/insert_question', questionController.insertQuestion);
 
 router.post('/insert_test', async (req, res)=> {
   let questionID = req.body.question_id;

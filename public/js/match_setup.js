@@ -15,16 +15,18 @@ async function inviteAFriend() {
   }
   let category = document.querySelector('.categoryActive').value;
   let difficulty = document.querySelector('.difficultyActive').value;
-
+  
   let questionID = await getQuestion(category, difficulty);
+  console.log('questionID',questionID)
   if (!questionID) {
     return;
   }
   let matchKey = await getKey();
+  console.log('key',matchKey)
   
   showAlertWithButtons(`Send the match link to challenge your friend in a random ${difficulty}, ${category} problem: ${CST.PROTOCOL}${CST.HOST}/match/${matchKey}`, async () => {
     // insert a match
-    let match = await insertMatch(questionID, matchKey);
+    await insertMatch(questionID, matchKey);
     // redirect to a room in match page with match key
     window.location = `match/${matchKey}`;
   });
@@ -127,6 +129,7 @@ function setElementActive(parent, activeClassName) {
 }
 
 async function getQuestion(category, difficulty) {
+  console.log('at getQuestion...')
   try {
     const response = await axios.get(`/api/${CST.API_VERSION}/question/${category}?difficulty=${difficulty}`)
     if (!response.data.question) {
