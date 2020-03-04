@@ -1,9 +1,4 @@
 const fs = require("fs");
-const matchController = require("../controllers/matchController");
-const questionController = require("../controllers/questionController");
-const userController = require("../controllers/userController");
-
-// child process setup for code execution
 const { spawn } = require("child_process");
 
 const getMatchKey = url => {
@@ -11,41 +6,6 @@ const getMatchKey = url => {
   let key = urlSplitedBySlash[urlSplitedBySlash.length - 1];
   return key;
 };
-
-async function getUserInfo(token, onlineUsers, tokenIdMapping) {
-  let user;
-  let username;
-  let userObj;
-  try {
-    if (!tokenIdMapping.has(token)) {
-      console.log("Cannot find user at tokenIdMapping, selecting from db...");
-      let result = await userController.selectUserInfoByToken(token);
-      user = result[0].id;
-      username = result[0].user_name;
-      userObj = {
-        username,
-        time: Date.now(),
-        inviting: 0,
-        invitation_accepted: 0,
-        invited: []
-      };
-      console.log(user, username);
-      console.log("inserting onlineUsers...");
-      onlineUsers.set(user, userObj);
-      console.log("inserting tokenIdMapping...");
-      tokenIdMapping.set(token, user);
-      console.log("onlineUsers", onlineUsers);
-      console.log("onlineUsers size", onlineUsers.size);
-      return { user, username };
-    }
-    console.log("Found user at tokenIdMapping");
-    user = tokenIdMapping.get(token);
-    username = onlineUsers.get(user).username;
-    return { user, username };
-  } catch (err) {
-    console.log(err);
-  }
-}
 
 let getStranger = (inviterId, availableUsers) => {
   if (availableUsers.size <= 1) {
@@ -72,19 +32,6 @@ let getStranger = (inviterId, availableUsers) => {
     return newStrangerId;
   } else {
     return strangerId;
-  }
-};
-
-const getMatchStatus = async matchKey => {
-  try {
-    let result = await matchController.getMatchStatus(matchKey);
-    if (result.length > 0) {
-      return result[0].match_status;
-    }
-    return 1;
-  } catch (err) {
-    console.log(err);
-    return 1;
   }
 };
 
@@ -131,51 +78,10 @@ const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
   return finalCode;
 };
 
-const getQuestionDetail = async (matchKey, submitBoolean) => {
-  // get questionID with matchKey
-  let questionID = await matchController.getMatchQuestion(matchKey);
-  // get question details with questionID
-  let getQuestionResult = await questionController.selectQuestion(questionID);
-  // get sample test case with questionID
-  let smallSampleCases = await questionController.selectSampleTestCases(
-    questionID,
-    0
-  );
-  let largeSampleCases = await questionController.selectSampleTestCases(
-    questionID,
-    1
-  );
-
-  let questionObject = {
-    questionID: questionID,
-    question: getQuestionResult.question_name,
-    description: getQuestionResult.question_text,
-    code: getQuestionResult.question_code,
-    difficulty: getQuestionResult.difficulty,
-    category: getQuestionResult.category,
-    const: getQuestionResult.question_const
-  };
-
-  // senario: both users join (send sampleCases[0])
-  if (!submitBoolean) {
-    let sampleCase = smallSampleCases[0];
-    questionObject.sampleCase = fs.readFileSync(sampleCase.test_case_path, {
-      encoding: "utf-8"
-    });
-    questionObject.sampleExpected = sampleCase.test_result;
-    return questionObject;
-  }
-
-  // senario: a user submits (send sampleCases)
-  questionObject.smallSampleCases = smallSampleCases;
-  questionObject.largeSampleCases = largeSampleCases;
-  return questionObject;
-};
-
 const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
   return new Promise((resolve, reject) => {
     // limit max memory to prevent out of memory situations
-    let ls = spawn("node", [
+    let childProcess = spawn("node", [
       `--max-old-space-size=${memoryLimit}`,
       `./sessions/${matchKey}_${user}.js`
     ]);
@@ -184,21 +90,21 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
     // timeout error setting
     let timeoutMs = getTimeoutMs(difficulty);
     let setTimeoutId = setTimeout(() => {
-      ls.kill();
+      childProcess.kill();
       console.log("timeout: killing child process...");
       reject("EXECUTION TIMED OUT");
     }, timeoutMs);
 
-    ls.stdout.on("data", data => {
+    childProcess.stdout.on("data", data => {
       console.log(`stdout: ${data}`);
       // output 性質是 ArrayBuffer 所以要先處理
       result += arrayBufferToStr(data);
     });
 
-    ls.stderr.on("data", data => {
+    childProcess.stderr.on("data", data => {
       let dataStr = arrayBufferToStr(data);
       if (data.includes("out of memory")) {
-        ls.kill();
+        childProcess.kill();
         console.log("out of memory: killing child process...");
         reject("OUT OF MEMORY");
       }
@@ -220,7 +126,7 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
       console.error(`stderr: ${data}`);
     });
 
-    ls.on("error", reject).on("close", code => {
+    childProcess.on("error", reject).on("close", code => {
       if (code === 0) {
         resolve(result);
       } else {
@@ -255,32 +161,6 @@ const getTimeoutMs = difficulty => {
     return 15000;
   }
   return 20000;
-};
-
-const calculatePoints = async (
-  matchKey,
-  totalCorrectness,
-  largeExecTimeArr
-) => {
-  let perfPoints = 0;
-  let largePassedNo = 0;
-  let questionID = await matchController.getMatchQuestion(matchKey);
-  let largeThreshold = await questionController.selectThresholdMs(questionID);
-  for (let i = 0; i < largeThreshold.length; i++) {
-    // large test failed: -1 in largeExecTimeArr
-    if (parseInt(largeExecTimeArr[i]) >=0 && (parseInt(largeExecTimeArr[i]) <= largeThreshold[i].threshold_ms)) {
-      perfPoints += 100 / largeThreshold.length;
-      largePassedNo += 1;
-    };
-  };
-  let largePassed = `${largePassedNo}/${largeExecTimeArr.length}`;
-  let points = (totalCorrectness + perfPoints) / 2;
-  let calculated = {
-    perfPoints,
-    points,
-    largePassed
-  };
-  return calculated;
 };
 
 const getWinner = async (winnerCheck, matchKey) => {
@@ -327,29 +207,6 @@ const checkSubmitTime = (winnerCheck, matchKey, user) => {
   return submitTime;
 };
 
-const updateWinnerCheck = (winnerCheck, matchKey, result) => {
-  // update winnerCheck {} for performance points calculation
-  if (!winnerCheck.has(matchKey)) {
-    winnerCheck.set(matchKey, []);
-  }
-  winnerCheck.get(matchKey).push(result);
-};
-
-const deleteTimedOutMatches = async (matchList, matchKey) => {
-  let startTime = matchList.get(matchKey).start_time;
-  if (startTime > 0 && Date.now() - startTime > 1000 * 60 * 60) {
-    console.log("match timeout, deleting match in matchList...", matchKey);
-    matchList.delete(matchKey);
-    console.log("updating match status to 1...");
-    try {
-      await matchController.updateMatchStatus(matchKey, 1);
-    } catch (err) {
-      console.log(err);
-    }
-    console.log("matchList size after checking", matchList.size);
-  }
-};
-
 const deleteTimedOutUsers = async (onlineUsers, availableUsers, inMatchUsers, tokenIdMapping) => {
   for (let userid of onlineUsers.keys()) {
     let value = onlineUsers.get(userid);
@@ -379,17 +236,12 @@ const arrayBufferToStr = buf => {
 
 module.exports = {
   getMatchKey,
-  getUserInfo,
   getStranger,
-  getMatchStatus,
   setUserCodeFile,
   deleteFile,
   putTogetherCodeOnRun,
   putTogetherCodeOnSubmit,
-  getQuestionDetail,
   runCodeInChildProcess,
-  calculatePoints,
-  deleteTimedOutMatches,
   deleteTimedOutUsers,
   addSampleTestResult,
   getWinner,

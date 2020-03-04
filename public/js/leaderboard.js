@@ -2,7 +2,7 @@ main();
 
 async function main() {
   try {
-    const response = await axios.get(`/api/v1/user/leaderboard`);
+    const response = await axios.get(`/api/${CST.API_VERSION}/user/leaderboard`);
     let leaderboardData = response.data;
     showLeaderboard(leaderboardData);
   } catch (err) {

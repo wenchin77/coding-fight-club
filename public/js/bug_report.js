@@ -11,7 +11,7 @@ const sendBug = async () => {
     showAlert('Make sure you write down the problem before you submit!');
     return;
   };
-  let result = await axios.post(`/api/v1/user/bug_report?token=${token}&bug=${bug}`);
+  let result = await axios.post(`/api/${CST.API_VERSION}/user/bug_report?token=${token}&bug=${bug}`);
   showAlert(result.data);
 }
 

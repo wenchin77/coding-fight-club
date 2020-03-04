@@ -39,14 +39,14 @@ socket.init = server => {
     console.log("user connected at", url);
 
     // add user in tokenIdMapping & onlineUsers
-    const userInfo = await matchUtil.getUserInfo(token, onlineUsers, tokenIdMapping);
+    const userInfo = await userController.getUserInfo(token, onlineUsers, tokenIdMapping);
     console.log("userInfo", userInfo);
 
     
 
     socket.on("online", async token => {
       console.log("---------> online");
-      let userInfo = await matchUtil.getUserInfo(token, onlineUsers, tokenIdMapping);
+      let userInfo = await userController.getUserInfo(token, onlineUsers, tokenIdMapping);
       console.log("userInfo", userInfo);
       let user = userInfo.user;
 
@@ -101,13 +101,13 @@ socket.init = server => {
       let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
-      let matchStatus = await matchUtil.getMatchStatus(matchKey);
+      let matchStatus = await matchController.getMatchStatus(matchKey);
       console.log("matchStatus", matchStatus);
       if (matchStatus > 0) {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
         return;
       }
-      let userInfo = await matchUtil.getUserInfo(token, onlineUsers, tokenIdMapping);
+      let userInfo = await userController.getUserInfo(token, onlineUsers, tokenIdMapping);
       console.log("userInfo", userInfo);
       let user = userInfo.user;
       let username = userInfo.username;
@@ -184,7 +184,7 @@ socket.init = server => {
       }
 
       // when there are 2 people in the room
-      let questionObject = await matchUtil.getQuestionDetail(matchKey, false);
+      let questionObject = await matchController.getQuestionDetail(matchKey, false);
 
       // send user info to display
       const iterator1 = matchList.get(matchKey).users.values();
@@ -243,7 +243,7 @@ socket.init = server => {
       let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
-      let matchStatus = await matchUtil.getMatchStatus(matchKey);
+      let matchStatus = await matchController.getMatchStatus(matchKey);
       console.log("matchStatus", matchStatus);
       if (matchStatus > 0) {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
@@ -292,7 +292,7 @@ socket.init = server => {
       let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
 
       // check if match has ended, if so redirect
-      let matchStatus = await matchUtil.getMatchStatus(matchKey);
+      let matchStatus = await matchController.getMatchStatus(matchKey);
       console.log("matchStatus", matchStatus);
       if (matchStatus > 0) {
         socket.emit("rejectUser", "This match has ended. Start a new one now!");
@@ -312,7 +312,7 @@ socket.init = server => {
       }
 
       let code = data.code;
-      let questionObject = await matchUtil.getQuestionDetail(matchKey, true);
+      let questionObject = await matchController.getQuestionDetail(matchKey, true);
       let questionConst = questionObject.const;
       let smallTestCases = questionObject.smallSampleCases;
       let difficulty = questionObject.difficulty;
@@ -422,7 +422,7 @@ socket.init = server => {
       let answerTime = (Date.now() - startTime) / 1000; // in seconds
 
       // rate correctness, performance
-      let calculated = await matchUtil.calculatePoints(
+      let calculated = await matchController.calculatePoints(
         matchKey,
         correctness,
         largeExecTimeArr
@@ -704,7 +704,7 @@ socket.init = server => {
       if (url.includes("/match/") && matchList.has(matchKey)) {
         console.log("user left match page");
         // if time's up delete match from matchList
-        matchUtil.deleteTimedOutMatches(matchList, matchKey);
+        matchController.deleteTimedOutMatches(matchList, matchKey);
       }
       console.log("user disconnected at", url);
     });
@@ -720,7 +720,7 @@ setInterval(async () => {
   matchUtil.deleteTimedOutUsers(onlineUsers, availableUsers, inMatchUsers, tokenIdMapping);
   // delete timed out matches
   for (let matchKey of matchList.keys()) {
-    matchUtil.deleteTimedOutMatches(matchList, matchKey);
+    matchController.deleteTimedOutMatches(matchList, matchKey);
   }
 }, 1000 * 60);
 

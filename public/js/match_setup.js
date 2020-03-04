@@ -128,7 +128,7 @@ function setElementActive(parent, activeClassName) {
 
 async function getQuestion(category, difficulty) {
   try {
-    const response = await axios.get(`/api/v1/question/${category}?difficulty=${difficulty}`)
+    const response = await axios.get(`/api/${CST.API_VERSION}/question/${category}?difficulty=${difficulty}`)
     if (!response.data.question) {
       showAlert(`Oh no, we can't find this type of questions in our database. Please reselect.`);
       return false;

@@ -25,7 +25,7 @@ async function main() {
 
 async function getUserInfo (token) {
   try {
-    let response = await axios.post(`/api/v1/user/get_user_info?token=${token}`);
+    let response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_info?token=${token}`);
     return response.data[0].id;
   } catch (error) {
     console.log(error);
@@ -34,7 +34,7 @@ async function getUserInfo (token) {
 
 async function getMatchSummary (userID) {
   try {
-    const response = await axios.get(`/api/v1/match/result/all?userid=${userID}`)
+    const response = await axios.get(`/api/${CST.API_VERSION}/match/result/all?userid=${userID}`)
     return response.data;
   } catch (error) {
     console.log(error);
@@ -140,7 +140,7 @@ function generateTable(table, data) {
 
 async function showProfile(token) {
   try {
-    const response = await axios.post(`/api/v1/user/get_user_info?token=${token}`)
+    const response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_info?token=${token}`)
     return response.data[0];
   } catch (error) {
     console.log(error);

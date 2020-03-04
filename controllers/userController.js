@@ -1,48 +1,21 @@
 // const AppError = require('../util/appError');
 // sql 語句拆到 model/user 去
 const userModel = require("../models/user");
+const errors = require("../util/errors");
 const crypto = require("crypto");
 
 module.exports = {
-  insertUser: async data => {
-    let now = Date.now();
-    let hash = crypto.createHash("sha256");
-    hash.update(data.email + data.password + now);
-    let token = hash.digest("hex");
-
-    // encrypt password
-    let passwordHash = crypto.createHash("sha256");
-    passwordHash.update(data.password);
-    let encryptedPassword = passwordHash.digest("hex");
-
-    try {
-      let userInfo = {
-        user_name: data.username,
-        user_password: encryptedPassword,
-        email: data.email,
-        provider: "native",
-        access_expired: now + 30 * 24 * 60 * 60 * 1000, // 30 days
-        token,
-        points: 0,
-        level_id: 1 // beginner level id
-      };
-      console.log("inserting user...");
-      let result = await userModel.queryInsertUser(userInfo);
-      let getUserInfo = await userModel.querySelectUserByEmail(data.email);
-      console.log(getUserInfo);
-      return {
-        id: getUserInfo[0].id,
-        username: getUserInfo[0].user_name,
-        email: getUserInfo[0].email,
-        provider: getUserInfo[0].provider,
-        token: getUserInfo[0].token,
-        points: getUserInfo[0].points,
-        level: getUserInfo[0].level_name,
-        access_expired: getUserInfo[0].access_expired
-      };
-    } catch (err) {
-      console.log(err);
-    }
+  signup: () => {
+    return async (req, res) => {
+      try {
+        let data = req.body;
+        let result = await userModel.queryInsertUser(data);
+        res.status(200).send(result);
+      } catch (err) {
+        console.log("catched err", err);
+        res.status(err.statusCode).send(err.message);
+      }
+    };
   },
 
   updateUser: async data => {
@@ -280,23 +253,23 @@ module.exports = {
     }
   },
 
-  countUsersByEmail: async email => {
-    try {
-      let emailNumObj = await userModel.queryCountUsersByEmail(email);
-      return emailNumObj[0]["COUNT (*)"];
-    } catch (err) {
-      console.log(err);
-    }
-  },
+  // countUsersByEmail: async email => {
+  //   try {
+  //     let emailNumObj = await userModel.queryCountUsersByEmail(email);
+  //     return emailNumObj[0]["COUNT (*)"];
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // },
 
-  countUsersByUserName: async username => {
-    try {
-      let emailNumObj = await userModel.queryCountUsersByUsername(username);
-      return emailNumObj[0]["COUNT (*)"];
-    } catch (err) {
-      console.log(err);
-    }
-  },
+  // countUsersByUserName: async username => {
+  //   try {
+  //     let emailNumObj = await userModel.queryCountUsersByUsername(username);
+  //     return emailNumObj[0]["COUNT (*)"];
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // },
 
   countPasswordEmailMatch: async (email, password) => {
     // encrypt password
@@ -309,15 +282,6 @@ module.exports = {
         encryptedPassword
       );
       return rowNumObj[0]["COUNT (*)"];
-    } catch (err) {
-      console.log(err);
-    }
-  },
-
-  selectUserInfoByToken: async token => {
-    try {
-      let result = await userModel.querySelectUserInfoByToken(token);
-      return result;
     } catch (err) {
       console.log(err);
     }
@@ -348,5 +312,40 @@ module.exports = {
 
   selectLeaderboardUsers: async () => {
     return await userModel.querySelectLeaderboardUsers();
+  },
+
+  getUserInfo: async (token, onlineUsers, tokenIdMapping) => {
+    let user;
+    let username;
+    let userObj;
+    try {
+      if (!tokenIdMapping.has(token)) {
+        console.log("Cannot find user at tokenIdMapping, selecting from db...");
+        let result = await userModel.querySelectUserInfoByToken(token);
+        user = result[0].id;
+        username = result[0].user_name;
+        userObj = {
+          username,
+          time: Date.now(),
+          inviting: 0,
+          invitation_accepted: 0,
+          invited: []
+        };
+        console.log(user, username);
+        console.log("inserting onlineUsers...");
+        onlineUsers.set(user, userObj);
+        console.log("inserting tokenIdMapping...");
+        tokenIdMapping.set(token, user);
+        console.log("onlineUsers", onlineUsers);
+        console.log("onlineUsers size", onlineUsers.size);
+        return { user, username };
+      }
+      console.log("Found user at tokenIdMapping");
+      user = tokenIdMapping.get(token);
+      username = onlineUsers.get(user).username;
+      return { user, username };
+    } catch (err) {
+      console.log(err);
+    }
   }
 };

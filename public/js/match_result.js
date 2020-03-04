@@ -21,7 +21,7 @@ main();
 
 async function getUserInfo(token) {
   try {
-    let response = await axios.post(`/api/v1/user/get_user_info?token=${token}`);
+    let response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_info?token=${token}`);
     console.log(response.data[0].id)
     return response.data[0].id;
   } catch (error) {
@@ -32,7 +32,7 @@ async function getUserInfo(token) {
 
 async function getMatchID (matchKey) {
   try {
-    let response = await axios.get(`/api/v1/match/get_matchid?matchkey=${matchKey}`)
+    let response = await axios.get(`/api/${CST.API_VERSION}/match/get_matchid?matchkey=${matchKey}`)
     let matchID = response.data;
     return matchID;
   } catch (error) {
@@ -42,7 +42,7 @@ async function getMatchID (matchKey) {
 
 async function getPastExecTime (questionID) {
   try {
-    const response = await axios.get(`/api/v1/match/result/past_performance?questionid=${questionID}`)
+    const response = await axios.get(`/api/${CST.API_VERSION}/match/result/past_performance?questionid=${questionID}`)
     return `${parseInt(response.data)} ms`;
   } catch (error) {
     console.log(error);
@@ -52,7 +52,7 @@ async function getPastExecTime (questionID) {
 
 async function getMatchDetails (matchID) {
   try {
-    const response = await axios.get(`/api/v1/match/result/details?matchid=${matchID}`)
+    const response = await axios.get(`/api/${CST.API_VERSION}/match/result/details?matchid=${matchID}`)
     console.log('match detail data===', response.data)
     return response.data;
   } catch (error) {

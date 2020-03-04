@@ -67,7 +67,7 @@ document.forms['signin'].addEventListener('submit', (event) => {
       return;
     };
     // client error
-    showAlert(error.response.data.error);
+    showAlert(error.response.data);
   });
 });
 
@@ -122,7 +122,7 @@ document.forms['signup'].addEventListener('submit', (event) => {
       return;
     };
     // client error
-    showAlert(error.response.data.error);
+    showAlert(error.response.data);
   });
 });
 
@@ -142,7 +142,7 @@ async function googleSignin() {
     console.log(data);
     
     try {
-      let res = await axios.post("api/v1/user/signin", data);
+      let res = await axios.post(`api/${CST.API_VERSION}/user/signin`, data);
       console.log(res);
       // add userinfo to localStorage
       localStorage.setItem('id', res.data.id);
@@ -171,7 +171,7 @@ async function googleSignin() {
         return;
       };
       // client error
-      showAlert(error.response.data.error);    
+      showAlert(error.response.data);    
     }
 	})
 }
@@ -221,7 +221,7 @@ async function getGithubProfile(token) {
     };
     console.log('data', data);
 
-    let res = await axios.post("api/v1/user/signin", data);
+    let res = await axios.post(`api/${CST.API_VERSION}/user/signin`, data);
     console.log(res);
     // add userinfo to localStorage
     localStorage.setItem('id', res.data.id);

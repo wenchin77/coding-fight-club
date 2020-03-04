@@ -10,7 +10,7 @@ require('dotenv').config();
 
 
 // 路徑是 /api/v1/user
-router.post('/signup', handler.signup(userController));
+router.post('/signup', userController.signup());
 
 router.post('/get_user_info', async (req, res) => {
   let token = req.query.token;
