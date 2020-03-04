@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-// request: to get google profile
-const request = require("request");
 const axios = require('axios');
 const userController = require('../controllers/userController');
 // for github clientid & client secret

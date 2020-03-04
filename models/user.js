@@ -1,6 +1,8 @@
 const mysql = require("../util/mysql.js");
 const errors = require("../util/errors");
 const crypto = require("crypto");
+// request: to get google profile
+const request = require("request");
 
 module.exports = {
   querySignUp: async data => {
