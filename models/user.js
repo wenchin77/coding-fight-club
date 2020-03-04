@@ -68,6 +68,8 @@ module.exports = {
       return result;
     } catch (err) {
       await mysql.query("ROLLBACK");
+      console.log('ROLLBACK at querySignUp');
+      console.log(err);
       throw err;
     }
   },
@@ -368,17 +370,11 @@ module.exports = {
       };
     } catch (err) {
       await mysql.query("ROLLBACK");
-      console.log('ROLLBACK: ', err)
+      console.log('ROLLBACK at querySignIn');
+      console.log(err);
       throw err;
     }
   },
-
-  // queryUpdateUser: async data => {
-  //   return mysql.query(
-  //     "UPDATE user_table SET token = ?, access_expired = ? WHERE email = ? LIMIT 1",
-  //     [data.token, data.access_expired, data.email]
-  //   );
-  // },
 
   // querySelectUserByEmail: async email => {
   //   return mysql.query(

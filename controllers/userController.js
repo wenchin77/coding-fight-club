@@ -2,7 +2,9 @@
 // sql 語句拆到 model/user 去
 const userModel = require("../models/user");
 const errors = require("../util/errors");
-const crypto = require("crypto");
+const axios = require('axios');
+// for github clientid & client secret
+require('dotenv').config();
 
 module.exports = {
   signup: () => {
@@ -16,7 +18,9 @@ module.exports = {
           res.status(err.statusCode).send(err.message);
           return;
         }
-        res.status(errors.serverError.statusCode).send(errors.serverError.message);
+        res
+          .status(errors.serverError.statusCode)
+          .send(errors.serverError.message);
       }
     };
   },
@@ -24,12 +28,12 @@ module.exports = {
   signin: () => {
     return async (req, res) => {
       let data = req.body;
-      console.log(data)
+      console.log(data);
       // req.body eg. { email: '1234@com', password: '1234' }
       if (data.password) {
-        data.provider = 'native';
+        data.provider = "native";
       }
-      try{
+      try {
         let result = await userModel.querySignIn(data);
         res.status(200).send(result);
       } catch (err) {
@@ -37,22 +41,69 @@ module.exports = {
           res.status(err.statusCode).send(err.message);
           return;
         }
-        res.status(errors.serverError.statusCode).send(errors.serverError.message);
+        res
+          .status(errors.serverError.statusCode)
+          .send(errors.serverError.message);
       }
-    }
+    };
   },
 
-  selectUserByToken: async token => {
-    try {
-      let result = await userModel.querySelectUserByToken(token);
-      return result;
-    } catch (err) {
-      console.log(err);
-    }
+  githubRedirect: () => {
+    return async (req, res) => {
+      console.log("github_redirect req.query.code: ", req.query.code);
+      try {
+        const requestToken = req.query.code;
+        let clientID = process.env.GITHUB_CLIENTID;
+        let clientSecret = process.env.GITHUB_CLIENTSECRET;
+        let getTokenResult = await axios({
+          method: "post",
+          url: `https://github.com/login/oauth/access_token?client_id=${clientID}&client_secret=${clientSecret}&code=${requestToken}`,
+          // Set the content type header, so that we get the response in JSON
+          headers: {
+            accept: "application/json"
+          }
+        });
+        console.log(getTokenResult.data);
+        let accessToken = getTokenResult.data.access_token;
+        res.redirect(`/signin?access_token=${accessToken}`);
+      } catch (err) {
+        console.log(err);
+        res
+          .status(errors.serverError.statusCode)
+          .send(errors.serverError.message);
+      }
+    };
   },
 
-  insertBugReport: async (token, bug) => {
-    return await userModel.queryInsertBugReport(token, bug);
+  getUserProfile: () => {
+    return async (req, res) => {
+      let token = req.query.token;
+      try {
+        let result = await userModel.querySelectUserByToken(token);
+        res.status(200).json(result);
+      } catch (err) {
+        console.log(err);
+        res
+          .status(errors.serverError.statusCode)
+          .send(errors.serverError.message);
+      }
+    };
+  },
+
+  reportBugs: () => {
+    return async (req, res) => {
+      let token = req.query.token;
+      let bug = req.query.bug;
+      try {
+        await userModel.queryInsertBugReport(token, bug);
+        res.status(200).send(`Thanks! Here's the bug report you filed: ${bug}`);
+      } catch (err) {
+        console.log(err);
+        res
+          .status(errors.serverError.statusCode)
+          .send(errors.serverError.message);
+      }
+    };
   },
 
   updateUserPointsLevel: async user_id => {
@@ -80,9 +131,11 @@ module.exports = {
         let result = await userModel.querySelectLeaderboardUsers();
         res.status(200).json(result);
       } catch (err) {
-        console.log(err)
-        res.status(errors.serverError.statusCode).send(errors.serverError.message);
-      };
+        console.log(err);
+        res
+          .status(errors.serverError.statusCode)
+          .send(errors.serverError.message);
+      }
     };
   },
 

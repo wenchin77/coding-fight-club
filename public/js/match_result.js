@@ -21,7 +21,7 @@ main();
 
 async function getUserInfo(token) {
   try {
-    let response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_info?token=${token}`);
+    let response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_profile?token=${token}`);
     console.log(response.data[0].id)
     return response.data[0].id;
   } catch (error) {
