@@ -11,8 +11,10 @@ module.exports = {
     try {
       let data = req.body;
       let result = await userModel.querySignUp(data);
+      console.log('result ====',result)
       res.status(200).send(result);
     } catch (err) {
+      console.log('err at userController ====', err);
       if (err.statusCode) {
         res.status(err.statusCode).send(err.message);
         return;

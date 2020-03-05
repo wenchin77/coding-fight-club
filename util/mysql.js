@@ -1,8 +1,4 @@
-// MySQL Initialization
 const mysql = require("mysql");
-const util = require('util');
-// const mysql = require("promise-mysql");
-// Encrypted data
 require("dotenv").config();
 
 // Use pool to reuse connections and enhance the performance of executing commands
@@ -14,28 +10,44 @@ let dbConfig = {
   database: process.env.MYSQL_DATABASE
 };
 const pool = mysql.createPool(dbConfig);
-pool.getConnection((err, connection) => {
-  if (err) throw err;
-  console.log(`MySQL pool connected at ${process.env.MYSQL_HOST}!`);
-});
+
+const connection = () => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) reject(err);
+      console.log("MySQL pool connected: threadId " + connection.threadId);
+      const query = (sql, binding) => {
+        return new Promise((resolve, reject) => {
+          connection.query(sql, binding, (err, result) => {
+            if (err) reject(err);
+            resolve(result);
+          });
+        });
+      };
+      const release = () => {
+        return new Promise((resolve, reject) => {
+          if (err) reject(err);
+          console.log("MySQL pool released: threadId " + connection.threadId);
+          resolve(connection.release());
+        });
+      };
+      resolve({ query, release });
+    });
+  });
+};
+
+const query = (sql, binding) => {
+  return new Promise((resolve, reject) => {
+    pool.query(sql, binding, (err, result, fields) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
 
 // Use util to promisify callback functions automatically
 module.exports = {
   pool,
-  query: util.promisify(pool.query).bind(pool)
+  connection,
+  query
 };
-
-// module.exports = async () => {
-//   try {
-//     let pool;
-//     let con;
-//     if (pool) con = pool.getConnection();
-//     else {
-//       pool = await mysql.createPool(dbConfig);
-//       con = pool.getConnection();
-//     }
-//     return con;
-//   } catch (ex) {
-//     throw ex;
-//   }
-// };

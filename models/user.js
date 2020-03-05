@@ -6,25 +6,26 @@ const request = require("request");
 
 module.exports = {
   querySignUp: async data => {
-    const connection = await mysql.pool.getConnection();
+    let connection = await mysql.connection();
     try {
       console.log("at querySignUp...");
       // data eg. { username: '1234', email: '1234@com', password: '1234' }
-      await mysql.query("START TRANSACTION");
+      await connection.query("START TRANSACTION");
 
-      let usernameNo = await mysql.query(
-        "SELECT COUNT (*) FROM user_table WHERE user_name = ?",
+      let usernameNo = await connection.query(
+        "SELECT COUNT(*) FROM user_table WHERE user_name = ?",
         [data.username]
       );
-      if (usernameNo[0]["COUNT (*)"] > 0) {
+
+      if (usernameNo[0]["COUNT(*)"] > 0) {
         throw errors.usernameTakenError;
       }
 
-      let emailNo = await mysql.query(
-        "SELECT COUNT (*) FROM user_table WHERE email = ?",
+      let emailNo = await connection.query(
+        "SELECT COUNT(*) FROM user_table WHERE email = ?",
         [data.email]
       );
-      if (emailNo[0]["COUNT (*)"] > 0) {
+      if (emailNo[0]["COUNT(*)"] > 0) {
         throw errors.userEmailTakenError;
       }
 
@@ -48,9 +49,9 @@ module.exports = {
         level_id: 1 // beginner level id
       };
 
-      await mysql.query("INSERT INTO user_table SET ?", userInfo);
+      await connection.query("INSERT INTO user_table SET ?", userInfo);
 
-      let getUserInfo = await mysql.query(
+      let getUserInfo = await connection.query(
         "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
         [data.email]
       );
@@ -65,28 +66,28 @@ module.exports = {
         level: getUserInfo[0].level_name,
         access_expired: getUserInfo[0].access_expired
       };
-      await mysql.query("COMMIT");
-      await connection.release();
+      await connection.query("COMMIT");
       return result;
     } catch (err) {
-      await mysql.query("ROLLBACK");
-      await connection.release();
+      await connection.query("ROLLBACK");
       console.log('ROLLBACK at querySignUp');
       console.log(err);
       throw err;
+    } finally {
+      await connection.release();
     }
   },
 
   querySignIn: async data => {
-    const connection = await mysql.pool.getConnection();
+    let connection = await mysql.connection();
     try {
       console.log("at querySignIn...");
       // data eg. { provider: 'native', email: '1234@com', password: '1234' }
-      await mysql.query("START TRANSACTION");
+      await connection.query("START TRANSACTION");
 
       // native
       if (data.provider === "native") {
-        let emailNo = await mysql.query(
+        let emailNo = await connection.query(
           "SELECT COUNT (*) FROM user_table WHERE email = ?",
           [data.email]
         );
@@ -97,7 +98,7 @@ module.exports = {
         let passwordHash = crypto.createHash("sha256");
         passwordHash.update(data.password);
         let encryptedPassword = passwordHash.digest("hex");
-        let passwordCheck = await mysql.query(
+        let passwordCheck = await connection.query(
           "SELECT COUNT (*) FROM user_table WHERE email = ? AND user_password = ?",
           [data.email, encryptedPassword]
         );
@@ -107,7 +108,7 @@ module.exports = {
 
         // check if token's not expired, if not send back the same token, if so set a new token
         let now = Date.now();
-        let getUserInfo = await mysql.query(
+        let getUserInfo = await connection.query(
           "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
           [data.email]
         );
@@ -123,8 +124,7 @@ module.exports = {
             level: getUserInfo[0].level_name,
             access_expired: getUserInfo[0].access_expired
           };
-          await mysql.query("COMMIT");
-          await connection.release();
+          await connection.query("COMMIT");
           return userInfo;
         }
         // token expired: set a new token and send back to frontend
@@ -134,12 +134,12 @@ module.exports = {
         let newAccessExpiredTime = now + 30 * 24 * 60 * 60 * 1000; // 30 days
 
         console.log("updating user...");
-        await mysql.query(
+        await connection.query(
           "UPDATE user_table SET token = ?, access_expired = ? WHERE email = ? LIMIT 1",
           [token, newAccessExpiredTime, data.email]
         );
 
-        let updatedUserInfo = await mysql.query(
+        let updatedUserInfo = await connection.query(
           "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
           [data.email]
         );
@@ -153,8 +153,7 @@ module.exports = {
           level: updatedUserInfo[0].level,
           access_expired: updatedUserInfo[0].access_expired
         };
-        await mysql.query("COMMIT");
-        await connection.release();
+        await connection.query("COMMIT");
         return result;
       };
 
@@ -168,7 +167,7 @@ module.exports = {
         }
 
         // check in db if email exists
-        let emailNo = await mysql.query(
+        let emailNo = await connection.query(
           "SELECT COUNT (*) FROM user_table WHERE email = ?",
           [profile.email]
         );
@@ -189,8 +188,8 @@ module.exports = {
             level_id: 1 // beginner level id
           };
           console.log("inserting user...");
-          await mysql.query("INSERT INTO user_table SET ?", userInfo);
-          let getUserInfo = await mysql.query(
+          await connection.query("INSERT INTO user_table SET ?", userInfo);
+          let getUserInfo = await connection.query(
             "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
             [profile.email]
           );
@@ -206,15 +205,14 @@ module.exports = {
             level: getUserInfo[0].level_name,
             access_expired: getUserInfo[0].access_expired
           };
-          await mysql.query("COMMIT");
-          await connection.release();
+          await connection.query("COMMIT");
           return result;
         }
 
         // check if token's not expired, if not send back the same token, if so set a new token
         console.log("google user found, updating...");
         let now = Date.now();
-        let getUserInfo = await mysql.query(
+        let getUserInfo = await connection.query(
           "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
           [profile.email]
         );
@@ -230,8 +228,7 @@ module.exports = {
             level: getUserInfo[0].level_name,
             access_expired: getUserInfo[0].access_expired
           };
-          await mysql.query("COMMIT");
-          await connection.release();
+          await connection.query("COMMIT");
           return userInfo;
         }
         // token expired: set a new token and send back to frontend
@@ -241,12 +238,12 @@ module.exports = {
         let newAccessExpiredTime = now + 30 * 24 * 60 * 60 * 1000; // 30 days
 
         console.log("updating user...");
-        await mysql.query(
+        await connection.query(
           "UPDATE user_table SET token = ?, access_expired = ? WHERE email = ? LIMIT 1",
           [token, newAccessExpiredTime, profile.email]
         );
 
-        let updatedUserInfo = await mysql.query(
+        let updatedUserInfo = await connection.query(
           "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
           [profile.email]
         );
@@ -260,8 +257,7 @@ module.exports = {
           level: updatedUserInfo[0].level,
           access_expired: updatedUserInfo[0].access_expired
         };
-        await mysql.query("COMMIT");
-        await connection.release();
+        await connection.query("COMMIT");
         return result;
       };
 
@@ -280,7 +276,7 @@ module.exports = {
         }
 
         // check in db if email exists
-        let emailNo = await mysql.query(
+        let emailNo = await connection.query(
           "SELECT COUNT (*) FROM user_table WHERE email = ?",
           [data.email]
         );
@@ -304,8 +300,8 @@ module.exports = {
             level_id: 1 // beginner level id
           };
           console.log("inserting user...");
-          await mysql.query("INSERT INTO user_table SET ?", userInfo);
-          let getUserInfo = await mysql.query(
+          await connection.query("INSERT INTO user_table SET ?", userInfo);
+          let getUserInfo = await connection.query(
             "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
             [data.email]
           );
@@ -322,15 +318,14 @@ module.exports = {
             level: getUserInfo[0].level_name,
             access_expired: getUserInfo[0].access_expired
           };
-          await mysql.query("COMMIT");
-          await connection.release();
+          await connection.query("COMMIT");
           return result;
         }
 
         // check if token's not expired, if not send back the same token, if so set a new token
         console.log("github user found, updating...");
         let now = Date.now();
-        let getUserInfo = await mysql.query(
+        let getUserInfo = await connection.query(
           "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
           [data.email]
         );
@@ -346,8 +341,7 @@ module.exports = {
             level: getUserInfo[0].level_name,
             access_expired: getUserInfo[0].access_expired
           };
-          await mysql.query("COMMIT");
-          await connection.release();
+          await connection.query("COMMIT");
           return userInfo;
         }
         // token expired: set a new token and send back to frontend
@@ -357,12 +351,12 @@ module.exports = {
         let newAccessExpiredTime = now + 30 * 24 * 60 * 60 * 1000; // 30 days
 
         console.log("updating user...");
-        await mysql.query(
+        await connection.query(
           "UPDATE user_table SET token = ?, access_expired = ? WHERE email = ? LIMIT 1",
           [token, newAccessExpiredTime, data.email]
         );
 
-        let updatedUserInfo = await mysql.query(
+        let updatedUserInfo = await connection.query(
           "SELECT user_table.*, level_table.level_name FROM user_table INNER JOIN level_table ON user_table.level_id = level_table.id WHERE user_table.email = ?",
           [data.email]
         );
@@ -376,17 +370,16 @@ module.exports = {
           level: updatedUserInfo[0].level,
           access_expired: updatedUserInfo[0].access_expired
         };
-        await mysql.query("COMMIT");
-        await connection.release();
+        await connection.query("COMMIT");
         return result;
       };
     } catch (err) {
-      await mysql.query("ROLLBACK");
-      await connection.release();
-      console.log()
+      await connection.query("ROLLBACK");
       console.log('ROLLBACK at querySignIn');
       console.log(err);
       throw err;
+    } finally {
+      await connection.release();
     }
   },
 
@@ -429,10 +422,11 @@ module.exports = {
     ]);
   },
 
-  querySelectLeaderboardUsers: () => {
-    return mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
+  querySelectLeaderboardUsers: async () => {
+    const result = await mysql.query(`SELECT u.user_name, u.points, l.level_name, u.created_at FROM user_table u
     INNER JOIN level_table l ON u.level_id = l.id
     ORDER BY points DESC LIMIT 20`);
+    return result;
   }
 };
 
