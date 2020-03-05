@@ -1,8 +1,13 @@
 const questionModel = require("../models/question");
 const fs = require("fs");
+require("dotenv").config();
 
 module.exports = {
   insertQuestion: async (req, res) => {
+    if (req.body.admin !== process.env.ADMIN_PASSWORD) {
+      res.send('Access forbidden');
+      return;
+    };
     let question = {
       question_name: req.body.title,
       question_text: req.body.description,
@@ -16,17 +21,23 @@ module.exports = {
       console.log(result);
       res.send(`Question inserted: ${JSON.stringify(question)}`);
     } catch (err) {
-      console.log(err);
-      res
-        .status(errors.serverError.statusCode)
-        .send(errors.serverError.message);
+      res.send(err);
     }
   },
 
-  insertTest: async (question_id, data, test_result, is_large_case) => {
-    const dir = `./testcases/${question_id}`;
+  insertTest: async (req, res) => {
+    if (req.body.admin !== process.env.ADMIN_PASSWORD) {
+      res.send('Access forbidden');
+      return;
+    };
+    let questionID = req.body.question_id;
+    let data = req.body.test_data;
+    let testResult = req.body.test_result;
+    let large = req.body.is_large_case;
 
-    // fs create new dir with question_id
+    const dir = `./testcases/${questionID}`;
+
+    // fs create new dir with questionID
     let checkDir = fs.existsSync(dir);
     if (!checkDir) {
       fs.mkdirSync(dir);
@@ -55,30 +66,36 @@ module.exports = {
 
       // insert into db file name
       let test = {
-        question_id,
+        question_id: questionID,
         test_case_path: `${dir}/${testcaseID}.json`,
-        test_result,
-        is_large_case
+        test_result: testResult,
+        is_large_case: large
       };
       let result = await questionModel.queryInsertTest(test);
-      return `Test data inserted: ${JSON.stringify(test)}`;
+      console.log(result);
+      res.send(`Test data inserted: ${JSON.stringify(test)}`);
     } catch (err) {
-      console.log(err);
-      return "Test insert error!";
+      res.send(err);
     }
   },
 
-  selectQuestions: async (category, difficulty) => {
+  selectQuestions: async (req, res) => {
+    let category = req.params.category;
+    let difficulty = req.query.difficulty;
     try {
       if (category === "all") {
-        let result = await questionModel.querySelectAllQuestions(difficulty);
-        return result;
+        let allQuestions = await questionModel.querySelectAllQuestions();
+        res.send({allQuestions});
+        return;
       }
-      let result = await questionModel.querySelectQuestions(
+      let questions = await questionModel.querySelectQuestions(
         category,
         difficulty
       );
-      return result;
+      // 之後放 cache 以後從 cache 拿出來篩 random
+      let randomIndex = Math.floor((Math.random() * questions.length));
+      let question = questions[randomIndex];
+      res.send({question});
     } catch (err) {
       console.log(err);
     }

@@ -18,10 +18,22 @@
       width:200px;padding:5px;outline: auto;
     }
     </style>
+    <script>
+      if (!localStorage.getItem('token')) {
+        window.alert('access forbidden')
+        window.location.pathname = '/';
+      }
+      if (parseInt(localStorage.getItem('id')) !== 90) {
+        // not admin
+        window.alert('access forbidden')
+        window.location.pathname = '/';
+      }
+    </script>
   </head>
   <body>
     <h3>Add a New Question</h3>
     <form method="post" action="/api/v1/question/insert_question">
+      Admin Password <input type="password" name="admin" required="required"><br/>
       Category <select name="category">
         <option value="array">array</option>
         <option value="binary_search">binary_search</option>
@@ -44,7 +56,8 @@
     
     <h3>Add New Test Data</h3>
     <form method="post" action="/api/v1/question/insert_test">
-      <div>*** Make sure it's in the db! (<a href="/api/v1/question/all">view all questions</a>)</div>
+      Admin Password <input type="passworda" name="admin" required="required"><br/>
+      <div>*** Make sure it's in the db! (<a href="/api/v1/question/all">all questions</a>)</div>
       Question ID <input type="number" name="question_id" required="required"><br/>
       Large test case? (1 or 0) <input type="number" name="is_large_case" value="0" required="required"><br/>
       Test Data (each line is a seperate test case)<br/><textarea name="test_data" placeholder="[1,2,3,4],7"></textarea><br/>

@@ -9,8 +9,8 @@ module.exports = {
     return mysql.query('INSERT INTO test SET ?', test);
   },
   
-  querySelectAllQuestions: (difficulty) => {
-    return mysql.query('SELECT id, question_name, difficulty, category FROM question WHERE difficulty = ?;', [difficulty]);
+  querySelectAllQuestions: () => {
+    return mysql.query('SELECT * FROM question');
   },
 
   querySelectQuestions: (category, difficulty) => {
