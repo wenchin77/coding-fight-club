@@ -1,5 +1,3 @@
-// const AppError = require('../util/appError');
-// sql 語句拆到 model/user 去
 const userModel = require("../models/user");
 const errors = require("../util/errors");
 const axios = require("axios");
@@ -73,6 +71,7 @@ module.exports = {
 
   getUserProfile: async (req, res) => {
     let token = req.query.token;
+    console.log('at getUserProfile ===',token)
     try {
       let result = await userModel.querySelectUserByToken(token);
       res.status(200).json(result);
@@ -125,7 +124,7 @@ module.exports = {
         let result = await userModel.queryUpdateUserLevel(level, user_id);
       }
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
@@ -151,7 +150,6 @@ module.exports = {
         onlineUsers.set(user, userObj);
         console.log("inserting tokenIdMapping...");
         tokenIdMapping.set(token, user);
-        console.log("onlineUsers", onlineUsers);
         console.log("onlineUsers size", onlineUsers.size);
         return { user, username };
       }
@@ -160,7 +158,7 @@ module.exports = {
       username = onlineUsers.get(user).username;
       return { user, username };
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   }
 };

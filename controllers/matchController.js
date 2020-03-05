@@ -2,6 +2,7 @@ const fs = require("fs");
 const cryptoRandomString = require("crypto-random-string");
 const matchModel = require("../models/match");
 const questionModel = require("../models/question");
+const errors = require("../util/errors");
 
 module.exports = {
   insertMatch: async (req, res) => {
@@ -28,20 +29,20 @@ module.exports = {
         match_start_time,
         match_status
       };
-      let result = await matchModel.queryUpdateMatch(key, data);
+      await matchModel.queryUpdateMatch(key, data);
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
-  getMatchId: async (key) => {
+  getMatchId: async key => {
     try {
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
@@ -101,12 +102,11 @@ module.exports = {
       questionObject.largeSampleCases = largeSampleCases;
       return questionObject;
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
   insertMatchDetail: async (matchID, user) => {
-    // +++++++ transaction
     try {
       let rowNumber = await matchModel.queryCountMatchDetailRows(matchID, user);
       // make sure there are no duplicated rows
@@ -114,7 +114,7 @@ module.exports = {
         await matchModel.queryInsertMatchDetail(matchID, user);
       }
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
@@ -128,32 +128,38 @@ module.exports = {
   },
 
   calculatePoints: async (matchKey, totalCorrectness, largeExecTimeArr) => {
-    let perfPoints = 0;
-    let largePassedNo = 0;
-    // get questionID with matchKey
-    let matchQuestionIdResult = await matchModel.queryGetMatchQuestion(
-      matchKey
-    );
-    let questionID = matchQuestionIdResult[0].question_id;
-    let largeThreshold = await questionModel.querySelectThresholdMs(questionID);
-    for (let i = 0; i < largeThreshold.length; i++) {
-      // large test failed: -1 in largeExecTimeArr
-      if (
-        parseInt(largeExecTimeArr[i]) >= 0 &&
-        parseInt(largeExecTimeArr[i]) <= largeThreshold[i].threshold_ms
-      ) {
-        perfPoints += 100 / largeThreshold.length;
-        largePassedNo += 1;
+    try {
+      let perfPoints = 0;
+      let largePassedNo = 0;
+      // get questionID with matchKey
+      let matchQuestionIdResult = await matchModel.queryGetMatchQuestion(
+        matchKey
+      );
+      let questionID = matchQuestionIdResult[0].question_id;
+      let largeThreshold = await questionModel.querySelectThresholdMs(
+        questionID
+      );
+      for (let i = 0; i < largeThreshold.length; i++) {
+        // large test failed: -1 in largeExecTimeArr
+        if (
+          parseInt(largeExecTimeArr[i]) >= 0 &&
+          parseInt(largeExecTimeArr[i]) <= largeThreshold[i].threshold_ms
+        ) {
+          perfPoints += 100 / largeThreshold.length;
+          largePassedNo += 1;
+        }
       }
+      let largePassed = `${largePassedNo}/${largeExecTimeArr.length}`;
+      let points = (totalCorrectness + perfPoints) / 2;
+      let calculated = {
+        perfPoints,
+        points,
+        largePassed
+      };
+      return calculated;
+    } catch (err) {
+      console.log(err);
     }
-    let largePassed = `${largePassedNo}/${largeExecTimeArr.length}`;
-    let points = (totalCorrectness + perfPoints) / 2;
-    let calculated = {
-      perfPoints,
-      points,
-      largePassed
-    };
-    return calculated;
   },
 
   updateMatchDetail: async (
@@ -182,10 +188,10 @@ module.exports = {
     };
     console.log(data);
     try {
-      let result = await matchModel.queryUpdateMatchDetail(matchID, user, data);
+      await matchModel.queryUpdateMatchDetail(matchID, user, data);
       await matchModel.queryAddUserPoints(user, points);
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
@@ -214,9 +220,9 @@ module.exports = {
   updateMatchWinner: async (key, winner) => {
     try {
       let status = 1; // match ended
-      let result = await matchModel.queryUpdateMatchWinner(key, winner, status);
+      await matchModel.queryUpdateMatchWinner(key, winner, status);
     } catch (err) {
-      console.log(err);
+      throw errors.serverError;
     }
   },
 
@@ -250,7 +256,7 @@ module.exports = {
     let userId = parseInt(req.query.userid);
     try {
       let result = await matchModel.queryGetMatchSummary(userId, 100);
-      return result;
+      res.status(200).json(result);
     } catch (err) {
       console.log(err);
       res
@@ -267,8 +273,7 @@ module.exports = {
       }
       return 1;
     } catch (err) {
-      console.log(err);
-      return 1;
+      throw errors.serverError;
     }
   },
 
@@ -281,7 +286,7 @@ module.exports = {
       try {
         await matchModel.queryUpdateMatchStatus(matchKey, 1);
       } catch (err) {
-        console.log(err);
+        throw errors.serverError;
       }
       console.log("matchList size after checking", matchList.size);
     }

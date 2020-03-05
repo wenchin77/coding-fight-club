@@ -38,10 +38,8 @@ function socketInMatchInit() {
   });
 
   // submitted already
-  socket.on("alreadySubmitted", () => {
-    showAlert(
-      "You already submitted your code or exited this match. Let's wait a bit for your opponent to submit!"
-    );
+  socket.on("alreadySubmitted", errorMsg => {
+    showAlert(errorMsg);
   });
 
   socket.once("waitForOpponent", msg => {

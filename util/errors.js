@@ -18,6 +18,14 @@ const githubNameOrEmailNotFound = new AppError(400, 'Permissions Error: name and
 
 const wrongMatch = new AppError(403, 'Wrong match.')
 
+const matchEnded = new AppError(403, 'This match has ended. Start a new one now!')
+
+const overTwoPeopleInAMatch = new AppError(403, 'Oops, there are already two people in this match!')
+
+const alreadySubmitted = new AppError(403, "You already submitted your code or exited this match. Let's wait a bit for your opponent to submit!")
+
+const noStrangerFound = new AppError(403, 'Ugh everyone seems to be busy playing in matches right now. Try again later or invite a friend instead?')
+
 module.exports = {
   serverError,
   undefinedRouteError,
@@ -27,5 +35,9 @@ module.exports = {
   userWrongPassword,
   googleNameOrEmailNotFound,
   githubNameOrEmailNotFound,
-  wrongMatch
+  wrongMatch,
+  matchEnded,
+  overTwoPeopleInAMatch,
+  alreadySubmitted,
+  noStrangerFound
 }

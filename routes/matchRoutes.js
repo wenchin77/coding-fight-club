@@ -8,8 +8,6 @@ router.get('/get_key', matchController.getKey);
 
 router.post('/insert_match', matchController.insertMatch);
 
-// router.get('/get_matchid', matchController.getMatchId);
-
 router.get('/result/details', matchController.getMatchDetails);
 
 router.get('/result/summary', matchController.getMatchSummary);

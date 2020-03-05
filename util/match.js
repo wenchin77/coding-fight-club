@@ -15,20 +15,13 @@ let getStranger = (inviterId, availableUsers) => {
 
   console.log("Array.from(availableUsers)", Array.from(availableUsers));
   let index = (availableUsers.size.length * Math.random()) << 0;
-  // let index = availableUsers.size * Math.random()
 
   let strangerId = Array.from(availableUsers)[index];
-  console.log("index", index);
-  console.log("strangerId", strangerId);
-  console.log("inviterId (my id)", inviterId);
 
   if (strangerId === inviterId) {
-    console.log("stranger === me, find the next person");
     // if token belongs to me, find the next person
     let newIndex = (index + 1) % availableUsers.size;
-    console.log("newIndex", newIndex);
     let newStrangerId = Array.from(availableUsers)[newIndex];
-    console.log("newStrangerId", newStrangerId);
     return newStrangerId;
   } else {
     return strangerId;
@@ -122,7 +115,7 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
         errorMsg = dataStr.split("throw")[1];
         reject(`throw${errorMsg}`);
       }
-      reject("Unknow error");
+      reject("Unknown error");
       console.error(`stderr: ${data}`);
     });
 
@@ -163,7 +156,7 @@ const getTimeoutMs = difficulty => {
   return 20000;
 };
 
-const getWinner = async (winnerCheck, matchKey) => {
+const getWinner = (winnerCheck, matchKey) => {
   let user_0 = winnerCheck.get(matchKey)[0].user;
   let user_1 = winnerCheck.get(matchKey)[1].user;
   let points_0 = winnerCheck.get(matchKey)[0].points;
@@ -207,7 +200,7 @@ const checkSubmitTime = (winnerCheck, matchKey, user) => {
   return submitTime;
 };
 
-const deleteTimedOutUsers = async (onlineUsers, availableUsers, inMatchUsers, tokenIdMapping) => {
+const deleteTimedOutUsers = (onlineUsers, availableUsers, inMatchUsers, tokenIdMapping) => {
   for (let userid of onlineUsers.keys()) {
     let value = onlineUsers.get(userid);
     if ((Date.now() - value.time > 1000 * 60) && (!inMatchUsers.has(userid))) {
