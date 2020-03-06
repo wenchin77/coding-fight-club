@@ -8,6 +8,12 @@ module.exports = {
   queryInsertTest: (test) => {
     return mysql.query('INSERT INTO test SET ?', test);
   },
+
+  queryCountTestFileNo: (question_id) => {
+    return mysql.query(`SELECT COUNT(*) FROM test 
+    INNER JOIN question ON test.question_id = question.id
+    WHERE question_id = ?`, [question_id])
+  },
   
   querySelectAllQuestions: () => {
     return mysql.query('SELECT * FROM question');

@@ -1,6 +1,26 @@
 const questionModel = require("../models/question");
-const fs = require("fs");
+const AWS = require("aws-sdk");
 require("dotenv").config();
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY
+});
+const bucket = process.env.AWS_S3_BUCKET;
+
+function uploadFileToS3(filename, body) {
+  // call S3 to retrieve upload file to specified bucket
+  const params = { Bucket: bucket, Key: filename, Body: body };
+  console.log(params)
+
+  // call S3 to retrieve upload file to specified bucket
+  s3.upload(params, (err, data) => {
+    if (err) console.log(err);
+    if (data) {
+      console.log("S3: file uploaded successfully at", data.Location);
+    }
+  });
+};
 
 module.exports = {
   insertQuestion: async (req, res) => {
@@ -35,39 +55,17 @@ module.exports = {
     let testResult = req.body.test_result;
     let large = req.body.is_large_case;
 
-    const dir = `./testcases/${questionID}`;
-
-    // fs create new dir with questionID
-    let checkDir = fs.existsSync(dir);
-    if (!checkDir) {
-      fs.mkdirSync(dir);
-    }
-    // fs create new testcase file
-    let path0 = `${dir}/0.json`;
-    let checkFile = fs.existsSync(path0);
     try {
-      const countFileNo = dir => {
-        return new Promise((resolve, reject) => {
-          fs.readdir(dir, (err, files) => {
-            resolve(files.length);
-            if (err) {
-              reject(err);
-            }
-          });
-        });
-      };
+      let testCaseFileNo = await questionModel.queryCountTestFileNo(questionID);
+      let testcaseID = testCaseFileNo[0]["COUNT(*)"];
+      let filename = `testcases_${questionID}_${testcaseID}.json`;
 
-      let testCaseFileNo = await countFileNo(dir);
-      let testcaseID = checkFile ? testCaseFileNo : 0;
-
-      let file = fs.openSync(`${dir}/${testcaseID}.json`, "w");
-      fs.writeSync(file, data, (encoding = "utf-8"));
-      fs.closeSync(file);
+      uploadFileToS3(filename, data);
 
       // insert into db file name
       let test = {
         question_id: questionID,
-        test_case_path: `${dir}/${testcaseID}.json`,
+        test_case_path: filename,
         test_result: testResult,
         is_large_case: large
       };
