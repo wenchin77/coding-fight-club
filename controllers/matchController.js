@@ -15,13 +15,15 @@ const bucket = process.env.AWS_S3_BUCKET;
 
 
 function getS3File(filename) {
-  const params = { Bucket: bucket, Key: filename };
-  s3.getObject(params, (err, data) => {
-    if (err) console.log(err);
-    if (data) {
-      let result = Buffer.from(data.Body).toString('utf8');
-      return result;
-    }
+  return new Promise((resolve, reject) => {
+    const params = { Bucket: bucket, Key: filename };
+    s3.getObject(params, (err, data) => {
+      if (err) reject(err);
+      if (data) {
+        let result = Buffer.from(data.Body).toString("utf8");
+        resolve(result);
+      }
+    });
   });
 };
 
@@ -113,12 +115,13 @@ module.exports = {
       // senario: both users join (send sampleCases[0])
       if (!submitBoolean) {
         let sampleCase = smallSampleCases[0];
-        let testCase = getS3File(sampleCase.test_case_path);
+        console.log(sampleCase)
         // questionObject.sampleCase = fs.readFileSync(sampleCase.test_case_path, {
         //   encoding: "utf-8"
         // });
-        questionObject.sampleCase = testCase;
+        questionObject.sampleCase = await getS3File(sampleCase.test_case_path);
         questionObject.sampleExpected = sampleCase.test_result;
+        console.log(questionObject)
         return questionObject;
       }
 

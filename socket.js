@@ -334,7 +334,7 @@ socket.init = server => {
       let smallTestCasesNumber = smallTestCases.length;
       let smallPassedCasesNumber = 0;
       for (let i = 0; i < smallTestCases.length; i++) {
-        let testCaseFinalCode = matchUtil.putTogetherCodeOnSubmit(
+        let testCaseFinalCode = await matchUtil.putTogetherCodeOnSubmit(
           code,
           questionConst,
           smallTestCases[i]
@@ -371,7 +371,7 @@ socket.init = server => {
       let largeTestExecTimeSum = 0;
       let largeExecTimeArr = []; // 這個跟小測資不同！
       for (let i = 0; i < largeTestCases.length; i++) {
-        let testCaseFinalCode = matchUtil.putTogetherCodeOnSubmit(
+        let testCaseFinalCode = await matchUtil.putTogetherCodeOnSubmit(
           code,
           questionConst,
           largeTestCases[i]

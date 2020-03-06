@@ -70,21 +70,28 @@ const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
   return finalCode;
 };
 
-const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
-  let testCase = getS3File(sampleCase.test_case_path);
-  let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
-  finalCode += `\nconsole.timeEnd('Time')`;
-  return finalCode;
+async function putTogetherCodeOnSubmit(code, questionConst, caseFile) {
+  console.log(caseFile)
+  try{
+    let testCase = await getS3File(caseFile.test_case_path);
+    let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
+    finalCode += `\nconsole.timeEnd('Time')`;
+    return finalCode;
+  } catch (err) {
+    throw err;
+  }
 };
 
 function getS3File(filename) {
-  const params = { Bucket: bucket, Key: filename };
-  s3.getObject(params, (err, data) => {
-    if (err) console.log(err);
-    if (data) {
-      let result = Buffer.from(data.Body).toString('utf8');
-      return result;
-    }
+  return new Promise((resolve, reject) => {
+    const params = { Bucket: bucket, Key: filename };
+    s3.getObject(params, (err, data) => {
+      if (err) reject(err);
+      if (data) {
+        let result = Buffer.from(data.Body).toString("utf8");
+        resolve(result);
+      }
+    });
   });
 };
 
