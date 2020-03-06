@@ -4,6 +4,27 @@ const matchModel = require("../models/match");
 const questionModel = require("../models/question");
 const errors = require("../util/errors");
 
+const AWS = require("aws-sdk");
+require("dotenv").config();
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY
+});
+const bucket = process.env.AWS_S3_BUCKET;
+
+
+function getS3File(filename) {
+  const params = { Bucket: bucket, Key: filename };
+  s3.getObject(params, (err, data) => {
+    if (err) console.log(err);
+    if (data) {
+      let result = Buffer.from(data.Body).toString('utf8');
+      return result;
+    }
+  });
+};
+
 module.exports = {
   insertMatch: async (req, res) => {
     let data = {
@@ -92,9 +113,11 @@ module.exports = {
       // senario: both users join (send sampleCases[0])
       if (!submitBoolean) {
         let sampleCase = smallSampleCases[0];
-        questionObject.sampleCase = fs.readFileSync(sampleCase.test_case_path, {
-          encoding: "utf-8"
-        });
+        let testCase = getS3File(sampleCase.test_case_path);
+        // questionObject.sampleCase = fs.readFileSync(sampleCase.test_case_path, {
+        //   encoding: "utf-8"
+        // });
+        questionObject.sampleCase = testCase;
         questionObject.sampleExpected = sampleCase.test_result;
         return questionObject;
       }
