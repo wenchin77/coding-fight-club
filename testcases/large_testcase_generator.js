@@ -1,4 +1,4 @@
-const questionController = require('../controllers/questionController');
+const questionModel = require('../models/question');
 
 // create an array -----------------------------
 let array = [];
@@ -28,10 +28,33 @@ let test_result = '400000'
 // insert -----------------------------
 // ONLY INSERT IF READY!!!!!!!!
 // insert -----------------------------
-// const getInsertResult = async (question_id, data, test_result) => {
+// to be updated with s3!!!!!!!!!!!
+// const insert = async (questionID, data, testResult) => {
 //   let is_large_case = 1;
-//   let result = await questionController.insertTest(question_id, data, test_result, is_large_case);
+//   let result = await questionController.insertTest(questionID, data, testResult, is_large_case);
 //   console.log(result);
+
+//     let large = 1;
+//     try {
+//       let testCaseFileNo = await questionModel.queryCountTestFileNo(questionID);
+//       let testcaseID = testCaseFileNo[0]["COUNT(*)"];
+//       let filename = `testcases_${questionID}_${testcaseID}.json`;
+
+//       uploadFileToS3(filename, data);
+
+//       // insert into db file name
+//       let test = {
+//         question_id: questionID,
+//         test_case_path: filename,
+//         test_result: testResult,
+//         is_large_case: large
+//       };
+//       let result = await questionModel.queryInsertTest(test);
+//       console.log(result);
+//       res.send(`Test data inserted: ${JSON.stringify(test)}`);
+//     } catch (err) {
+//       res.send(err);
+//     }
 // }
-// getInsertResult(question_id, data, test_result);
+// insert(question_id, data, test_result);
 

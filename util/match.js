@@ -1,5 +1,13 @@
 const fs = require("fs");
 const { spawn } = require("child_process");
+const AWS = require("aws-sdk");
+require("dotenv").config();
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY
+});
+const bucket = process.env.AWS_S3_BUCKET;
 
 const getMatchKey = url => {
   let urlSplitedBySlash = url.split("/");
@@ -63,12 +71,21 @@ const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
 };
 
 const putTogetherCodeOnSubmit = (code, questionConst, sampleCase) => {
-  let testCase = fs.readFileSync(sampleCase.test_case_path, {
-    encoding: "utf-8"
-  });
+  let testCase = getS3File(sampleCase.test_case_path);
   let finalCode = `console.time('Time');\n${code}\nconsole.log(JSON.stringify(${questionConst}(${testCase})))`;
   finalCode += `\nconsole.timeEnd('Time')`;
   return finalCode;
+};
+
+function getS3File(filename) {
+  const params = { Bucket: bucket, Key: filename };
+  s3.getObject(params, (err, data) => {
+    if (err) console.log(err);
+    if (data) {
+      let result = Buffer.from(data.Body).toString('utf8');
+      return result;
+    }
+  });
 };
 
 const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
