@@ -33,6 +33,7 @@ module.exports = {
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -42,6 +43,7 @@ module.exports = {
       let getMatchID = await matchModel.queryGetMatchID(key);
       return getMatchID[0].id;
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -102,6 +104,7 @@ module.exports = {
       questionObject.largeSampleCases = largeSampleCases;
       return questionObject;
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -114,6 +117,7 @@ module.exports = {
         await matchModel.queryInsertMatchDetail(matchID, user);
       }
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -191,6 +195,7 @@ module.exports = {
       await matchModel.queryUpdateMatchDetail(matchID, user, data);
       await matchModel.queryAddUserPoints(user, points);
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -222,6 +227,7 @@ module.exports = {
       let status = 1; // match ended
       await matchModel.queryUpdateMatchWinner(key, winner, status);
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -273,6 +279,7 @@ module.exports = {
       }
       return 1;
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -286,6 +293,7 @@ module.exports = {
       try {
         await matchModel.queryUpdateMatchStatus(matchKey, 1);
       } catch (err) {
+        console.log(err);
         throw errors.serverError;
       }
       console.log("matchList size after checking", matchList.size);
