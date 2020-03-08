@@ -40,6 +40,7 @@ socket.init = server => {
       console.log("userInfo", userInfo);
     } catch (err) {
       socket.emit("customError", err.message);
+      console.log(err);
       throw err;
     }
 
@@ -92,6 +93,7 @@ socket.init = server => {
         console.log("matchList size", matchList.size);
       } catch (err) {
         socket.emit("customError", err.message);
+        console.log(err);
         throw err;
       }
     });

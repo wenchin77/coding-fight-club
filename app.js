@@ -22,7 +22,6 @@ app.use(bodyparser.urlencoded({ extended: true }));
 // allow cross-origin requests
 app.use(cors());
 
-
 // api routes
 app.use(`/api/${cst.API_VERSION}/match`, matchRoutes);
 app.use(`/api/${cst.API_VERSION}/question`, questionRoutes);
@@ -48,7 +47,6 @@ app.get('/match_result/:matchKey', (req, res) => {
 app.get('/match_history', (req, res) => {
   res.render('match_history');
 });
-
 
 // user pages
 app.get('/signin', (req, res) => {
@@ -83,8 +81,11 @@ app.use('*', (req, res, next) => {
   throw errors.undefinedRouteError;
 });
 
-const server = app.listen(3000, () => {
-  console.log('App running on port 3000!');
-});
+if (require.main === module) {
+  const server = app.listen(3000, () => {
+    console.log('App running on port 3000...');
+  });
+  socket.init(server);
+};
 
-socket.init(server);
+module.exports = app;

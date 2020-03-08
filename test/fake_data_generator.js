@@ -1,6 +1,5 @@
 require("dotenv").config();
 const env = process.env.NODE_ENV || "development";
-console.log(env);
 const {
   user_table,
   match_table,
@@ -13,7 +12,6 @@ const {
 const mysql = require("../util/mysql.js");
 
 function _insertFakeUser() {
-  console.log("inserting fake user...");
   return new Promise((resolve, reject) => {
     let insert = mysql.query(
       "INSERT INTO user_table (id, provider, email, user_password, user_name, picture, github_url, token, access_expired) VALUES ?",
@@ -24,7 +22,6 @@ function _insertFakeUser() {
 }
 
 function _insertFakeLevel() {
-  console.log("inserting fake level...");
   return new Promise((resolve, reject) => {
     let insert = mysql.query(
       "INSERT INTO level_table (id, level_name, min_points) VALUES ?",
@@ -35,7 +32,6 @@ function _insertFakeLevel() {
 }
 
 function _insertFakeMatch() {
-  console.log("inserting fake match...");
   return new Promise((resolve, reject) => {
     let insert = mysql.query(
       "INSERT INTO match_table (id, question_id, match_key, winner_user_id, match_start_time, match_status) VALUES ?",
@@ -46,7 +42,6 @@ function _insertFakeMatch() {
 }
 
 function _insertFakeMatchDetail() {
-  console.log("inserting fake match detail...");
   return new Promise((resolve, reject) => {
     let insert = mysql.query(
       "INSERT INTO match_detail (id, match_id, user_id, answer_code, small_correctness, large_correctness, correctness, large_passed, large_exec_time, performance, answer_time, points) VALUES ?",
@@ -57,7 +52,6 @@ function _insertFakeMatchDetail() {
 }
 
 function _insertFakeQuestion() {
-  console.log("inserting fake question...");
   return new Promise((resolve, reject) => {
     let insert = mysql.query(
       "INSERT INTO question (id, question_name, question_text, question_code, question_const, difficulty, category) VALUES ?",
@@ -68,7 +62,6 @@ function _insertFakeQuestion() {
 }
 
 function _insertFakeTest() {
-  console.log("inserting fake test...");
   return new Promise((resolve, reject) => {
     let insert = mysql.query(
       "INSERT INTO test (id, question_id, test_case_path, test_result, threshold_ms, is_large_case) VALUES ?",

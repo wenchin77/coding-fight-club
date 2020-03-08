@@ -78,6 +78,7 @@ async function putTogetherCodeOnSubmit(code, questionConst, caseFile) {
     finalCode += `\nconsole.timeEnd('Time')`;
     return finalCode;
   } catch (err) {
+    console.log(err);
     throw err;
   }
 };

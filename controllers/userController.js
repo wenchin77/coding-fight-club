@@ -9,10 +9,8 @@ module.exports = {
     try {
       let data = req.body;
       let result = await userModel.querySignUp(data);
-      console.log('result ====',result)
       res.status(200).send(result);
     } catch (err) {
-      console.log('err at userController ====', err);
       if (err.statusCode) {
         res.status(err.statusCode).send(err.message);
         return;
@@ -124,6 +122,7 @@ module.exports = {
         let result = await userModel.queryUpdateUserLevel(level, user_id);
       }
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   },
@@ -158,6 +157,7 @@ module.exports = {
       username = onlineUsers.get(user).username;
       return { user, username };
     } catch (err) {
+      console.log(err);
       throw errors.serverError;
     }
   }
