@@ -727,7 +727,6 @@ socket.init = server => {
 // check every 60 sec
 setInterval(async () => {
   console.log("---------> setInterval");
-  console.log("inMatchUsers", inMatchUsers);
   // delete users that are idle & not in a match
   matchUtil.deleteTimedOutUsers(
     onlineUsers,
@@ -739,6 +738,6 @@ setInterval(async () => {
   for (let matchKey of matchList.keys()) {
     matchController.deleteTimedOutMatches(matchList, matchKey);
   }
-}, 1000 * 60);
+}, 1000 * 10);
 
 module.exports = socket;

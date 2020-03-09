@@ -1,29 +1,62 @@
 const app = require("../../app");
-// http testing
-const request = require("supertest");
-const errors = require("../../util/errors")
+const socket = require("../../socket");
+const io = require('socket.io-client');
 
+const request = require("supertest");
+const errors = require("../../util/errors");
 const env = process.env.NODE_ENV || "development";
 const { truncateFakeData, createFakeData } = require("../fake_data_generator");
 
+let testServer;
+let client1;
 
-beforeAll(async (done) => {
+beforeAll(async () => {
+  console.log("Start socket_test.js");
   if (env !== "test") {
     throw "not in test env";
   }
   await truncateFakeData();
   await createFakeData();
-  if (require.main === module) {
-    app.listen(3000, () => {
-      console.log('Test server running on port 3000...');
-    })
-  };
-  done();
+  // setup socket server
+  testServer = app.listen(3000, () => {
+    console.log('Test server running on port 3000...');
+  })
+  socket.init(testServer);
 });
 
-// afterAll((done) => {
-//   close server????
-// });
+beforeEach((done) => {
+  // setup socket client
+  client1 = io.connect("localhost:3000", {
+    'reconnection delay': 0,
+    'reopen delay': 0,
+    'force new connection': true,
+    transports: ['websocket'],
+    query: {token: 'test1accesstoken'}
+  });
+  
+  client1.on('connect', () => {
+    client1.emit('online', 'test1accesstoken');
+    console.log('client1 connected!');
+    done();
+  });
+});
+
+describe('socket.io test', () => {
+  test('should get no stranger message', (done) => {
+    console.log('test 1 starts ===========')
+    client1.emit('online', 'test1accesstoken');
+    let getStrangerData = {
+      token: 'test1accesstoken',
+      category: 'array',
+      difficulty: 'easy'
+    }
+    client1.emit("getStranger", getStrangerData);
+    client1.on('noStranger', (data) => {
+      expect(data).toBe(errors.noStrangerFound.message);
+      done();
+    })
+  });
+});
 
 describe("Test signup api", () => {
   test("Sign up success", async () => {

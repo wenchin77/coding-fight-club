@@ -4,7 +4,8 @@
   "description": "A live competition app for engineers to sharpen their skills",
   "main": "app.js",
   "scripts": {
-    "test": "jest"
+    "start": "node app.js",
+    "test": "NODE_ENV=test jest"
   },
   "author": "Wenchin Chuang",
   "license": "ISC",

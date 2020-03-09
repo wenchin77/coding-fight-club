@@ -61,7 +61,7 @@ async function socketInit() {
     ping(token);
     setInterval(() => {
       ping(token);
-    }, 1000 * 20);
+    }, 1000 * 5);
   };
 
   socket.on("customError", errorMsg => {
