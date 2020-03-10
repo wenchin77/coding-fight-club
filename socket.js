@@ -149,12 +149,14 @@ socket.init = server => {
           });
         }
 
-        console.log("adding a room in matchList...");
+        console.log("adding a user in the room at matchList...");
         matchList.get(matchKey).users.add(user);
         console.log(
           "matchList.get(matchKey).size",
           matchList.get(matchKey).users.size
         );
+
+        console.log('matchList', matchList)
 
         // Join room
         socket.join(matchKey, () => {

@@ -56,7 +56,7 @@ async function socketInit() {
     socket.emit("online", token);
   });
 
-  // setInterval every 20 sec at every page except match page
+  // setInterval every 5 sec at every page except match page
   if (!url.includes("match/")) {
     ping(token);
     setInterval(() => {
