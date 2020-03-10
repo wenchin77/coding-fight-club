@@ -97,12 +97,14 @@ Senario: user A (on client A) starts a match with stranger mode and user B (on c
 ### In a match
 Senario: user A (on client A) is in a match with user B (on client B) when nobody exits the match
 ![Mermaid screenshot](./public/img/mermaid_3.png)
-
-Senario: user A (on client A) is in a match with user B (on client B) when A exits the match in the middle of the match
 ![Mermaid screenshot](./public/img/mermaid_4.png)
 
-Senario: user A (on client A) attemps to join a match that has ended
+Senario: user A (on client A) is in a match with user B (on client B) when A exits the match in the middle of the match
 ![Mermaid screenshot](./public/img/mermaid_5.png)
+
+Senario: user A (on client A) attemps to join a match that has ended
+![Mermaid screenshot](./public/img/mermaid_6.png)
+
 
 
 ## Demo

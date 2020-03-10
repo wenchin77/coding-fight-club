@@ -1,7 +1,7 @@
 {
   "name": "coding_fight_club",
   "version": "1.0.0",
-  "description": "A live competition app for engineers to sharpen their skills",
+  "description": "A software platform that helps engineers sharpen their coding skills via live competitions on algorithms",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
