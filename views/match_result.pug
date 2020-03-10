@@ -1,0 +1,52 @@
+extends layout
+
+block scripts
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
+  script(src='../js/match_result.js')
+
+block content
+  .matchResultWrapper
+    .resultTitle
+      h2#matchResult Match Result 
+      img.questionImg(src='../img/question.png' onclick='showHelp()')
+
+    .resultContent
+      h3#winLose
+      h4 Match Summary
+      .summaryTableContainer
+        table#summaryTable
+      br
+      h4 Match Details
+      .resultTableContainer
+        table#resultTable
+        p#resultLargeTest
+        p#resultLargeTestHistoric
+      h4 Your Submitted Code
+      .submittedCodeContainer
+        textarea#submittedCode
+      
+      .resultBtns
+        a(href='/dashboard')
+          button#resultBtn View Dashboard
+        a(href='/match_setup')
+          button#resultBtn Start Another Match
+
+  
+
+  script.
+    // codemirror (syntax highlight & auto indent): read only
+    const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('submittedCode'), {
+      lineNumbers: true,
+      mode: "javascript",
+      theme: "base16-dark",
+      readOnly: 'nocursor'
+    });
+
+
+
+
+
+

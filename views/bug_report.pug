@@ -1,0 +1,12 @@
+extends layout
+
+block scripts
+  script(src='../js/bug_report.js')
+
+block content
+  .bugReportWrapper
+    h3 Report a Bug
+    div What went wrong?
+    textarea#bug
+    button(onclick="sendBug()") Submit
+

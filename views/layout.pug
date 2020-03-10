@@ -3,16 +3,18 @@ html
   head
     meta(charset='utf-8')
     meta(name='viewport' content='width=device-width, initial-scale=1')
-    meta(name='description' content='A live competition app for engineers to sharpen their skills')
+    meta(name='description' content='A live competition app for engineers to sharpen their programming skills')
     title Coding Fight Club
+    link(rel='icon' href='../img/fight.png')
     link(rel='stylesheet' type='text/css' href='../css/index.css' media='all')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
     script(src='/socket.io/socket.io.js')
+    script(src='../js/constants.js')
+    script(src='../js/socket.js')
     script(src='../js/index.js')
-    
-
-
+    script(src="https://unpkg.com/axios/dist/axios.min.js")
+    block scripts
 
   body
     .wrapper
@@ -21,58 +23,64 @@ html
           a(href='/')
             ul.codingfightclub
               li 
-                img.logo(src='../img/fight.png', alt='Coding Fight Club Logo')
+                img.logo(src='../img/fight.png' alt='Coding Fight Club Logo')
               li Coding Fight Club
           div
             ul.nav-cat
               li
-                a(href='') About
+                a(href='/about') About
               li |
               li
                 a(href='/match_setup') Match
               li |
               li
-                a(href='') Leaderboard
+                a(href='/leaderboard') Leaderboard
           .nav-member
             a(href='/signin')#member
               #membername Sign In
-              img.profilelogo(src='../img/account.png')
+              img.notificationLogo(src='../img/account.png')
       section
+        .popupNotification
+          div#alert-area.alert-area
+        #myModal.modal
+          .modalContent
+            //- span.close &times;
+            p#modalText
+            .modalButtons
+              button#noButton No
+              button#yesButton Yes
+            .modalOkButton
+              button#okButton Okay
         block content
 
       script.
         // after signed in:
-        if (localStorage.getItem('name')) {
-          let userName = localStorage.getItem('name');
-          document.getElementById('membername').innerHTML = userName;
-          document.getElementById('member').href = '/profile'
+        if (localStorage.getItem('username') && localStorage.getItem("token")) {
+          let username = localStorage.getItem('username');
+          document.getElementById('membername').innerHTML = username;
+          document.getElementById('member').href = '/dashboard';
         }
 
-
-
-      //- footer.footer
-      //-   div
-      //-     ul.footer-content
-      //-       li
-      //-         a(href='#') 關於Stylish
-      //-       li |
-      //-       li
-      //-         a(href='#') 服務條款
-      //-       li |
-      //-       li
-      //-         a(href='#') 隱私政策
-      //-       li |
-      //-       li
-      //-         a(href='#') 聯絡我們
-      //-       li |
-      //-       li
-      //-         a(href='#') FAQ
-      //-   .social-icon
-      //-     a(href='#')
-      //-       img(src='../images/line.png')
-      //-     a(href='#')
-      //-       img(src='../images/twitter.png')
-      //-     a(href='#')
-      //-       img(src='../images/facebook.png')
-      //-   .rights
-      //-     p © 2018. All rights reserved.
+      footer.footer
+        div
+          ul.footer-content
+            li
+              a(href='#') Terms
+            li |
+            li
+              a(href='/contact') Contact
+            li |
+            li
+              a(href='/bug_report') Bug Report
+            li |
+            li
+              a(href='https://github.com/wenchin77/coding-fight-club/') GitHub Repo
+        //- .social-icon
+        //-   a(href='#')
+        //-     img(src='../images/line.png')
+        //-   a(href='#')
+        //-     img(src='../images/twitter.png')
+        //-   a(href='#')
+        //-     img(src='../images/facebook.png')
+        .rights
+          p © Wenchin 2020. All rights reserved.

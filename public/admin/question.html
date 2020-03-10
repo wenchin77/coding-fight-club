@@ -10,30 +10,44 @@
       font-family:"Noto Sans TC", arial, sans-serif;
       color:#3f3a3a;line-height:2.5em;
     }
+    select {outline: auto;}
     textarea{
-      width:400px;height:100px;padding:5px;
+      width:400px;height:100px;padding:5px;outline: auto;
     }
     input{
-      width:200px;padding:5px;
+      width:200px;padding:5px;outline: auto;
     }
     </style>
+    <script>
+      if (!localStorage.getItem('token')) {
+        window.alert('access forbidden')
+        window.location.pathname = '/';
+      }
+      if (parseInt(localStorage.getItem('id')) !== 90) {
+        // not admin
+        window.alert('access forbidden')
+        window.location.pathname = '/';
+      }
+    </script>
   </head>
   <body>
     <h3>Add a New Question</h3>
     <form method="post" action="/api/v1/question/insert_question">
+      Admin Password <input type="password" name="admin" required="required"><br/>
       Category <select name="category">
-        <option value="algorithms">Algorithms</option>
-        <option value="database">Database</option>
-        <option value="shell">Shell</option>
-        <option value="concurrency">Concurrency</option>
+        <option value="array">array</option>
+        <option value="binary_search">binary_search</option>
+        <option value="string">string</option>
+        <option value="linked_list">linked_list</option>
       </select><br/>
       Difficulty <select name="difficulty">
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard">Hard</option>
+        <option value="easy">easy</option>
+        <option value="medium">medium</option>
+        <option value="hard">hard</option>
       </select><br/>
-      Question Name <input type="text" name="title" value="Test Question Name" required="required"><br/>
-      Question Description<br/><textarea name="description" required="required">Test description</textarea><br/>
+      Question Name <input type="text" name="title" placeholder="Test Question Name" required="required"><br/>
+      Question Description<br/><textarea name="description" required="required" placeholder="Test description"></textarea><br/>
+      Question Code Const <input type="text" name="const" placeholder="twoSum" required="required"><br/>
       Question Code<br/><textarea name="code" required="required"></textarea><br/>
       <input type="submit" value="Add Question"/>
     </form>
@@ -42,10 +56,12 @@
     
     <h3>Add New Test Data</h3>
     <form method="post" action="/api/v1/question/insert_test">
-      <div>*** Make sure it's in the db! (<a href="/api/v1/question/all">view all questions</a>)</div>
+      Admin Password <input type="passworda" name="admin" required="required"><br/>
+      <div>*** Make sure it's in the db! (<a href="/api/v1/question/all">all questions</a>)</div>
       Question ID <input type="number" name="question_id" required="required"><br/>
-      Test Data (each line is a seperate test case)<br/><textarea name="test_data">[1,2,3,4]</textarea><br/>
-      Test Result (each line is a seperate test result)<br/><textarea name="test_result">4</textarea><br/>
+      Large test case? (1 or 0) <input type="number" name="is_large_case" value="0" required="required"><br/>
+      Test Data (each line is a seperate test case)<br/><textarea name="test_data" placeholder="[1,2,3,4],7"></textarea><br/>
+      Test Result (each line is a seperate test result)<br/><textarea name="test_result" placeholder="[2,3]"></textarea><br/>
       <input type="submit" value="Add Test Data"/>
     </form>
     <br>

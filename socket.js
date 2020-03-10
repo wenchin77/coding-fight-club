@@ -1,281 +1,742 @@
-const fs = require("fs");
-
-// child process setup for code execution
-const { spawn } = require("child_process");
-
-// socket.io setup for live demo
+const matchController = require("./controllers/matchController");
+const userController = require("./controllers/userController");
+const matchUtil = require("./util/match");
+const errors = require("./util/errors");
 const socketio = require("socket.io");
 const socket = {};
+const onlineUsers = new Map(); // { userid: { username, time, inviting, invitation_accepted, invited} }
+const tokenIdMapping = new Map(); // { token: userid }
+const availableUsers = new Set(); // ([userid, userid, userid])
+const inMatchUsers = new Set(); // ([userid, userid, userid])
+const matchList = new Map(); // { matchKey: [userid, userid] }
+const winnerCheck = new Map(); // { matchKey: [{ user, smallCorrectness, largeCorrectness, largePassed, largeExecTime, performance, answerTime, points }] }
 
 socket.init = server => {
   const io = socketio.listen(server);
-  const rooms = {};
-  const socketidMapping = {};
+  console.log("socket initialized...");
 
-  io.on("connection", socket => {
-    console.log("Socket: a user connected!");
+  io.on("connection", async socket => {
+    console.log("---------> io on connection");
 
-    // get roomID: 取網址中的參數（暫時由前端設定為現在的時間字串）當作房間號碼
-    let url = socket.request.headers.referer;
-    let roomID = getRoomID(url);
-    // get question
-    let question = getQuestion(url);
-    // 之後改成去 db 撈完問題內容丟出 question
-    let questionObject = {
-      question: question,
-      description: `Given an array of integers, return indices of the two numbers such that they add up to a specific target.
-      You may assume that each input would have exactly one solution, and you may not use the same element twice.
-      Example:
-      Given nums = [2, 7, 11, 15], target = 9,
-      Because nums[0] + nums[1] = 2 + 7 = 9,
-      return [0,1]`,
-      code: `const twoSum = function(nums, target) {
-  
-};`
-    };
-    let questionCodeConst = "twoSum";
-    let testCases = {
-      data: [
-        {
-          case: [[2, 7, 11, 15], 9],
-          output: [0,1]
-        },
-        {
-          case: [[20000000, 70000000, 110000000, 150000000000], 180000000],
-          output: [1,2]
-        },
-        {
-          case: [[10, 1, 20, 3, 40, 5, 60, 7, 80, 9, 100, 11, 120, 13, 14, 15, 16, 1700, 18, 19, 20], 123],
-          output: [3,12]
-        },
-        {
-          case: [[13, 0, 30, 16], 30],
-          output: [1,2]
-        },
-        {
-          case: [[-10, 0, 7, -11, -30, 100], 90],
-          output: [0,4]
-        }
-      ]
-    };
-
-    socket.on('submit', () => {
-      // Run all test cases
-      let sampleTestCaseArr = testCases.data;
-      sampleTestCaseArr.forEach(element => {
-        console.log(element.case);
-      })
-    })
-
-
-
-    socket.on("join", userName => {
-      let user = userName;
-
-      // Add a room if it doesn't exist
-      if (!rooms[roomID]) {
-        rooms[roomID] = [];
-      };
-
-      // Reject a user if there are already 2 people in the room
-      if (rooms[roomID].length >= 2) {
-        socket.emit('rejectUser', 'Oops, there are already two people in this match!');
-        return;
-      }
-
-      // Add user to the room
-      rooms[roomID].push(user);
-
-      // Add user to socketidMapping (socketid: user)
-      if (!socketidMapping[socket.id]) {
-        socketidMapping[socket.id] = user;
-      };
-
-      // Send question data to frontend
-      socket.emit("questionData", questionObject);
-
-      // Join room
-      socket.join(roomID, () => {
-        console.log(`Socket: ${user} 加入了 ${roomID} (socket.id = ${socket.id})`);
-        console.log('Rooms: ', rooms);
-        let joinMessage = {
-          user: user,
-          message: `${user} joined the match.`
-        }
-        io.to(roomID).emit('joinLeaveMessage', joinMessage);
-        
-        // +++ 寫進 db match table (先檢查有沒有這筆 match 的資料決定 create OR update)
-      });
-
-      // Wait for opponent if there's only 1 person in the room
-      if (rooms[roomID].length === 1) {
-        socket.emit('waitForOpponent', 'Hold on. We are waiting for your opponent to join...');
-        return;
-      };
-
-      // Start match when there are 2 people in the room
-      let users = {
-        user1: rooms[roomID][0],
-        user2: rooms[roomID][1]
-      };
-      io.to(roomID).emit('startMatch', users);
-      
+    socket.on("userCount", () => {
+      socket.emit("count", onlineUsers.size);
     });
 
-    // 點 Run Code 會把內容放到 matches，每按一次就顯示在雙方的 terminal
-    socket.on("codeObject", async data => {
-      let user = data.user;
-      let testAll = data.test;
-      let test = testAll.split("\n");
+    const token = socket.handshake.query.token;
+    if (token === undefined) {
+      console.log("no token in socket query");
+      return;
+    }
+    const url = socket.request.headers.referer;
+    console.log("user connected at", url);
 
+    try {
+      // add user in tokenIdMapping & onlineUsers
+      const userInfo = await userController.getUserInfo(
+        token,
+        onlineUsers,
+        tokenIdMapping
+      );
+      console.log("userInfo", userInfo);
+    } catch (err) {
+      socket.emit("customError", err.message);
+      throw err;
+    }
 
-      // put together the code for running
-      let testCaseData = testCases.data[0];
-      let finalCode = putTogetherCode(data.code, questionCodeConst, testCaseData, test)
-
-      // 按不同 user 存到 ./sessions js files
-      setUserCodeFile('sessions/', user, finalCode);
-
-      let codeResult = {};
-      // Run code in child process
+    socket.on("online", async token => {
+      console.log("---------> online");
       try {
-        let childResult = await childProcessExecFile(user,'sessions/');
-        console.log('childResult===', childResult);
-        
-        // give sample test case result
-        let sampleSplited = childResult.split('\n');
-        let sampleOutput = sampleSplited[1].split(': ')[1];
-        let sampleExpected = sampleSplited[2].split(': ')[1];
+        // add user in tokenIdMapping & onlineUsers
+        const userInfo = await userController.getUserInfo(
+          token,
+          onlineUsers,
+          tokenIdMapping
+        );
+        console.log("userInfo", userInfo);
+        let user = userInfo.user;
 
-        // add sample test result to childResult
-        if (sampleOutput == sampleExpected) {
-          childResult = 'SAMPLE TEST PASSED\n' + childResult;
-        } else {
-          childResult = 'SAMPLE TEST FAILED\n' + childResult;
+        onlineUsers.get(user).time = Date.now();
+
+        // add user in availableUsers (update if it already exists)
+        availableUsers.add(user);
+        console.log("availableUsers", availableUsers);
+
+        // if the invitation's accepted notify the inviter
+        if (onlineUsers.get(user).invitation_accepted !== 0) {
+          socket.emit(
+            "startStrangerModeMatch",
+            onlineUsers.get(user).invitation_accepted
+          );
+          onlineUsers.get(user).invitation_accepted = 0;
         }
 
+        // if rejected by stranger notify the inviter
+        if (onlineUsers.get(user).inviting === -1) {
+          socket.emit("rejected");
+          // change back to 0
+          onlineUsers.get(user).inviting = 0;
+        }
 
-        // 回丟一個物件帶有 user 資料以區分是自己還是對手的結果
-        codeResult = {
-          user: user,
-          output: childResult
-        };
-      } catch (e) {
-        let errorMessage = "Error: Please put in valid code and test data"
-        console.log("RUN CODE ERROR -----------> ", e);
-        codeResult = {
-          user: user,
-          output: errorMessage
-        };
-      }
-      // send an event to everyone in the room including the sender
-      io.to(roomID).emit("codeResult", codeResult);
-    });
-
-    socket.on(('disconnect' || 'exit'), () => {
-      console.log("Socket: a user disconnected");
-
-      // 用 socketidMapping (socketid: user) 找出退出的 user
-      let socketid = socket.id;
-      let user = socketidMapping[socketid];
-
-      let leaveMessage = {
-        user: user,
-        message: `${user} left the match.`
-      }
-      io.to(roomID).emit("joinLeaveMessage", leaveMessage);
-
-      // 刪掉該用戶的 property
-      delete socketidMapping[socketid];
-
-      if (rooms[roomID]) {
-        let index = rooms[roomID].indexOf(user);
-        if (index !== -1) {
-          // drop user at index
-          rooms[roomID].splice(index, 1);
-          if (rooms[roomID].length === 0) {
-            // drop room property if it's empty
-            delete rooms[roomID];
+        // if there's an invitation notify the invited
+        let onlineUserDetail = onlineUsers.get(user);
+        if (onlineUserDetail.invited.length > 0) {
+          let invitations = onlineUserDetail.invited;
+          for (let i = 0; i < invitations.length; i++) {
+            console.log("emitting invited...");
+            socket.emit("invited", invitations[i]);
           }
         }
-        socket.leave(roomID); // 退出房間
-        console.log(`Socket: ${user} 退出了 ${roomID} (socket.id ${socket.id})`);
+        console.log("onlineUsers size", onlineUsers.size);
+        console.log("tokenIdMapping size", tokenIdMapping.size);
+        console.log("availableUsers size", availableUsers.size);
+        console.log("matchList size", matchList.size);
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+    });
+
+    socket.on("joinMatch", async token => {
+      console.log("---------> joinMatch");
+      let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
+
+      try {
+        // check if match has ended, if so redirect
+        let matchStatus = await matchController.getMatchStatus(matchKey);
+        console.log("matchStatus", matchStatus);
+        if (matchStatus > 0) {
+          socket.emit("rejectUser", errors.matchEnded.message);
+          return;
+        }
+        let userInfo = await userController.getUserInfo(
+          token,
+          onlineUsers,
+          tokenIdMapping
+        );
+        console.log("userInfo", userInfo);
+        let user = userInfo.user;
+        let username = userInfo.username;
+
+        // delete user from availableUsers to prevent invalid invitations
+        availableUsers.delete(user);
+        inMatchUsers.add(user);
+        console.log(
+          "delete user from availableUsers & add user in inMatchUsers"
+        );
+
+        // Reject user if match started & user isn't in the room
+        if (matchList.has(matchKey)) {
+          if (
+            matchList.get(matchKey).start_time &&
+            !matchList.get(matchKey).users.has(user)
+          ) {
+            socket.emit("rejectUser", errors.overTwoPeopleInAMatch.message);
+            return;
+          }
+        }
+
+        // Add a room & user if it doesn't exist
+        if (!matchList.get(matchKey)) {
+          console.log("adding a room & a user in matchList...");
+          let matchListUsers = new Set();
+          // Add user to the room list
+          matchListUsers.add(user);
+          matchList.set(matchKey, {
+            users: matchListUsers,
+            start_time: null
+          });
+        }
+
+        console.log("adding a room in matchList...");
+        matchList.get(matchKey).users.add(user);
+        console.log(
+          "matchList.get(matchKey).size",
+          matchList.get(matchKey).users.size
+        );
+
+        // Join room
+        socket.join(matchKey, () => {
+          console.log(`Socket: ${user} joined ${matchKey}`);
+          let joinMessage = {
+            user: user,
+            message: `${username} joined the match.`
+          };
+          io.to(matchKey).emit("joinLeaveMessage", joinMessage);
+        });
+
+        // Wait for opponent if the match hasn't started
+        if (matchList.get(matchKey).users.size === 1) {
+          socket.emit(
+            "waitForOpponent",
+            "Hey there, we are waiting for your opponent to join!"
+          );
+          return;
+        }
+
+        // when there are 2 people in the room
+        let questionObject = await matchController.getQuestionDetail(
+          matchKey,
+          false
+        );
+
+        // send user info to display
+        const iterator1 = matchList.get(matchKey).users.values();
+        let userid1 = iterator1.next().value;
+        let userid2 = iterator1.next().value;
+
+        console.log(
+          onlineUsers.get(userid1).username,
+          onlineUsers.get(userid2).username
+        );
+
+        // get or insert match start time (only insert once at the start)
+        let matchStartTime;
+        if (matchList.get(matchKey).start_time) {
+          console.log("match start time already inserted...");
+          matchStartTime = matchList.get(matchKey).start_time;
+          console.log("matchStartTime", matchStartTime);
+        } else {
+          console.log("inserting match start time....");
+          matchStartTime = Date.now();
+          // add start_time to matchList
+          matchList.get(matchKey).start_time = matchStartTime;
+          let status = 0;
+          let matchID = await matchController.updateMatch(
+            matchKey,
+            matchStartTime,
+            status
+          );
+          console.log("matchStartTime", matchStartTime);
+          // insert into match_detail (make sure there are no duplicated rows)
+          await matchController.insertMatchDetail(matchID, userid1);
+          await matchController.insertMatchDetail(matchID, userid2);
+        }
+
+        // send start info to display in frontend
+        let startInfo = {
+          user1: {
+            user: userid1,
+            username: onlineUsers.get(userid1).username
+          },
+          user2: {
+            user: userid2,
+            username: onlineUsers.get(userid2).username
+          },
+          startTime: matchStartTime,
+          question: questionObject
+        };
+        console.log("socket on join, startInfo", startInfo);
+        io.to(matchKey).emit("startMatch", startInfo);
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+    });
+
+    socket.on("runCode", async data => {
+      console.log("---------> runCode");
+      let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
+
+      try {
+        let matchStatus = await matchController.getMatchStatus(matchKey);
+        console.log("matchStatus", matchStatus);
+        if (matchStatus > 0) {
+          socket.emit("rejectUser", errors.matchEnded.message);
+          return;
+        }
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
       }
 
+      let code = data.code;
+      let user = tokenIdMapping.get(data.token);
+      let testAll = data.test;
+      let test = testAll.split("\n");
+      let difficulty = data.difficulty;
+      let questionConst = data.questionConst;
+      let sampleCaseExpected = data.sampleCaseExpected;
+      let finalCode = matchUtil.putTogetherCodeOnRun(
+        code,
+        questionConst,
+        sampleCaseExpected,
+        test
+      );
+      matchUtil.setUserCodeFile(matchKey, user, finalCode);
+
+      let codeResult = {};
+      try {
+        let childResult = await matchUtil.runCodeInChildProcess(
+          matchKey,
+          user,
+          difficulty,
+          10
+        );
+        let updatedChildResult = matchUtil.addSampleTestResult(childResult);
+        codeResult = {
+          user: user,
+          output: updatedChildResult
+        };
+      } catch (e) {
+        codeResult = {
+          user: user,
+          output: e
+        };
+      }
+      io.to(matchKey).emit("codeResult", codeResult);
+    });
+
+    socket.on("submit", async data => {
+      console.log("---------> submit");
+      let matchKey = matchUtil.getMatchKey(socket.request.headers.referer);
+
+      // check if match has ended, if so redirect
+      try {
+        let matchStatus = await matchController.getMatchStatus(matchKey);
+        console.log("matchStatus", matchStatus);
+        if (matchStatus > 0) {
+          socket.emit("rejectUser", errors.matchEnded.message);
+          return;
+        }
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+
+      let user = tokenIdMapping.get(data.token);
+      let username = onlineUsers.get(user).username;
+      console.log("matchKey", matchKey);
+      console.log("user", user);
+      console.log("username", username);
+
+      let submitTime = matchUtil.checkSubmitTime(winnerCheck, matchKey, user);
+      if (submitTime > 0) {
+        socket.emit("alreadySubmitted", errors.alreadySubmitted.message);
+        return;
+      }
+
+      let code = data.code;
+      let questionObject;
+      try {
+        questionObject = await matchController.getQuestionDetail(
+          matchKey,
+          true
+        );
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+      let questionConst = questionObject.const;
+      let smallTestCases = questionObject.smallSampleCases;
+      let difficulty = questionObject.difficulty;
+
+      // put together the code & run one test case at a time
+      let smallTestCasesNumber = smallTestCases.length;
+      let smallPassedCasesNumber = 0;
+      for (let i = 0; i < smallTestCases.length; i++) {
+        let testCaseFinalCode = await matchUtil.putTogetherCodeOnSubmit(
+          code,
+          questionConst,
+          smallTestCases[i]
+        );
+
+        // 按不同 user 存到 ./sessions js files
+        matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
+        // Run code in child process
+        try {
+          let childResult = await matchUtil.runCodeInChildProcess(
+            matchKey,
+            user,
+            difficulty,
+            20
+          );
+
+          // give sample test case result
+          let childResultSplited = childResult.split("\n");
+          let testOutput = childResultSplited[0];
+          let testExpectedOutput = smallTestCases[i].test_result;
+
+          // add sample test result to childResult
+          if (testOutput == testExpectedOutput) {
+            smallPassedCasesNumber += 1;
+          }
+        } catch (e) {
+          throw e;
+        }
+      }
+
+      let largeTestCases = questionObject.largeSampleCases;
+      let largeTestCasesNumber = largeTestCases.length;
+      let largePassedCasesNumber = 0;
+      let largeTestExecTimeSum = 0;
+      let largeExecTimeArr = []; // 這個跟小測資不同！
+      for (let i = 0; i < largeTestCases.length; i++) {
+        let testCaseFinalCode = await matchUtil.putTogetherCodeOnSubmit(
+          code,
+          questionConst,
+          largeTestCases[i]
+        );
+        // 按不同 user 存到 ./sessions js files
+        matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
+        // Run code in child process
+        try {
+          let childResult = await matchUtil.runCodeInChildProcess(
+            matchKey,
+            user,
+            difficulty,
+            80
+          );
+
+          // give sample test case result
+          let childResultSplited = childResult.split("\n");
+          let testOutput = childResultSplited[0];
+          // get exec time (check if it's ms or s)
+          let testExecTime =
+            childResultSplited[1].slice(-2) == "ms"
+              ? childResultSplited[1].split("Time: ")[1].split("m")[0]
+              : childResultSplited[1].split("Time: ")[1].split("s")[0] * 1000;
+          let testExpectedOutput = largeTestCases[i].test_result;
+
+          // add sample test result to childResult
+          if (testOutput == testExpectedOutput) {
+            largePassedCasesNumber += 1;
+            largeTestExecTimeSum += parseFloat(testExecTime);
+            largeExecTimeArr.push(testExecTime);
+          } else {
+            // large test failed: -1 in largeExecTimeArr
+            largeExecTimeArr.push(-1);
+          }
+        } catch (e) {
+          throw e;
+        }
+      }
+
+      // calculate passed test cases
+      let smallCorrectness = `${smallPassedCasesNumber}/${smallTestCasesNumber}`;
+      let largeCorrectness = `${largePassedCasesNumber}/${largeTestCasesNumber}`;
+      let correctness =
+        100 *
+        parseFloat(
+          (smallPassedCasesNumber + largePassedCasesNumber) /
+            (smallTestCasesNumber + largeTestCasesNumber)
+        );
+
+      // calculate exec time (counting with passed tests only)
+      let largeExecTime;
+      if (largePassedCasesNumber === 0) {
+        largeExecTime = null;
+      } else {
+        largeExecTime = largeTestExecTimeSum / largePassedCasesNumber;
+      }
+
+      let startTime = matchList.get(matchKey).start_time;
+      let answerTime = (Date.now() - startTime) / 1000; // in seconds
+
+      try {
+        let calculated = await matchController.calculatePoints(
+          matchKey,
+          correctness,
+          largeExecTimeArr
+        );
+        let performance = calculated.perfPoints;
+        let points = calculated.points;
+        let largePassed = calculated.largePassed;
+
+        let matchID = await matchController.getMatchId(matchKey);
+        await matchController.updateMatchDetail(
+          matchID,
+          user,
+          code,
+          smallCorrectness,
+          largeCorrectness,
+          correctness,
+          largePassed,
+          largeExecTime,
+          performance,
+          answerTime,
+          points
+        );
+
+        // update user table: + points (and level table if needed)
+        await userController.updateUserPointsLevel(user);
+
+        let result = {
+          user,
+          smallCorrectness,
+          largePassed,
+          correctness,
+          largeCorrectness,
+          largeExecTime,
+          performance,
+          answerTime,
+          points
+        };
+
+        if (!winnerCheck.has(matchKey)) {
+          winnerCheck.set(matchKey, []);
+        }
+        winnerCheck.get(matchKey).push(result);
+
+        matchUtil.deleteFile(matchKey, user);
+
+        let submitNumber = winnerCheck.get(matchKey).length;
+        console.log("submitNumber", submitNumber);
+
+        if (submitNumber < 2) {
+          let submitMessage = {
+            user,
+            message: `${username} submitted the code! We're waiting for your submission.`
+          };
+          io.to(matchKey).emit("waitForMatchEnd", submitMessage);
+          return;
+        }
+
+        let winner = matchUtil.getWinner(winnerCheck, matchKey);
+        await matchController.updateMatchWinner(matchKey, winner);
+        io.to(matchKey).emit("endMatch", matchKey);
+
+        inMatchUsers.delete(user);
+
+        winnerCheck.delete(matchKey);
+        console.log("winnerCheck.size", winnerCheck.size);
+
+        console.log("match ended, deleting match in matchList...", matchKey);
+        matchList.delete(matchKey);
+        console.log("matchList.size", matchList.size);
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+    });
+
+    socket.on("getStranger", async data => {
+      // data: {token, category, difficulty}
+      console.log("---------> getStranger");
+      let token = data.token;
+      let inviterId = tokenIdMapping.get(token);
+      let inviterName = onlineUsers.get(inviterId).username;
+      if (onlineUsers.get(inviterId).inviting === 1) {
+        socket.emit(
+          "noStranger",
+          "You can't send out more than one invitation within a minute!"
+        );
+        return;
+      }
+      let stranger = matchUtil.getStranger(inviterId, availableUsers);
+      if (!stranger) {
+        socket.emit("noStranger", errors.noStrangerFound.message);
+        return;
+      }
+      console.log("stranger id", stranger);
+      // add to invitations
+      let invitation = {
+        inviter: inviterId,
+        inviterName,
+        category: data.category,
+        difficulty: data.difficulty,
+        time: Date.now()
+      };
+      console.log("invitation", invitation);
+      onlineUsers.get(stranger).invited.push(invitation);
+
+      // update inviter's data
+      onlineUsers.get(inviterId).inviting = 1;
+      console.log("socket on getStranger, onlineUsers", onlineUsers);
+      socket.emit("stranger", invitation);
+    });
+
+    socket.on("strangerAccepted", data => {
+      console.log("---------> strangerAccepted");
+      let user = tokenIdMapping.get(data.token);
+      let inviterId = data.inviterId;
+      onlineUsers.get(inviterId).invitation_accepted = data.url;
+      onlineUsers.get(inviterId).inviting = 0;
+      console.log("deleting invitations at strangerAccepted...");
+      onlineUsers.get(user).invited = [];
+    });
+
+    socket.on("strangerRejected", data => {
+      console.log("---------> strangerRejected");
+      let token = data.token;
+      let user = tokenIdMapping.get(token);
+      let inviterId = data.inviterId;
+      onlineUsers.get(inviterId).inviting = -1;
+      console.log("deleting invitation at strangerRejected...");
+      for (let i = 0; i < onlineUsers.get(user).invited.length; i++) {
+        if (onlineUsers.get(user).invited[i].inviter == inviterId) {
+          onlineUsers.get(user).invited.splice(i, 1);
+          break;
+        }
+      }
+      console.log("onlineUsers after strangerRejected ---- ", onlineUsers);
+    });
+
+    socket.on("strangerTimedOut", token => {
+      console.log("---------> strangerTimedOut");
+      let user = tokenIdMapping.get(token);
+      onlineUsers.get(user).inviting = -1;
+      console.log("deleting invitation at strangerTimedOut...");
+      for (let i = 0; i < onlineUsers.get(user).invited.length; i++) {
+        if (onlineUsers.get(user).invited[i].inviter == inviterId) {
+          onlineUsers.get(user).invited.splice(i, 1);
+          break;
+        }
+      }
+      console.log("onlineUsers after strangerTimedOut ---- ", onlineUsers);
+    });
+
+    socket.on("getMatchId", async key => {
+      try {
+        let matchId = await matchController.getMatchId(key);
+        socket.emit("matchId", matchId);
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+    });
+
+    socket.on("exit", async token => {
+      console.log("---------> exit");
+      let matchKey = matchUtil.getMatchKey(url);
+      let user = tokenIdMapping.get(token);
+      console.log("user on exit", user);
+      try {
+        let username = onlineUsers.get(user).username;
+        let leaveMessage = {
+          user,
+          message: `${username} left the match. You will still get your points if you submit your solution.`
+        };
+        io.to(matchKey).emit("joinLeaveMessage", leaveMessage);
+      
+        let matchID = await matchController.getMatchId(matchKey);
+        let code = "// You did not submit in this match";
+        let smallCorrectness = "N/A";
+        let largeCorrectness = "N/A";
+        let correctness = 0;
+        let largePassed = "N/A";
+        let largeExecTime = null;
+        let performance = 0;
+        let answerTime = 0;
+        let points = 0;
+        // update match_detail
+        await matchController.updateMatchDetail(
+          matchID,
+          user,
+          code,
+          smallCorrectness,
+          largeCorrectness,
+          correctness,
+          largePassed,
+          largeExecTime,
+          performance,
+          answerTime,
+          points
+        );
+
+        // add / update winnerCheck
+        if (!winnerCheck.has(matchKey)) {
+          winnerCheck.set(matchKey, []);
+          let result = {
+            user,
+            smallCorrectness,
+            largePassed,
+            correctness,
+            largeCorrectness,
+            largeExecTime,
+            performance,
+            answerTime,
+            points
+          };
+          winnerCheck.get(matchKey).push(result);
+          // fs 刪掉 ./sessions js files
+          matchUtil.deleteFile(matchKey, user);
+          return;
+        }
+
+        if (winnerCheck.get(matchKey)[0].user === user) {
+          console.log("User exited before", winnerCheck);
+          socket.emit("exitMultipleTimes");
+          return;
+        }
+
+        // auto end matches where 1 user submit then 1 user left OR both exit
+        let result = {
+          user,
+          smallCorrectness: null,
+          largePassed: null,
+          correctness: null,
+          largeCorrectness: null,
+          largeExecTime: null,
+          performance: null,
+          answerTime: 0,
+          points: 0
+        };
+        winnerCheck.get(matchKey).push(result);
+
+        let winner = matchUtil.getWinner(winnerCheck, matchKey);
+
+        // update match_table: winner
+        await matchController.updateMatchWinner(matchKey, winner);
+        io.to(matchKey).emit("endMatch", matchKey);
+        console.log("winnerCheck after match", winnerCheck);
+
+        socket.leave(matchKey); // leave socket room
+
+        inMatchUsers.delete(user);
+
+        winnerCheck.delete(matchKey);
+        console.log("winnerCheck.size", winnerCheck.size);
+
+        console.log("match ended, deleting match in matchList...", matchKey);
+        matchList.delete(matchKey);
+        console.log("matchList.size", matchList.size);
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
+    });
+
+    socket.on("disconnect", async () => {
+      console.log("---------> disconnect");
+      try{
+        let token = socket.handshake.query.token;
+        if (token === undefined) {
+          console.log("no token in socket query");
+          return;
+        };
+        let url = socket.request.headers.referer;
+        let matchKey = matchUtil.getMatchKey(url);
+        console.log(url);
+        if (url.includes("/match/") && matchList.has(matchKey)) {
+          console.log("user left match page");
+          // if time's up delete match from matchList
+          await matchController.deleteTimedOutMatches(matchList, matchKey);
+        }
+        console.log("user disconnected at", url);
+      } catch (err) {
+        socket.emit("customError", err.message);
+        throw err;
+      }
     });
   });
 };
 
-
-function setUserCodeFile(path, user, code) {
-  let answerFile = fs.openSync(`./${path}${user}.js`, "w");
-  fs.writeSync(answerFile, code, (encoding = "utf-8"));
-  fs.closeSync(answerFile);
-};
-
-function putTogetherCode(code, codeConst, sampleTestCase, test) {
-  // exec time calculation
-  let finalCode = `console.time('Time');\n${code}\n`;
-  // sample test case
-  let sampleTestCaseStr = `${JSON.stringify(sampleTestCase.case[0])}, ${JSON.stringify(sampleTestCase.case[1])}`;
-  let sampleTestCaseExpected = `'${JSON.stringify(sampleTestCase.output)}'`;
-  let consoleLogCode = `console.log('Sample test case: '+'${sampleTestCaseStr}');\nconsole.log('Sample output: '+${codeConst}(${sampleTestCaseStr}));\nconsole.log('Sample expected: '+${sampleTestCaseExpected})`;
-  // user's test case
-  for (i=0; i<5; i++) {
-    if (test[i] && test[i]!==''){
-      consoleLogCode += `\nconsole.log('')`
-      consoleLogCode += `\nconsole.log('Your test case: '+'${test[i]}');`
-      consoleLogCode += `\nconsole.log('Output: '+${codeConst}(${test[i]}));`
-    }
-  };
-  // format
-  finalCode += (consoleLogCode + `\nconsole.log('')`);
-  finalCode += `\nconsole.timeEnd('Time');`;
-  return finalCode;
-};
-
-
-function childProcessExecFile(user, path) {
-  return new Promise((resolve, reject) => {
-    let ls = spawn(`node`, [`${path}${user}.js`]);
-    let result = '';
-    ls.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
-      // output 性質是 ArrayBuffer 所以要先處理
-      // 等每個 output 出來組在一起
-      result += arrayBufferToStr(data);
-    });
-    
-    ls.stderr.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-      reject(data);
-    });
-    
-    ls.on('close', (code) => {
-      // 子程序終止的時候再回傳上面組的內容
-      resolve(result);
-      console.log(`exited child_process at ${path}${user}.js with code ${code}`);
-    });
-  });
-}
-
-
-function getRoomID(url) {
-  let urlSplitedBySlash = url.split("/");
-  let urlAfterLastSlash = urlSplitedBySlash[urlSplitedBySlash.length - 1];
-  let urlParam = urlAfterLastSlash.split("?");
-  let roomID = urlParam[urlParam.length - 2];
-  return roomID;
-}
-
-function getQuestion(url) {
-  let urlParamContent = url.split("=");
-  let question = urlParamContent[urlParamContent.length - 1];
-  return question;
-}
-
-function arrayBufferToStr(buf) {
-  return String.fromCharCode.apply(null, new Uint16Array(buf));
-}
+// remove timeout users (1 min with no ping) in onlineUserList
+// check every 60 sec
+setInterval(async () => {
+  console.log("---------> setInterval");
+  console.log("inMatchUsers", inMatchUsers);
+  // delete users that are idle & not in a match
+  matchUtil.deleteTimedOutUsers(
+    onlineUsers,
+    availableUsers,
+    inMatchUsers,
+    tokenIdMapping
+  );
+  // delete timed out matches
+  for (let matchKey of matchList.keys()) {
+    matchController.deleteTimedOutMatches(matchList, matchKey);
+  }
+}, 1000 * 60);
 
 module.exports = socket;

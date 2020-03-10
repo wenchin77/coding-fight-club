@@ -1,64 +1,50 @@
 extends layout
 
 block content
+  .matchSetupWrapper
+    .setupTitle
+      h2.setupTitleText Match Setup
+      img.questionImg(src='../img/question.png')
+    .setupContentSection
+      .chooseQuestion 
+        h3 Choose an algorithms question
+        div We'll pick a question for you randomly based on your category and difficulty choices
+        p Note: Currently we only support JavaScript as the programming language.
+        
+        .language 
+          .languageTitle Language
+          button(value='javascript') JavaScript
+         
+        .category 
+          .categoryTitle Category
+          button(value='array') Array
+          //- button(value='hash_table') Hash Table
+          //- button(value='string') String
+          button(value='binary_search') Binary Search
 
-  .matchPageSections Set up a Match
-    .contentSection
-      .leftSection
-        .chooseOpponent Choose an Opponent
-        br
-        .strangerMode Challenge a random stranger online (機制待訂)
-        br
-        .friendMode Invite a friend
-        button.getLinkBtn(type='button' onclick='getLink()') Get match invitation link
-        #invitationLink
-      .rightSection
-        .chooseQuestion Choose a question
-        br
-        button.questionSetup#questionSetup(value='Two Sum') Two Sum
-    //- button#readyBtn(type='button' onclick='setUpAMatch()') I'm ready!
-    
-    br
-    br
-    br
-    div Temp setup: use username, question set as Two Sum
-    br
-    button#readyBtn(type='button' onclick='setUpAMatchTemp()') I'm ready! (temp)
+        .difficulty 
+          .difficultyTitle Difficulty
+          button(value='easy') Easy
+          button(value='medium') Medium
+          button(value='hard') Hard
+
+      .chooseOpponent#chooseOpponent
+        h3 Choose your opponent
+        div We'll find you an online player or you can invite a friend straight away
+        p Note: By challenging a stranger, you have to wait for 60 seconds at most for the user to confirm
+        .mode
+          .modeTitle Mode
+          .strangerMode(onclick='getAStranger()')
+            img.modeImg(src='../img/random.png')
+            div Challenge a Stranger
+          .friendMode(onclick='inviteAFriend()')
+            img.modeImg(src='../img/letter.png')
+            div Invite a Friend  
+
+        
 
 
   script(src='../js/match_setup.js')
-
-    //- .titleSection
-    //-   .matchQuestion CycleRotation
-    //-   .opponent Opponent: Ethan
-    //-   .level Level: Easy
-    //-   .timer Time: XX:XX
-    //-   button#submitBtn(type='button' onclick='') Submit
-    //-   button#helpBtn(type='button' onclick='') Help
-    //-   button#exitBtn(type='button' onclick='exitMatch()') Exit
-    //- .contentSection
-    //-   .leftSection
-    //-     .questionArea
-    //-       .sectionName Question
-    //-       #question Given an array of integers, return indices of the two numbers such that they add up to a specific target. You may assume that each input would have exactly one solution, and you may not use the same element twice.
-   
-
-    //-     .opponentTerminal
-    //-       .sectionName Opponent's Test Output
-    //-       #opponentRunCodeResult I'm the result
-
-    //-   .rightSection
-    //-     .codearea
-    //-       .sectionName Your Solution
-    //-       textarea#codearea(rows='25' cols='200')
-    //-     .terminalResult 
-    //-       button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
-    //-       button#runcodeBtn(type='button' onclick='runCode()') Run Code    
-    //-       #runCodeResult
-    //-       #testCaseArea
-    //-         textarea#testcase(rows='5' cols='200')
-
-
     
 
 

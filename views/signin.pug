@@ -1,10 +1,57 @@
 extends layout
+block scripts
+    meta(name='google-signin-client_id' content='1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com')
+    //- for fb loging
+    //- script(src='../js/fb_init.js')
+
+    //- Load the Google Platform Library
+    script(src='https://apis.google.com/js/platform.js?onload=googleInit' async='' defer='')
+    script.
+      function googleInit() {
+        gapi.load('auth2', () => {
+          gapi.auth2.init({
+            client_id: "1072670621009-nt50lbggpj5n2ma6d9jn01ocsneom6oh.apps.googleusercontent.com",
+            redirect_uri: 'postmessage' // otherwise: redirect_uri_mismatch
+          });
+        });
+      }
 
 block content
-  .signin-container Sign In
-    p What's your name? (temp login: type in either Test or Ethan)
-    input#signinName(type='text' name='Name')
-    .signin-button
-      button#signinBtn(type='button' onclick='tempSignin()') Send
+  
 
-  script(src='../js/signin.js')
+  .backgroundImageWrapper
+
+    .signinSignupForm
+      .bottonBox
+        #toggleButton
+        button(type='button' class='toggleBtn' onclick='switchToSignin()') SIGN IN
+        button(type='button' class='toggleBtn' onclick='switchToSignup()') SIGN UP
+
+      .socialIcons
+        a(href='https://github.com/login/oauth/authorize?client_id=8d64abb54295cfe2d88a&scope=user:email&redirect_uri=https://coding-fight-club.thewenchin.com/api/v1/user/github_redirect')
+          img(src='../img/github.png' alt='Github')
+        img#googleSignin(src='../img/google.png' alt='Google' onclick='googleSignin()')
+        //- img(src='../img/facebook.png' alt='Facebook')
+
+      form.inputGroup#signin(action='/api/v1/user/signin' method='post')
+        input.inputField#signinEmail(type='email' name='email' placeholder='Email' required)
+        input.inputField#signinPassword(type='password' name='password' placeholder='Password' required)
+        input#testCheckbox(type='checkbox' onclick='useTestUser()')
+        span.checkboxText Sign in as a test user
+          img.questionImg#checkboxQuestionImg(src='../img/question_dark.png' onclick='showTestUserHelp()')
+        button.submitBtn(type='submit') SIGN ME IN
+
+      form.inputGroup#signup(action='/api/v1/user/signup' method='post')
+        input.inputField#signupUsername(type='text' name='username' placeholder='Username (4-10 characters)' required)
+        input.inputField#signupEmail(type='email' name='email' placeholder='Email' required)
+        input.inputField#signupPassword(type='password' name='password' placeholder='Password (4-16 characters)' required)
+        a(href='/terms')
+          p.agreeTerms By signing up, you agree to the terms
+        button.submitBtn(type='submit') JOIN THE CLUB
+
+
+
+          script(src='../js/signin.js')
+
+  
+

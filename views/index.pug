@@ -1,9 +1,18 @@
 extends layout
 
-block content
-  .header-image-container
-    .header-text
-      p Welcome to Coding Fight Club
-    //- img.header-image(src='../images/keyvisuals/201807202140.jpg')
-  //- #products.products
+block scripts
   script(src='../js/index.js')
+
+block content
+  .backgroundImageWrapper
+    .homeContent
+      h1 Welcome to Coding Fight Club
+      h5 Achieve mastery through live algorithms challenges
+      //- p A software platform that helps engineers sharpen their programming skills via live competitions on algorithms
+
+      a(href='/signin')
+        button JOIN THE CLUB
+      h5#userNo
+
+      //- img.header-image(src='../img/main.jpg')
+      //- #products.products

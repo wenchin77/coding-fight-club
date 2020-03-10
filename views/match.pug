@@ -1,11 +1,21 @@
 extends layout
+block scripts
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css')
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/theme/base16-dark.css')
+  script(src='../js/match.js')
 
 block content
+  #myModal.modal
+    .modalContent
+      span.close &times;
+      p#modalText
+      .modalButtons
+        button#noButton No
+        button#yesButton Yes
   .matchPageSections
     .titleSection
-      .matchQuestion#matchQuestion
-      .opponent#opponent Opponent: Pending...
-      .level Level: Easy
+      .matchQuestion#matchQuestion Question
+      .opponent#opponent Opponent
       .timer#timer
         img.timerImg(src='../img/clock.png')
         div
@@ -14,8 +24,7 @@ block content
         label#minutes 00
         div :
         label#seconds 00
-      button#submitBtn(type='button' onclick='') Submit
-      button#helpBtn(type='button' onclick='') Help
+      button#submitBtn(type='button' onclick='submitCode()') Submit
       button#exitBtn(type='button' onclick='exitMatch()') Exit
     .contentSection
       .leftSection
@@ -34,18 +43,18 @@ block content
           .sectionName Your Solution
           textarea#codearea(rows='25' cols='200')
         .terminalResult#terminalResult
-          button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
-          button#runcodeBtn(type='button' onclick='runCode()') Run Code
+          .terminalButtons
+            button#testcaseBtn(type='button' onclick='showTestCase()') Test Case
+            button#runcodeBtn(type='button' onclick='runCode()') Run Code
+            img.questionImg(src='../img/question.png' onclick ='showHelp()')
           #runCodeOutput
           #testCaseArea
-            textarea#testcase(rows='5' cols='200')
-          div * Each line is a seperate test case (5 max), eg: [1,2,3],5
+            #sampleTestCase(type='text')
+            textarea#testcase(rows='5' cols='200' placeholder='// Write more test cases!\n// Each line is a seperate test case (5 max)')
 
 
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/javascript/javascript.js')
-  script(src='../js/match.js')
-
   script.
     // codemirror (syntax highlight & auto indent)
     const codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('codearea'), {

@@ -1,0 +1,39 @@
+extends layout
+
+block scripts
+
+block content
+  //- for fb loging
+  //- script(src='../js/fb_init.js')
+
+  .backgroundImageWrapper
+    .profileWrapper
+      .profileTitle
+        h2#matchResult Dashboard 
+        //- img.questionImg(src='../img/question.png')
+        
+
+      .profileContent
+        h3 Member Profile
+        p#username
+        p#email
+        p#points
+        p#level
+        #github
+
+        br
+        h3 Match History
+        p.summaryTableContainer The most recent matches you participated in:
+        #noMatches
+        table#summaryTable
+          
+        .profileButtons
+          a(href='/match_history')
+            button#profileBtn View All Matches
+          a(href='/match_setup')
+            button#profileBtn Start a Match
+          a(href='/')
+            button#profileBtn(onclick='logout()') Log out
+        //- button Share with Friends
+
+  script(src='../js/dashboard.js')
