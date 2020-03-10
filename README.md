@@ -1,61 +1,120 @@
 # Coding Fight Club
 
-> A software platform that helps engineers sharpen their coding skills via live competitions
+A software platform that helps engineers sharpen their coding skills via live competitions on algorithms
 
-## Table of contents
-* [General info](#general-info)
-* [Screenshots](#screenshots)
+## Table of content
 * [Technologies](#technologies)
-* [Setup](#setup)
+* [Structure](#structure)
+* [Database design](#database-design)
 * [Features](#features)
-* [Status](#status)
+* [Socket flowchart](#socket-flowchart)
+* [Demo](#demo)
 * [Inspiration](#inspiration)
-* [Contact](#contact)
+* [Author](#author)
 
-## General info
-Add more general information about project. What the purpose of the project is? Motivation?
-
-## Screenshots
-![Example screenshot](./img/screenshot.png)
 
 ## Technologies
-* Tech 1 - version 1.0
-* Tech 2 - version 2.0
-* Tech 3 - version 3.0
 
-## Setup
-Describe how to install / setup your local environement / add link to demo version.
+### Backend
 
-## Code Examples
-Show examples of usage:
-`put-your-code-here`
+* Node.js
+* Express.js
+* AWS EC2
 
-```mermaid
-sequenceDiagram
-  participant Client
-  participant Server
-  Client->>DB: Hello John, how are you?
-  loop Healthcheck
-      DB->>DB: Fight against hypochondria
-  end
-  Note right of DB: Rational thoughts <br/>prevail!
-  DB-->>Client: Great!
-  DB->>Server: How about you?
-  Server-->>DB: Jolly good!
-```
+### Frontend
+
+* HTML
+* CSS
+* JavaScript
+* Pug
+* Axios
+
+### Web Socket
+* Socket io
+
+### Database
+
+* MySQL
+* AWS RDS
+
+### Networking
+
+* HTTP & HTTPS
+* Domain Name System (DNS)
+* Nginx
+* SSL Certificate (Let's Encrypt)
+
+### Test
+
+* Jest
+* Supertest
+* Artillery
+
+### Others
+
+* AWS S3
+* Google login API
+* GitHub login API
+* Docker
+
+## Structure
+![Structure screenshot](./public/img/structure.png)
+
+## Database design
+![Example screenshot](./public/img/db_coding_fight_club.png)
 
 ## Features
-List of features ready and TODOs for future development
-* Awesome feature 1
-* Awesome feature 2
-* Awesome feature 3
+### Features ready
+* Live competition: 
+  * Match pages show instant mock terminal results of you and your opponent
+* Match modes choices:
+  * Users can choose between the random stranger mode (with other available users online) and the invitation mode
+  * Users can choose their preferred difficulty and the category of an upcoming match
+* Code rating:
+  * The server rates your code based on correctness (percentage of test cases passed) and performance (if the execution time of large test cases passes their according thresholds)
+* User-related features:
+  * Leaderboard ranks the top users
+  * Homepage shows real-time number of online users
 
-To-do list:
-* Wow improvement to be done 1
-* Wow improvement to be done 2
+### To-do features
+* Single mode for code practices
+* Increase questions of the library
+* Chat rooms for messaging among users
+* Community among users
+
+
+
+## Socket flowchart
+
+### Real-time user pinging
+Senario: every user connected pings every five seconds
+![Mermaid screenshot](./public/img/mermaid_1.png)
+
+### Starting matches with stranger mode
+Senario: user A (on client A) starts a match with stranger mode and user B (on client B) is invited
+![Mermaid screenshot](./public/img/mermaid_2.png)
+
+### In a match
+Senario: user A (on client A) is in a match with user B (on client B) when nobody exits the match
+![Mermaid screenshot](./public/img/mermaid_3.png)
+
+Senario: user A (on client A) is in a match with user B (on client B) when A exits the match in the middle of the match
+![Mermaid screenshot](./public/img/mermaid_4.png)
+
+Senario: user A (on client A) attemps to join a match that has ended
+![Mermaid screenshot](./public/img/mermaid_5.png)
+
+
+## Demo
+* Match page
+![match screenshot](./public/img/screenshot_match.png)
+* Match history page
+![match history screenshot](./public/img/screenshot_match_history.png)
+
+
 
 ## Inspiration
-Add here credits. Project inspired by..., based on...
+Project inspired by [Codewars](https://www.codewars.com) and [Codility](https://www.codility.com/), questions based on [LeetCode](https://leetcode.com/)
 
-## Contact
-Created by [@wenchin77](https://www.flynerd.pl/) - feel free to contact me!
+## Author
+Wenchin Chuang [@wenchin77](https://github.com/wenchin77)
