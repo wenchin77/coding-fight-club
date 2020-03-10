@@ -88,31 +88,50 @@ A software platform that helps engineers sharpen their coding skills via live co
 
 ### Real-time user pinging
 Senario: every user connected pings every five seconds
+
 ![Mermaid screenshot](./public/img/mermaid_1.png)
 
 ### Starting matches with stranger mode
 Senario: user A (on client A) starts a match with stranger mode and user B (on client B) is invited
+
 ![Mermaid screenshot](./public/img/mermaid_2.png)
 
 ### In a match
 Senario: user A (on client A) is in a match with user B (on client B) when nobody exits the match
+
 ![Mermaid screenshot](./public/img/mermaid_3.png)
 ![Mermaid screenshot](./public/img/mermaid_4.png)
 
 Senario: user A (on client A) is in a match with user B (on client B) when A exits the match in the middle of the match
+
 ![Mermaid screenshot](./public/img/mermaid_5.png)
 
 Senario: user A (on client A) attemps to join a match that has ended
+
 ![Mermaid screenshot](./public/img/mermaid_6.png)
 
 
 
 ## Demo
 * Match page
+
 ![match screenshot](./public/img/screenshot_match.png)
+
+* Match result page
+
+![match result screenshot](./public/img/screenshot_match_result.png)
+
 * Match history page
+
 ![match history screenshot](./public/img/screenshot_match_history.png)
 
+* Dashboard page
+
+![dashboard screenshot](./public/img/screenshot_dashboard.png)
+
+* Leaderboard page
+
+![leaderboard screenshot](./public/img/screenshot_leaderboard.png)
 
 
 ## Inspiration
