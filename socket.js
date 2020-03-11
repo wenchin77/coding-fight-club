@@ -40,6 +40,7 @@ socket.init = server => {
       console.log("userInfo", userInfo);
     } catch (err) {
       socket.emit("customError", err.message);
+      console.log(err);
       throw err;
     }
 
@@ -92,6 +93,7 @@ socket.init = server => {
         console.log("matchList size", matchList.size);
       } catch (err) {
         socket.emit("customError", err.message);
+        console.log(err);
         throw err;
       }
     });
@@ -147,12 +149,14 @@ socket.init = server => {
           });
         }
 
-        console.log("adding a room in matchList...");
+        console.log("adding a user in the room at matchList...");
         matchList.get(matchKey).users.add(user);
         console.log(
           "matchList.get(matchKey).size",
           matchList.get(matchKey).users.size
         );
+
+        console.log('matchList', matchList)
 
         // Join room
         socket.join(matchKey, () => {
@@ -725,7 +729,6 @@ socket.init = server => {
 // check every 60 sec
 setInterval(async () => {
   console.log("---------> setInterval");
-  console.log("inMatchUsers", inMatchUsers);
   // delete users that are idle & not in a match
   matchUtil.deleteTimedOutUsers(
     onlineUsers,
@@ -737,6 +740,6 @@ setInterval(async () => {
   for (let matchKey of matchList.keys()) {
     matchController.deleteTimedOutMatches(matchList, matchKey);
   }
-}, 1000 * 60);
+}, 1000 * 10);
 
 module.exports = socket;

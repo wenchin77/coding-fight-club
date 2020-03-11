@@ -44,13 +44,15 @@ const setUserCodeFile = (matchKey, user, code) => {
 
 const deleteFile = (matchKey, user) => {
   let path = `./sessions/${matchKey}_${user}.js`;
-  fs.unlink(path, err => {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    console.log(`${matchKey}_${user}.js file removed`);
-  });
+  if (fs.existsSync(path)) {
+    fs.unlink(path, err => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      console.log(`${matchKey}_${user}.js file removed`);
+    });
+  }
 };
 
 const putTogetherCodeOnRun = (code, codeConst, expected, test) => {
@@ -78,6 +80,7 @@ async function putTogetherCodeOnSubmit(code, questionConst, caseFile) {
     finalCode += `\nconsole.timeEnd('Time')`;
     return finalCode;
   } catch (err) {
+    console.log(err);
     throw err;
   }
 };

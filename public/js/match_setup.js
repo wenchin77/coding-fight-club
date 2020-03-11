@@ -84,7 +84,7 @@ socket.on('rejected', msg => {
 // countdown with inviteTime after refresh
 if (localStorage.getItem('inviteTime')) {
   let inviteTime = localStorage.getItem('inviteTime');
-  let secondsLeft = parseInt(inviteTime / 1000 + 60 - Date.now() / 1000);
+  let secondsLeft = parseInt(inviteTime / 1000 + 30 - Date.now() / 1000);
   if (secondsLeft > 0) {
     countdown(inviteTime);
   }
@@ -92,7 +92,7 @@ if (localStorage.getItem('inviteTime')) {
 
 function countdown(inviteTime) {
   let inviteTimer = setInterval(() => {
-    let secondsLeft = parseInt(inviteTime / 1000 + 60 - Date.now() / 1000);
+    let secondsLeft = parseInt(inviteTime / 1000 + 30 - Date.now() / 1000);
     if (!localStorage.getItem('inviteTime')) {
       clearInterval(inviteTimer);
       document.getElementById('myModal').style.display = 'none';

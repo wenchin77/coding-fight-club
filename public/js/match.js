@@ -1,4 +1,5 @@
 // verify signin first
+// only init socket in match when there's a token and userid
 if (!localStorage.getItem("token") || !localStorage.getItem("id")) {
   const url = window.location.pathname;
   localStorage.setItem('invited_url', url);
@@ -18,17 +19,18 @@ let sampleCaseExpected;
 let questionConst;
 let difficulty;
 
-// only init socket in match when there's a token and userid
-// this is to prevent undefined usernames from being sent to server & showing here
-if (localStorage.getItem('token') && localStorage.getItem('id')){
-  console.log('socket in match init...')
-  socketInMatchInit();
-}
+socketInMatchInit();
 
 function socketInMatchInit() {
   // socket already initialized at socket.js
   // so we're not using socket.on('connect') here
+  console.log('socket emit joinMatch')
   socket.emit("joinMatch", token);
+
+  // to prevent failed joinMatch...
+  if (!document.getElementById("questionDescription")) {
+    socket.emit("joinMatch", token);
+  }
 
   // too many people in a match: reject and redirect
   socket.on("rejectUser", msg => {

@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 require("dotenv").config();
+const env = process.env.NODE_ENV || "development";
 
 // Use pool to reuse connections and enhance the performance of executing commands
 let dbConfig = {
@@ -9,7 +10,14 @@ let dbConfig = {
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE
 };
-const pool = mysql.createPool(dbConfig);
+let dbTestConfig = {
+  connectionLimit: 10, // default 10
+  host: process.env.MYSQL_TEST_HOST,
+  user: process.env.MYSQL_TEST_USER,
+  password: process.env.MYSQL_TEST_PASSWORD,
+  database: process.env.MYSQL_TEST_DATABASE
+};
+const pool = (env === "development") ? mysql.createPool(dbConfig) : mysql.createPool(dbTestConfig);
 
 const connection = () => {
   return new Promise((resolve, reject) => {
@@ -44,6 +52,8 @@ const query = (sql, binding) => {
     });
   });
 };
+
+console.log('Node env:', env)
 
 // Use util to promisify callback functions automatically
 module.exports = {
