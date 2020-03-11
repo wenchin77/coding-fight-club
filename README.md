@@ -64,6 +64,7 @@ A software platform that helps engineers sharpen their coding skills via live co
 ![Example screenshot](./public/img/db_coding_fight_club.png)
 
 ## Features
+[![Demo CountPages alpha](/public/img/demo.gif)](https://youtu.be/PnjnDY5si4I)
 ### Features ready
 * Live competition: 
   * Match pages show instant mock terminal results of you and your opponent
@@ -113,26 +114,7 @@ Senario: user A (on client A) attemps to join a match that has ended
 
 
 ## Demo
-* Match page
-
-![match screenshot](./public/img/screenshot_match.png)
-
-* Match result page
-
-![match result screenshot](./public/img/screenshot_match_result.png)
-
-* Match history page
-
-![match history screenshot](./public/img/screenshot_match_history.png)
-
-* Dashboard page
-
-![dashboard screenshot](./public/img/screenshot_dashboard.png)
-
-* Leaderboard page
-
-![leaderboard screenshot](./public/img/screenshot_leaderboard.png)
-
+錄影片放這邊！！！
 
 ## Inspiration
 Project inspired by [Codewars](https://www.codewars.com) and [Codility](https://www.codility.com/), questions based on [LeetCode](https://leetcode.com/)
