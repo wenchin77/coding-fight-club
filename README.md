@@ -8,7 +8,6 @@ A software platform that helps engineers sharpen their coding skills via live co
 * [Database design](#database-design)
 * [Features](#features)
 * [Socket flowchart](#socket-flowchart)
-* [Demo](#demo)
 * [Inspiration](#inspiration)
 * [Author](#author)
 
