@@ -8,7 +8,6 @@ A software platform that helps engineers sharpen their coding skills via live co
 * [Database design](#database-design)
 * [Features](#features)
 * [Socket flowchart](#socket-flowchart)
-* [Demo](#demo)
 * [Inspiration](#inspiration)
 * [Author](#author)
 
@@ -110,11 +109,6 @@ Senario: user A (on client A) is in a match with user B (on client B) when A exi
 Senario: user A (on client A) attemps to join a match that has ended
 
 ![Mermaid screenshot](./public/img/mermaid_6.png)
-
-
-
-## Demo
-錄影片放這邊！！！
 
 ## Inspiration
 Project inspired by [Codewars](https://www.codewars.com) and [Codility](https://www.codility.com/), questions based on [LeetCode](https://leetcode.com/)
