@@ -111,11 +111,6 @@ Senario: user A (on client A) attemps to join a match that has ended
 
 ![Mermaid screenshot](./public/img/mermaid_6.png)
 
-
-
-## Demo
-錄影片放這邊！！！
-
 ## Inspiration
 Project inspired by [Codewars](https://www.codewars.com) and [Codility](https://www.codility.com/), questions based on [LeetCode](https://leetcode.com/)
 
