@@ -125,8 +125,8 @@ function generateTable(table, data) {
 
 async function showProfile(token) {
   try {
-    const response = await axios.post(
-      `/api/${CST.API_VERSION}/user/get_user_profile?token=${token}`
+    const response = await axios.get(
+      `/api/${CST.API_VERSION}/user/profile?token=${token}`
     );
     return response.data[0];
   } catch (error) {

@@ -23,7 +23,7 @@ async function main() {
 
 async function getUserInfo (token) {
   try {
-    let response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_profile?token=${token}`);
+    let response = await axios.get(`/api/${CST.API_VERSION}/user/profile?token=${token}`);
     return response.data[0].id;
   } catch (error) {
     console.log(error);
@@ -139,7 +139,7 @@ function generateTable(table, data) {
 
 async function showProfile(token) {
   try {
-    const response = await axios.post(`/api/${CST.API_VERSION}/user/get_user_profile?token=${token}`)
+    const response = await axios.get(`/api/${CST.API_VERSION}/user/profile?token=${token}`)
     console.log('showProfile data', response.data);
     document.getElementById('username').innerHTML = `Username: ${response.data[0].user_name}`
     document.getElementById('email').innerHTML = `Email: ${response.data[0].email}`

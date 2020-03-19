@@ -9,7 +9,7 @@ router.post('/signin', userController.signin);
 
 router.get('/leaderboard', userController.getLeaderboard);
 
-router.post('/get_user_profile', userController.getUserProfile);
+router.get('/profile', userController.getUserProfile);
 
 router.get('/github_redirect', userController.githubRedirect);
 
