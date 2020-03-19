@@ -144,7 +144,7 @@ async function getQuestion(category, difficulty) {
 }
 
 async function getKey() {
-  let keyObject = await axios.get(`/api/${CST.API_VERSION}/match/get_key`);
+  let keyObject = await axios.get(`/api/${CST.API_VERSION}/match/key`);
   return keyObject.data;
 }
 
@@ -225,7 +225,7 @@ function showAlertBox(msg, questionID, inviterId) {
 async function insertMatch(questionID, matchKey) {
   try {
     const response = await axios.post(
-      `/api/${CST.API_VERSION}/match/insert_match`,
+      `/api/${CST.API_VERSION}/match`,
       {
         questionID,
         matchKey
