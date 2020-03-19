@@ -32,7 +32,7 @@
   </head>
   <body>
     <h3>Add a New Question</h3>
-    <form method="post" action="/api/v1/question/insert_question">
+    <form method="post" action="/api/v1/question">
       Admin Password <input type="password" name="admin" required="required"><br/>
       Category <select name="category">
         <option value="array">array</option>
@@ -55,7 +55,7 @@
     <hr>
     
     <h3>Add New Test Data</h3>
-    <form method="post" action="/api/v1/question/insert_test">
+    <form method="post" action="/api/v1/question/test">
       Admin Password <input type="passworda" name="admin" required="required"><br/>
       <div>*** Make sure it's in the db! (<a href="/api/v1/question/all">all questions</a>)</div>
       Question ID <input type="number" name="question_id" required="required"><br/>

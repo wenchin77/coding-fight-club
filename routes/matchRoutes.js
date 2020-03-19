@@ -4,9 +4,9 @@ const matchController = require('../controllers/matchController');
 
 // 路徑是 /api/v1/match
 
-router.get('/get_key', matchController.getKey);
+router.get('/key', matchController.getKey);
 
-router.post('/insert_match', matchController.insertMatch);
+router.post('/', matchController.insertMatch);
 
 router.get('/result/details', matchController.getMatchDetails);
 
