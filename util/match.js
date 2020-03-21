@@ -160,50 +160,6 @@ const runCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
   });
 };
 
-const submitCodeInChildProcess = (matchKey, user, difficulty, memoryLimit) => {
-  return new Promise((resolve, reject) => {
-    // limit max memory to prevent out of memory situations
-    let childProcess = spawn("node", [
-      `--max-old-space-size=${memoryLimit}`,
-      `./sessions/${matchKey}_${user}.js`
-    ]);
-    let result = "";
-
-    // timeout error setting
-    let timeoutMs = getTimeoutMs(difficulty);
-    let setTimeoutId = setTimeout(() => {
-      childProcess.kill();
-      console.log("timeout: killing child process...");
-      reject("EXECUTION TIMED OUT");
-    }, timeoutMs);
-
-    childProcess.stdout.on("data", data => {
-      console.log(`stdout: ${data}`);
-    });
-
-    childProcess.stderr.on("data", data => {
-      if (data.includes("out of memory")) {
-        childProcess.kill();
-        console.log("out of memory: killing child process...");
-        reject("OUT OF MEMORY");
-      }
-      console.error(`stderr: ${data}`);
-    });
-
-    childProcess.on("error", reject).on("close", code => {
-      if (code === 0) {
-        resolve(result);
-      } else {
-        reject(result);
-      }
-      console.log(
-        `exited child_process at ${matchKey}_${user}.js with code ${code}`
-      );
-      clearTimeout(setTimeoutId); // clear it or it'll keep timing
-    });
-  });
-};
-
 
 const addSampleTestResult = (childResult) => {
   let updatedChildResult;
@@ -307,7 +263,6 @@ module.exports = {
   putTogetherCodeOnRun,
   putTogetherCodeOnSubmit,
   runCodeInChildProcess,
-  submitCodeInChildProcess,
   deleteTimedOutUsers,
   addSampleTestResult,
   getWinner,

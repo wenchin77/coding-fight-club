@@ -348,7 +348,7 @@ socket.init = server => {
         matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await matchUtil.submitCodeInChildProcess(
+          let childResult = await matchUtil.runCodeInChildProcess(
             matchKey,
             user,
             difficulty,
@@ -364,6 +364,10 @@ socket.init = server => {
             smallPassedCasesNumber += 1;
           }
         } catch (e) {
+          if (e === 'EXECUTION TIMED OUT' || e === 'OUT OF MEMORY') {
+            console.log('EXECUTION TIMED OUT or OUT OF MEMORY: stop running the code for other small test cases')
+            break;
+          }
           console.log(e);          
         }
       }
@@ -383,7 +387,7 @@ socket.init = server => {
         matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await matchUtil.submitCodeInChildProcess(
+          let childResult = await matchUtil.runCodeInChildProcess(
             matchKey,
             user,
             difficulty,
@@ -400,7 +404,6 @@ socket.init = server => {
               : childResultSplited[1].split("Time: ")[1].split("s")[0] * 1000;
           let testExpectedOutput = largeTestCases[i].test_result;
 
-          // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
             largePassedCasesNumber += 1;
             largeTestExecTimeSum += parseFloat(testExecTime);
@@ -410,7 +413,11 @@ socket.init = server => {
             largeExecTimeArr.push(-1);
           }
         } catch (e) {
-          console.log(e)
+          if (e === 'EXECUTION TIMED OUT' || e === 'OUT OF MEMORY') {
+            console.log('EXECUTION TIMED OUT or OUT OF MEMORY: stop running the code for other large test cases')
+            break;
+          }
+          console.log(e);          
         }
       }
 
@@ -724,10 +731,8 @@ socket.init = server => {
   });
 };
 
-// remove timeout users (1 min with no ping) in onlineUserList
-// check every 60 sec
+// remove timeout users in onlineUserList
 setInterval(async () => {
-  console.log("---------> setInterval");
   // delete users that are idle & not in a match
   matchUtil.deleteTimedOutUsers(
     onlineUsers,
