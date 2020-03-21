@@ -740,8 +740,9 @@ setInterval(async () => {
 }, 1000 * 10);
 
 setInterval(()=>{
+  console.log('---------> 5 min check',Date.now())
   console.log("onlineUsers size", onlineUsers.size);
   console.log("availableUsers", availableUsers);
-}, 1000 * 60)
+}, 1000 * 60 * 5)
 
 module.exports = socket;
