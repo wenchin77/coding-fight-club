@@ -152,6 +152,7 @@ module.exports = {
         console.log("onlineUsers size", onlineUsers.size);
         return { user, username };
       }
+      console.log("Found user at tokenIdMapping");
       user = tokenIdMapping.get(token);
       username = onlineUsers.get(user).username;
       return { user, username };
