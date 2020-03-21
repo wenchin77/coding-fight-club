@@ -45,7 +45,6 @@ socket.init = server => {
     }
 
     socket.on("online", async token => {
-      console.log("---------> online");
       try {
         // add user in tokenIdMapping & onlineUsers
         const userInfo = await userController.getUserInfo(
@@ -53,14 +52,12 @@ socket.init = server => {
           onlineUsers,
           tokenIdMapping
         );
-        console.log("userInfo", userInfo);
         let user = userInfo.user;
 
         onlineUsers.get(user).time = Date.now();
 
         // add user in availableUsers (update if it already exists)
         availableUsers.add(user);
-        console.log("availableUsers", availableUsers);
 
         // if the invitation's accepted notify the inviter
         if (onlineUsers.get(user).invitation_accepted !== 0) {
@@ -83,14 +80,10 @@ socket.init = server => {
         if (onlineUserDetail.invited.length > 0) {
           let invitations = onlineUserDetail.invited;
           for (let i = 0; i < invitations.length; i++) {
-            console.log("emitting invited...");
+            console.log("emitting invited...", user);
             socket.emit("invited", invitations[i]);
           }
         }
-        console.log("onlineUsers size", onlineUsers.size);
-        console.log("tokenIdMapping size", tokenIdMapping.size);
-        console.log("availableUsers size", availableUsers.size);
-        console.log("matchList size", matchList.size);
       } catch (err) {
         socket.emit("customError", err.message);
         console.log(err);
@@ -355,17 +348,20 @@ socket.init = server => {
             20
           );
 
-          // give sample test case result
+          // compare sample test case result
           let childResultSplited = childResult.split("\n");
           let testOutput = childResultSplited[0];
           let testExpectedOutput = smallTestCases[i].test_result;
 
-          // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
             smallPassedCasesNumber += 1;
           }
         } catch (e) {
-          throw e;
+          if (e === 'EXECUTION TIMED OUT' || e === 'OUT OF MEMORY') {
+            console.log('EXECUTION TIMED OUT or OUT OF MEMORY: stop running the code for other small test cases')
+            break;
+          }
+          console.log(e);          
         }
       }
 
@@ -391,7 +387,7 @@ socket.init = server => {
             80
           );
 
-          // give sample test case result
+          // compare sample test case result
           let childResultSplited = childResult.split("\n");
           let testOutput = childResultSplited[0];
           // get exec time (check if it's ms or s)
@@ -401,7 +397,6 @@ socket.init = server => {
               : childResultSplited[1].split("Time: ")[1].split("s")[0] * 1000;
           let testExpectedOutput = largeTestCases[i].test_result;
 
-          // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
             largePassedCasesNumber += 1;
             largeTestExecTimeSum += parseFloat(testExecTime);
@@ -411,7 +406,11 @@ socket.init = server => {
             largeExecTimeArr.push(-1);
           }
         } catch (e) {
-          throw e;
+          if (e === 'EXECUTION TIMED OUT' || e === 'OUT OF MEMORY') {
+            console.log('EXECUTION TIMED OUT or OUT OF MEMORY: stop running the code for other large test cases')
+            break;
+          }
+          console.log(e);          
         }
       }
 
@@ -725,10 +724,8 @@ socket.init = server => {
   });
 };
 
-// remove timeout users (1 min with no ping) in onlineUserList
-// check every 60 sec
+// remove timeout users in onlineUserList
 setInterval(async () => {
-  console.log("---------> setInterval");
   // delete users that are idle & not in a match
   matchUtil.deleteTimedOutUsers(
     onlineUsers,
@@ -741,5 +738,11 @@ setInterval(async () => {
     matchController.deleteTimedOutMatches(matchList, matchKey);
   }
 }, 1000 * 10);
+
+setInterval(()=>{
+  console.log('---------> 5 min check',Date.now())
+  console.log("onlineUsers size", onlineUsers.size);
+  console.log("availableUsers", availableUsers);
+}, 1000 * 60 * 5)
 
 module.exports = socket;

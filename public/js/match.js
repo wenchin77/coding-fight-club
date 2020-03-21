@@ -241,7 +241,6 @@ function submitCode() {
     };
     console.log('submit payload', payload)
     socket.emit("submit", payload);
-    localStorage.removeItem('invited_url');
   });
 }
 
