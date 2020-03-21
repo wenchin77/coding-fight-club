@@ -45,7 +45,6 @@ socket.init = server => {
     }
 
     socket.on("online", async token => {
-      console.log("---------> online");
       try {
         // add user in tokenIdMapping & onlineUsers
         const userInfo = await userController.getUserInfo(
@@ -53,14 +52,12 @@ socket.init = server => {
           onlineUsers,
           tokenIdMapping
         );
-        console.log("userInfo", userInfo);
         let user = userInfo.user;
 
         onlineUsers.get(user).time = Date.now();
 
         // add user in availableUsers (update if it already exists)
         availableUsers.add(user);
-        console.log("availableUsers", availableUsers);
 
         // if the invitation's accepted notify the inviter
         if (onlineUsers.get(user).invitation_accepted !== 0) {
@@ -83,14 +80,10 @@ socket.init = server => {
         if (onlineUserDetail.invited.length > 0) {
           let invitations = onlineUserDetail.invited;
           for (let i = 0; i < invitations.length; i++) {
-            console.log("emitting invited...");
+            console.log("emitting invited...", user);
             socket.emit("invited", invitations[i]);
           }
         }
-        console.log("onlineUsers size", onlineUsers.size);
-        console.log("tokenIdMapping size", tokenIdMapping.size);
-        console.log("availableUsers size", availableUsers.size);
-        console.log("matchList size", matchList.size);
       } catch (err) {
         socket.emit("customError", err.message);
         console.log(err);
@@ -745,5 +738,10 @@ setInterval(async () => {
     matchController.deleteTimedOutMatches(matchList, matchKey);
   }
 }, 1000 * 10);
+
+setInterval(()=>{
+  console.log("onlineUsers size", onlineUsers.size);
+  console.log("availableUsers", availableUsers);
+}, 1000 * 60)
 
 module.exports = socket;
