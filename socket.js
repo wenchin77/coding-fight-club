@@ -348,24 +348,23 @@ socket.init = server => {
         matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await matchUtil.runCodeInChildProcess(
+          let childResult = await matchUtil.submitCodeInChildProcess(
             matchKey,
             user,
             difficulty,
             20
           );
 
-          // give sample test case result
+          // compare sample test case result
           let childResultSplited = childResult.split("\n");
           let testOutput = childResultSplited[0];
           let testExpectedOutput = smallTestCases[i].test_result;
 
-          // add sample test result to childResult
           if (testOutput == testExpectedOutput) {
             smallPassedCasesNumber += 1;
           }
         } catch (e) {
-          throw e;
+          console.log(e);          
         }
       }
 
@@ -384,14 +383,14 @@ socket.init = server => {
         matchUtil.setUserCodeFile(matchKey, user, testCaseFinalCode);
         // Run code in child process
         try {
-          let childResult = await matchUtil.runCodeInChildProcess(
+          let childResult = await matchUtil.submitCodeInChildProcess(
             matchKey,
             user,
             difficulty,
             80
           );
 
-          // give sample test case result
+          // compare sample test case result
           let childResultSplited = childResult.split("\n");
           let testOutput = childResultSplited[0];
           // get exec time (check if it's ms or s)
@@ -411,7 +410,7 @@ socket.init = server => {
             largeExecTimeArr.push(-1);
           }
         } catch (e) {
-          throw e;
+          console.log(e)
         }
       }
 
